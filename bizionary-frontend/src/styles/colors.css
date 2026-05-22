@@ -1,0 +1,24 @@
+:root{
+    --grey-50: #F7F8FA;
+    --grey-100: #F1F3F5;
+    --grey-200: #E6E9EE;
+    --grey-300: #D0D5DB;
+    --grey-400: #B9BEC7;
+    --grey-500: #94A0AF;
+    --grey-600: #6E7A86;
+    --grey-700: #47515A;
+    --grey-800: #2C343A;
+    --grey-900: #0B0D10;
+}
+
+/* Utility helpers for non-Tailwind usage */
+.bg-grey-50 { background-color: var(--grey-50); }
+.bg-grey-100 { background-color: var(--grey-100); }
+.bg-grey-200 { background-color: var(--grey-200); }
+.bg-grey-300 { background-color: var(--grey-300); }
+.bg-grey-400 { background-color: var(--grey-400); }
+.bg-grey-500 { background-color: var(--grey-500); }
+.bg-grey-600 { background-color: var(--grey-600); }
+.bg-grey-700 { background-color: var(--grey-700); }
+.bg-grey-800 { background-color: var(--grey-800); }
+.bg-grey-900 { background-color: var(--grey-900); }

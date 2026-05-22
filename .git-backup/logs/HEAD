@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 d0a60a7014cb4c25f728157641d4411c4f80f4d6 Ali <aliasharshafique@gmail.com> 1779466885 -0700	commit (initial): Initial commit from working tree (recreated repo)
+d0a60a7014cb4c25f728157641d4411c4f80f4d6 0000000000000000000000000000000000000000 Ali <aliasharshafique@gmail.com> 1779466886 -0700	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 d0a60a7014cb4c25f728157641d4411c4f80f4d6 Ali <aliasharshafique@gmail.com> 1779466886 -0700	Branch: renamed refs/heads/master to refs/heads/main
+d0a60a7014cb4c25f728157641d4411c4f80f4d6 ba309259ed066f6a78bfe27f8aab3564448fbfa4 Ali <aliasharshafique@gmail.com> 1779467046 -0700	commit: Remove .env from repository

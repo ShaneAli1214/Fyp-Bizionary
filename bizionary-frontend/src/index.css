@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import "./styles/themes.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-primary: #0A6ED1;
+  --color-primary-dark: #0759B0;
+  --color-accent: #00A5FF;
+  --color-white: #FFFFFF;
+  --color-accent-dark: #007ACC;
+  --color-ai-purple: #8b5cf6;
+  --color-background: #FAFBFC; /* slightly off-white for page background */
+  --color-background-light: #FFFFFF;
+  --color-background-dark: #0F172A;
+  --color-surface: #FFFFFF; /* keep card surfaces white for contrast */
+  --color-surface-dark: #0B1220;
+  --color-textMain: #0f172a;
+  --color-textMuted: #94A3B8;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-primary-glow: rgba(79,70,229,0.35);
+}
+
+.dark {
+  --color-background: var(--color-background-dark);
+  --color-surface: var(--color-surface-dark);
+  --color-textMain: #E6EEF8;
+}
+
+/* RGB helpers for rgba utility overrides */
+:root {
+  --color-primary-rgb: 79,70,229;
+  --color-accent-rgb: 6,182,212;
+  --color-surface-rgb: 255,255,255;
+  --color-background-rgb: 248,250,252;
+  --color-background-dark-rgb: 15,23,42;
+  --color-success-rgb: 16,185,129;
+}
+
+/* Global overrides to map common Tailwind light utilities to our design tokens.
+   These are intentionally broad to quickly converge the UI to the final palette.
+   We keep them low-specificity but with !important to ensure consistent visuals.
+*/
+.bg-white { background-color: rgb(var(--color-surface-rgb)) !important; }
+.bg-slate-50, .bg-slate-100 { background-color: rgba(var(--color-surface-rgb), 0.06) !important; }
+.bg-slate-50\/50 { background-color: rgba(var(--color-surface-rgb), 0.06) !important; }
+.bg-slate-200, .bg-slate-300 { background-color: rgba(var(--color-surface-rgb), 0.03) !important; }
+.border-gray-100 { border-color: rgba(var(--color-surface-rgb), 0.12) !important; }
+.border-gray-200 { border-color: rgba(var(--color-surface-rgb), 0.16) !important; }
+.text-slate-900, .text-black { color: var(--color-textMain) !important; }
+.text-slate-100, .text-slate-200, .text-slate-300 { color: var(--color-textMuted) !important; }
+.bg-sky-50, .bg-gray-50 { background-color: rgba(var(--color-surface-rgb), 0.04) !important; }
+.bg-slate-50\/70, .hover\:bg-slate-50\/70 { background-color: rgba(var(--color-surface-rgb), 0.07) !important; }
+.bg-slate-50\/50 { background-color: rgba(var(--color-surface-rgb), 0.05) !important; }
+.bg-primary\/5 { background-color: rgba(var(--color-primary-rgb), 0.06) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.text-cyan-300, .text-cyan-400 { color: var(--color-accent) !important; }
+.bg-slate-100 { background-color: rgba(var(--color-surface-rgb), 0.06) !important; }
+
+/* Dark mode complements */
+.dark .bg-white { background-color: var(--color-surface-dark) !important; }
+.dark .bg-slate-50, .dark .bg-slate-100 { background-color: rgba(var(--color-background-dark-rgb), 0.06) !important; }
+.dark .border-gray-100 { border-color: rgba(255,255,255,0.04) !important; }
+.dark .text-slate-900, .dark .text-black { color: var(--color-textMain) !important; }
+
+/* Topbar / global nav color to match the ERP screenshot */
+:root {
+  --color-topbar: #003A6B;
+  --color-topbar-rgb: 0,58,107;
+}
+
+.topbar {
+  background-color: var(--color-topbar) !important;
+  color: #ffffff !important;
+}
+
+.topbar .search-input {
+  background-color: #ffffff !important;
+  color: var(--color-textMain) !important;
+}
+
+/* Secondary compact nav (below topbar) */
+.secondary-nav-bar { background: var(--color-topbar); box-shadow: 0 2px 6px rgba(2,6,23,0.25); }
+.secondary-nav-link { background: transparent; color: rgba(255,255,255,0.95); border: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.18s ease; }
+.secondary-nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateY(-1px); }
+.secondary-nav-link.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 700; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.06); }
+
+/* Sidebar title and nav improvements */
+.sidebar-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  padding: 0.5rem 1rem;
+}
+
+.sidebar-section {
+  padding-top: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Active nav uses primary brand */
+.nav-active {
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+}
+.nav-active svg { color: #fff !important; }
+
+/* Slightly reduce sidebar link padding for denser layout */
+.sidebar-link { padding: 0.6rem 0.9rem !important; }
+
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-textMain);
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    margin: 0;
+  }
+}
+
+.ai-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-ai-purple) 100%);
+}
+
+.ai-glow {
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.insights-fade-in {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Apps strip and tabs (SAP-like) */
+.apps-strip { background-color: var(--color-surface); }
+.apps-cards { -webkit-overflow-scrolling: touch; }
+
+.apps-cards-compact { display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
+.apps-cards-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; }
+.apps-card { min-width: 180px; flex: 0 0 auto; padding: 12px; border-radius: 10px; }
+.apps-card + .apps-card { margin-left: 0; }
+.apps-card-icon { background: linear-gradient(180deg, rgba(var(--color-primary-rgb),0.9), rgba(10,110,209,0.8)); width: 44px; height: 44px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+.apps-card:hover { transform: translateY(-3px); transition: transform 160ms ease; }
+
+/* Ensure primary action buttons are readable in light mode: make text black */
+:root:not(.dark) .bg-primary.text-white,
+:root:not(.dark) .bg-primary.text-white *,
+:root:not(.dark) button.bg-primary.text-white {
+  color: #000 !important;
+}
+
+@media (min-width: 1280px) {
+  .apps-cards-grid { gap: 1.25rem; }
+}

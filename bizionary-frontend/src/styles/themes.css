@@ -1,0 +1,53 @@
+/* Horizon-inspired theme overrides (semantic tokens)
+   This file defines alternative semantic color tokens under a scope class.
+   Apply by adding the class `theme-horizon` or `theme-horizon-dark` to <html>.
+*/
+
+.theme-horizon {
+  --color-primary: #0A6ED1;
+  --color-primary-dark: #0759B0;
+  --color-accent: #06b6d4;
+  --color-ai-purple: #7e63ff;
+  --color-background: #FAFBFC;
+  --color-background-light: #FFFFFF;
+  --color-background-dark: #071427;
+  --color-surface: #FFFFFF;
+  --color-surface-dark: #0B1220;
+  --color-textMain: #0f172a;
+  --color-textMuted: #6b7280;
+  --color-success: #16a34a;
+  --color-danger: #e11d48;
+  --color-warning: #f59e0b;
+  --color-primary-rgb: 10,110,209;
+  --color-accent-rgb: 6,182,212;
+  --color-surface-rgb: 255,255,255;
+  --color-background-rgb: 250,251,252;
+  --color-topbar: #0A4FA0;
+}
+
+.theme-horizon-dark {
+  --color-primary: #7e63ff;
+  --color-primary-dark: #5b3df0;
+  --color-accent: #06b6d4;
+  --color-ai-purple: #8b5cf6;
+  --color-background: #0b1220;
+  --color-background-light: #0F172A;
+  --color-surface: #0b1220;
+  --color-surface-dark: #020613;
+  --color-textMain: #e6eef8;
+  --color-textMuted: #94a3b8;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-primary-rgb: 126,99,255;
+  --color-accent-rgb: 6,182,212;
+  --color-surface-rgb: 11,18,32;
+  --color-background-rgb: 11,18,32;
+  --color-topbar: #061428;
+}
+
+/* Additional named palettes could be added here following the same pattern.
+   For a full SAP Horizon implementation you can expand each palette with
+   the 9 hue columns and 11 tonal steps; this implementation focuses on
+   semantic tokens to keep the app consistent with Tailwind usage.
+*/
