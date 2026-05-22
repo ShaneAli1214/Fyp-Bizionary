@@ -25,7 +25,8 @@ from decimal import Decimal
 
 from products.models import Product
 from sales.models import Sale
-from purchases.models import Purchase
+from purchases.models import Purchase, OrderedSlip
+from invoices.models import Invoice as BillingInvoice
 
 from .serializers import (
     DashboardKPISerializer,
@@ -40,19 +41,36 @@ def _outstanding_payables_response():
     """Build shared response payload for outstanding company payables."""
     try:
         # Get unpaid and partially paid purchase orders.
-        outstanding_rows = Purchase.objects.select_related('product').filter(
+        purchase_rows = Purchase.objects.select_related('product').filter(
             Q(payment_status='UNPAID') | Q(payment_status='PARTIAL')
         ).values(
             'id',
             'company_name',
             'product__name',
+            'quantity_purchased',
             'total_cost',
             'purchase_date',
             'payment_status'
         ).order_by('purchase_date')
 
+        # Get pending ordered slips (purchase requests)
+        ordered_rows = OrderedSlip.objects.select_related('product').filter(
+            status='PENDING'
+        ).values(
+            'id',
+            'company_name',
+            'product__name',
+            'quantity_ordered',
+            'quantity_received',
+            'unit_cost',
+            'created_at',
+            'status'
+        ).order_by('created_at')
+
         result = []
-        for item in outstanding_rows:
+
+        # Format purchase rows
+        for item in purchase_rows:
             total_cost = item['total_cost'] or Decimal('0.00')
             # Current purchases schema has no paid-amount field.
             # For PARTIAL, use a stable 50% paid assumption for payable balance.
@@ -64,14 +82,38 @@ def _outstanding_payables_response():
 
             result.append({
                 'id': item['id'],
+                'type': 'purchase',
                 'reference_number': f"PO-{str(item['id']).zfill(4)}",
                 'company_name': item['company_name'],
                 'product_name': item['product__name'],
+                'quantity': item.get('quantity_purchased'),
                 'total_amount': total_cost,
                 'amount_paid': amount_paid,
                 'balance': balance,
                 'due_date': item['purchase_date'],
                 'status': item['payment_status'],
+            })
+
+        # Format ordered slip rows
+        for item in ordered_rows:
+            unit_cost = item.get('unit_cost') or Decimal('0.00')
+            ordered_qty = item.get('quantity_ordered') or 0
+            received_qty = item.get('quantity_received') or 0
+            pending_qty = max(ordered_qty - received_qty, 0)
+            total_amount = (unit_cost * Decimal(ordered_qty)).quantize(Decimal('0.01')) if ordered_qty else Decimal('0.00')
+
+            result.append({
+                'id': item['id'],
+                'type': 'ordered_slip',
+                'reference_number': f"OS-{str(item['id']).zfill(4)}",
+                'company_name': item['company_name'],
+                'product_name': item['product__name'],
+                'quantity': pending_qty,
+                'total_amount': total_amount,
+                'amount_paid': Decimal('0.00'),
+                'balance': total_amount,
+                'due_date': None,
+                'status': item['status'],
             })
 
         return Response(result, status=status.HTTP_200_OK)
@@ -135,15 +177,22 @@ def dashboard_kpis(request):
         )
         total_purchases_value = to_2dp(purchases_aggregate['total'])
 
-        # KPI 6: Total purchase orders count (kept in `total_invoices` for API compatibility)
-        total_invoices = Purchase.objects.count()
+        # KPI 6: Total customer invoices
+        total_invoices = BillingInvoice.objects.count()
 
-        # KPI 7: Outstanding payable purchase orders count (kept in `unpaid_invoices` for API compatibility)
-        unpaid_invoices = Purchase.objects.filter(
-            Q(payment_status='UNPAID') | Q(payment_status='PARTIAL')
+        # KPI 7: Pending customer invoices (unpaid, partially paid, or overdue)
+        pending_invoices = BillingInvoice.objects.filter(
+            status__in=['UNPAID', 'PARTIALLY_PAID', 'OVERDUE']
         ).count()
 
-        # KPI 8: Low Stock Products Count (stock_quantity < reorder_level)
+        # KPI 8: Outstanding payable purchase orders (including pending ordered slips)
+        purchase_pending_count = Purchase.objects.filter(
+            Q(payment_status='UNPAID') | Q(payment_status='PARTIAL')
+        ).count()
+        ordered_slips_pending_count = OrderedSlip.objects.filter(status='PENDING').count()
+        pending_company_payables = purchase_pending_count + ordered_slips_pending_count
+
+        # KPI 9: Low Stock Products Count (stock_quantity < reorder_level)
         low_stock_count = Product.objects.filter(
             stock_quantity__lt=F('reorder_level')
         ).count()
@@ -157,13 +206,14 @@ def dashboard_kpis(request):
             'total_revenue': total_revenue,
             'total_purchases_value': total_purchases_value,
 
-            # New explicit names
+            # Explicit names
             'total_purchase_orders': total_invoices,
-            'pending_company_payables': unpaid_invoices,
+            'pending_company_payables': pending_company_payables,
+            'pending_invoices': pending_invoices,
 
             # Legacy names
             'total_invoices': total_invoices,
-            'unpaid_invoices': unpaid_invoices,
+            'unpaid_invoices': pending_invoices,
             'low_stock_count': low_stock_count,
         }
 

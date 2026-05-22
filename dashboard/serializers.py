@@ -50,6 +50,7 @@ class DashboardKPISerializer(serializers.Serializer):
     # New explicit names (preferred)
     total_purchase_orders = serializers.IntegerField(required=False)
     pending_company_payables = serializers.IntegerField(required=False)
+    pending_invoices = serializers.IntegerField(required=False)
 
     # Legacy names kept for backward compatibility
     total_invoices = serializers.IntegerField()

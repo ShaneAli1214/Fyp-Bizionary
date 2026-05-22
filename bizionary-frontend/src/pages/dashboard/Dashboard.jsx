@@ -6,7 +6,7 @@ import ReactECharts from 'echarts-for-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Package, AlertTriangle, Receipt } from 'lucide-react';
+import { Package, AlertTriangle, Receipt, ChevronDown } from 'lucide-react';
 import SalesByProduct from '../../components/dashboard/SalesByProduct';
 import SalesHistory from '../../components/dashboard/SalesHistory';
 // Removed InventoryTurnover, DSOCard, ProductHeatmap per user request
@@ -16,12 +16,14 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState('');
+    const [pendingInvoicesOpen, setPendingInvoicesOpen] = useState(false);
     const [data, setData] = useState({
         kpis: null,
         monthlyPerformance: [],
         dailyPerformance: [],
         recentSales: [],
-        lowStock: []
+        lowStock: [],
+        pendingInvoices: []
     });
 
     useEffect(() => {
@@ -29,20 +31,22 @@ const Dashboard = () => {
             total_revenue: raw.total_revenue ?? 0,
             inventory_value: raw.total_inventory_value ?? 0,
             total_products: raw.total_products ?? 0,
-            unpaid_invoices_count: raw.pending_company_payables ?? raw.unpaid_invoices ?? 0,
+            pending_company_payables_count: raw.pending_company_payables ?? 0,
+            pending_invoices_count: raw.pending_invoices ?? raw.unpaid_invoices ?? 0,
             low_stock_count: raw.low_stock_count ?? 0,
-            total_invoices: raw.total_purchase_orders ?? raw.total_invoices ?? 0,
+            total_invoices: raw.total_invoices ?? raw.total_purchase_orders ?? 0,
         });
 
         const fetchDashboardData = async () => {
             try {
-                const [kpisRes, monthlyRes, salesRes, stockRes] = await Promise.allSettled([
+                const [kpisRes, monthlyRes, salesRes, stockRes, payablesRes] = await Promise.allSettled([
                     api.get('dashboard/kpis/'),
                     api.get('dashboard/sales-performance/', {
                         params: { period: 'monthly' },
                     }),
                     api.get('dashboard/recent-sales/'),
-                    api.get('dashboard/low-stock-products/')
+                    api.get('dashboard/low-stock-products/'),
+                    api.get('dashboard/outstanding-payables/')
                 ]);
 
                 const monthlyPerformance = monthlyRes.status === 'fulfilled' ? monthlyRes.value.data : [];
@@ -77,10 +81,18 @@ const Dashboard = () => {
                     monthlyPerformance,
                     dailyPerformance,
                     recentSales: salesRes.status === 'fulfilled' ? salesRes.value.data : [],
-                    lowStock: stockRes.status === 'fulfilled' ? stockRes.value.data : []
+                    lowStock: stockRes.status === 'fulfilled' ? stockRes.value.data : [],
+                    pendingInvoices: payablesRes.status === 'fulfilled'
+                        ? (payablesRes.value.data || []).map((item) => ({
+                            id: item.id,
+                            product_name: item.product_name,
+                            quantity: item.quantity ?? item.quantity_purchased ?? 0,
+                            balance: item.balance,
+                        }))
+                        : []
                 });
 
-                if ([kpisRes, monthlyRes, salesRes, stockRes].some(r => r.status === 'rejected')) {
+                if ([kpisRes, monthlyRes, salesRes, stockRes, payablesRes].some(r => r.status === 'rejected')) {
                     console.warn('Some dashboard endpoints failed; rendered available data only.');
                 }
             } catch (error) {
@@ -98,7 +110,8 @@ const Dashboard = () => {
                     monthlyPerformance: [],
                     dailyPerformance: [],
                     recentSales: [],
-                    lowStock: []
+                    lowStock: [],
+                    pendingInvoices: []
                 });
             } finally {
                 setLoading(false);
@@ -116,7 +129,7 @@ const Dashboard = () => {
         return <div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
     }
 
-    const { kpis, monthlyPerformance, dailyPerformance, recentSales, lowStock } = data;
+    const { kpis, monthlyPerformance, dailyPerformance, recentSales, lowStock, pendingInvoices } = data;
 
     const latestRevenue = monthlyPerformance[monthlyPerformance.length - 1]?.revenue ?? 0;
     const selectedMonthLabel = selectedMonth || monthlyPerformance[monthlyPerformance.length - 1]?.period || 'N/A';
@@ -220,8 +233,9 @@ const Dashboard = () => {
         prev_revenue: Number(monthlyPerformance[idx - 1]?.revenue || 0)
     }));
 
-    // KPI sparkline sample data
+    // KPI sparkline sample data (safe fallback)
     const sampleSpark = monthlyPerformance.slice(-8).map((r) => ({ value: Number(r.revenue || 0) }));
+    const sampleSparkAvailable = Array.isArray(sampleSpark) && sampleSpark.length > 0;
 
     return (
         <div className="space-y-8">
@@ -245,7 +259,7 @@ const Dashboard = () => {
                     <button className="text-xs text-primary font-semibold">Add Tiles</button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Total Revenue */}
                     <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm">
                         <div className="flex items-start justify-between mb-3">
@@ -253,9 +267,13 @@ const Dashboard = () => {
                                 <div className="text-xs text-textMuted">Total Revenue</div>
                                 <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(kpis.total_revenue)}</div>
                             </div>
-                                <div style={{ width: 110, height: 72 }}>
-                                <ReactECharts option={{ xAxis:{type:'category',show:false,data:sampleSpark.map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: sampleSpark.map(s=>s.value), lineStyle:{color:'#0A6ED1', width:2}, areaStyle:{color:'rgba(10,110,209,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72 }} />
-                            </div>
+                                <div style={{ width: 110, height: 72, maxWidth: '100%' }} className="flex-shrink-0">
+                                    {sampleSparkAvailable ? (
+                                        <ReactECharts option={{ xAxis:{type:'category',show:false,data:sampleSpark.map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: sampleSpark.map(s=>s.value), lineStyle:{color:'#0A6ED1', width:2}, areaStyle:{color:'rgba(10,110,209,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72, maxWidth: '100%' }} />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-textMuted">No recent data</div>
+                                    )}
+                                </div>
                         </div>
                     </div>
 
@@ -266,36 +284,67 @@ const Dashboard = () => {
                                 <div className="text-xs text-textMuted">Low Stock Items</div>
                                 <div className="text-lg font-extrabold text-textMain mt-1">{kpis.low_stock_count}</div>
                             </div>
-                            <div style={{ width: 110, height: 72 }}>
-                                <ReactECharts option={{ xAxis:{type:'category',show:false,data:lowStock.slice(0,6).map((s,i)=>s.product_name||`P${i}`)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> `${params[0].name}: ${params[0].value} units` }, series:[{type:'bar', data: lowStock.slice(0,6).map(s=>s.stock_quantity||0), itemStyle:{color:'#f59e0b'}, barWidth:'60%'}], backgroundColor:'transparent'}} style={{ width: 110, height: 72 }} />
+                            <div style={{ width: 110, height: 72, maxWidth: '100%' }} className="flex-shrink-0">
+                                {Array.isArray(lowStock) && lowStock.length > 0 ? (
+                                    <ReactECharts option={{ xAxis:{type:'category',show:false,data:lowStock.slice(0,6).map((s,i)=>s.product_name||`P${i}`)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> `${params[0].name}: ${params[0].value} units` }, series:[{type:'bar', data: lowStock.slice(0,6).map(s=>s.stock_quantity||0), itemStyle:{color:'#f59e0b'}, barWidth:'60%'}], backgroundColor:'transparent'}} style={{ width: 110, height: 72, maxWidth: '100%' }} />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs text-textMuted">No low-stock items</div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Top Products */}
-                    <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm">
-                        <div className="flex items-start justify-between mb-3">
-                            <div>
-                                <div className="text-xs text-textMuted">Top Products (recent)</div>
-                                <div className="text-lg font-extrabold text-textMain mt-1">{(recentSales.length>0)? recentSales.slice(0,1)[0].product_name : '—'}</div>
-                            </div>
-                            <div style={{ width: 110, height: 72 }}>
-                                <ReactECharts option={{ xAxis:{type:'category',show:false,data: recentSales.slice(0,6).map(s=>s.product_name||'')}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> `${params[0].name}: ${params[0].value}` }, series:[{type:'bar', data: recentSales.slice(0,6).map(s=>s.quantity_sold||1), itemStyle:{color:'#7e63ff'}, barWidth:'60%'}], backgroundColor:'transparent'}} style={{ width: 110, height: 72 }} />
-                            </div>
-                        </div>
-                    </div>
+                    
 
                     {/* Pending Invoices */}
-                    <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm">
+                    <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm relative overflow-visible z-30">
                         <div className="flex items-start justify-between mb-3">
                             <div>
-                                <div className="text-xs text-textMuted">Pending Invoices</div>
-                                <div className="text-lg font-extrabold text-textMain mt-1">{kpis.unpaid_invoices_count}</div>
-                            </div>
-                            <div style={{ width: 110, height: 72 }}>
-                                <ReactECharts option={{ series:[{ type: 'pie', radius: ['60%','80%'], avoidLabelOverlap:false, label:{show:false}, data:[{value:kpis.unpaid_invoices_count, name:'Pending'},{value: Math.max(0, (kpis.total_invoices || 0) - (kpis.unpaid_invoices_count||0)), name:'Others'}], color:['#ef4444','#94a3b8']}], tooltip:{ trigger:'item', formatter: (params)=> `${params.name}: ${params.value}` }, backgroundColor:'transparent' }} style={{ width: 110, height: 72 }} />
+                                <div className="text-xs text-textMuted">Pending Orders</div>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <div className="text-lg font-extrabold text-textMain">{kpis.pending_company_payables_count}</div>
+                                    <button
+                                        type="button"
+                                        aria-expanded={pendingInvoicesOpen}
+                                        aria-label="Toggle pending orders list"
+                                        onClick={() => setPendingInvoicesOpen((open) => !open)}
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-surface/20 bg-background/80 text-textMuted transition hover:bg-surface hover:text-textMain"
+                                    >
+                                        <ChevronDown className={`h-4 w-4 transition-transform ${pendingInvoicesOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
+
+                        {pendingInvoicesOpen && (
+                            <div className="absolute left-4 top-[78px] z-50 w-64 max-w-[calc(100%-2rem)] rounded-xl border border-surface/20 bg-white shadow-lg overflow-hidden">
+                                <div className="px-4 py-2 border-b border-surface/10 bg-white">
+                                    <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                                        <div className="text-sm font-semibold text-textMain">Product Name</div>
+                                        <div className="text-sm font-semibold text-textMain text-right">Quantity</div>
+                                    </div>
+                                </div>
+                                <div className="max-h-56 overflow-y-auto bg-white">
+                                    {pendingInvoices.length > 0 ? (
+                                        pendingInvoices.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="grid grid-cols-[1fr_auto] gap-4 items-center px-4 py-3 text-sm hover:bg-surface/60"
+                                            >
+                                                <div className="min-w-0 whitespace-normal">
+                                                    <div className="font-medium text-textMain break-words">{item.product_name}</div>
+                                                </div>
+                                                <div className="shrink-0 text-right">
+                                                    <div className="font-semibold text-textMain">{item.quantity}</div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-3 text-sm text-textMuted">No pending items found.</div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Recent Activity */}
@@ -305,8 +354,12 @@ const Dashboard = () => {
                                 <div className="text-xs text-textMuted">Recent Sales</div>
                                 <div className="text-lg font-extrabold text-textMain mt-1">{recentSales.length}</div>
                             </div>
-                            <div style={{ width: 110, height: 72 }}>
-                                <ReactECharts option={{ xAxis:{type:'category',show:false,data: recentSales.slice(0,6).map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: recentSales.slice(0,6).map(s=>s.total_price||0), lineStyle:{color:'#06b6d4',width:2}, areaStyle:{color:'rgba(6,182,212,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72 }} />
+                            <div style={{ width: 110, height: 72, maxWidth: '100%' }} className="flex-shrink-0">
+                                {Array.isArray(recentSales) && recentSales.length > 0 ? (
+                                    <ReactECharts option={{ xAxis:{type:'category',show:false,data: recentSales.slice(0,6).map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: recentSales.slice(0,6).map(s=>s.total_price||0), lineStyle:{color:'#06b6d4',width:2}, areaStyle:{color:'rgba(6,182,212,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72, maxWidth: '100%' }} />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs text-textMuted">No recent sales</div>
+                                )}
                             </div>
                         </div>
                     </div>
