@@ -59,8 +59,10 @@ const InventoryManagment = () => {
                 category: item.category,
                 quantity: item.stock_quantity,
                 low_stock_threshold: item.reorder_level,
-                unit_price: item.unit_price,
-                value: Number(item.stock_quantity || 0) * Number(item.unit_price || 0),
+                cost_price: item.cost_price ?? 0,
+                sale_price: item.sale_price ?? item.unit_price ?? 0,
+                stock_status: item.stock_status || (item.stock_quantity <= 0 ? 'Out of Stock' : item.stock_quantity <= item.reorder_level ? 'Low Stock' : 'In Stock'),
+                value: Number(item.stock_quantity || 0) * Number(item.cost_price || 0),
             })));
         } catch (error) {
             console.warn('Failed to fetch stock data from products API.');
@@ -280,15 +282,17 @@ const InventoryManagment = () => {
                             <thead>
                                 <tr className="bg-slate-50 border-b border-gray-100">
                                     <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Product Name & Code</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">In Stock</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Unit Price</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Qty in Hand</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Cost Price</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Sale Price</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Stock Status</th>
                                     <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Total Value</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {section.items.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="px-6 py-8 text-center text-textMuted text-sm">No products in this section.</td>
+                                        <td colSpan="6" className="px-6 py-8 text-center text-textMuted text-sm">No products in this section.</td>
                                     </tr>
                                 ) : section.items.map((item) => (
                                     <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
@@ -312,7 +316,15 @@ const InventoryManagment = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <span className="text-sm text-gray-600 font-medium">{formatPKR(item.unit_price)}</span>
+                                            <span className="text-sm text-gray-600 font-medium">{formatPKR(item.cost_price)}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="text-sm text-gray-600 font-medium">{formatPKR(item.sale_price)}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${item.stock_status === 'Low Stock' ? 'bg-amber-50 text-amber-700 border border-amber-100' : item.stock_status === 'Out of Stock' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                {item.stock_status}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <span className="text-sm font-bold text-emerald-700">{formatPKR(item.value)}</span>

@@ -17,6 +17,7 @@ class Sale(models.Model):
     quantity_sold = models.IntegerField(
         validators=[MinValueValidator(1)]
     )
+    line_items = models.JSONField(default=list, blank=True)
     unit_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -50,6 +51,7 @@ class Sale(models.Model):
         choices=[
             ('CASH', 'Cash'),
             ('CARD', 'Card'),
+            ('EASYPAY_JAZZCASH', 'Easypaisa/Jazz Cash'),
             ('BANK_TRANSFER', 'Bank Transfer'),
             ('OTHER', 'Other'),
         ],
@@ -68,7 +70,12 @@ class Sale(models.Model):
         ]
 
     def __str__(self):
-        return f"Sale #{self.id} - {self.product.name} - Rs.{self.total_price}"
+        if self.line_items:
+            item_count = len(self.line_items)
+            item_label = self.line_items[0].get('product_name') if item_count == 1 else f'{item_count} items'
+        else:
+            item_label = self.product.name
+        return f"Sale #{self.id} - {item_label} - Rs.{self.total_price}"
 
     def save(self, *args, **kwargs):
         """Calculate total_price before saving"""

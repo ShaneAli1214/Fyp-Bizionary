@@ -153,12 +153,12 @@ def dashboard_kpis(request):
         # KPI 1: Total Products Count
         total_products = Product.objects.count()
 
-        # KPI 2: Total Inventory Value (sum of stock_quantity * unit_price)
+        # KPI 2: Total Inventory Value (sum of stock_quantity * cost_price)
         # Using ExpressionWrapper for calculation at database level
         inventory_value_aggregate = Product.objects.aggregate(
             total_value=Sum(
                 ExpressionWrapper(
-                    F('stock_quantity') * F('unit_price'),
+                    F('stock_quantity') * F('cost_price'),
                     output_field=DecimalField(max_digits=15, decimal_places=2)
                 )
             )
@@ -381,6 +381,7 @@ def low_stock_products(request):
             'sku',
             'stock_quantity',
             'reorder_level',
+            'cost_price',
             'unit_price'
         ).order_by('stock_quantity')
 
@@ -393,6 +394,7 @@ def low_stock_products(request):
                 'sku',
                 'stock_quantity',
                 'reorder_level',
+                'cost_price',
                 'unit_price'
             ).order_by('stock_quantity')[:10]
 
@@ -405,8 +407,10 @@ def low_stock_products(request):
                 'product_code': item['sku'],
                 'stock_quantity': item['stock_quantity'],
                 'reorder_level': item['reorder_level'],
+                'cost_price': item['cost_price'],
                 'unit_price': item['unit_price'],
-                'inventory_value': (item['unit_price'] or Decimal('0.00')) * (item['stock_quantity'] or 0),
+                'stock_status': 'Out of Stock' if (item['stock_quantity'] or 0) <= 0 else ('Low Stock' if (item['stock_quantity'] or 0) <= (item['reorder_level'] or 0) else 'In Stock'),
+                'inventory_value': (item['cost_price'] or Decimal('0.00')) * (item['stock_quantity'] or 0),
                 'isReorder': (item['stock_quantity'] or 0) < (item['reorder_level'] or 0),
             })
 

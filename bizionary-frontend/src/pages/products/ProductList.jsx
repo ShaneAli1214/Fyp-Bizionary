@@ -27,7 +27,12 @@ const ProductList = () => {
             const res = await api.get('products/');
             // Support DRF pagination (`results`) or custom `{data: [...]}` shapes
             const productsPayload = res.data?.results || res.data?.data || res.data || [];
-            setProducts(productsPayload);
+            setProducts(productsPayload.map((item) => ({
+                ...item,
+                cost_price: item.cost_price ?? 0,
+                sale_price: item.sale_price ?? item.unit_price ?? 0,
+                stock_status: item.stock_status || (item.stock_quantity <= 0 ? 'Out of Stock' : item.stock_quantity <= item.reorder_level ? 'Low Stock' : 'In Stock'),
+            })));
         } catch (error) {
             console.warn('Failed to fetch products from backend.');
             setProducts([]);
@@ -72,6 +77,9 @@ const ProductList = () => {
                 ...productData,
                 category: normalizedCategory,
                 product_code: productData.product_code,
+                unit_price: Number(productData.sale_price || 0),
+                cost_price: Number(productData.cost_price || 0),
+                sale_price: Number(productData.sale_price || 0),
             };
 
             if (!currentProduct && !payload.product_code) {
@@ -215,8 +223,10 @@ const ProductList = () => {
                                         <tr>
                                             <th className="px-6 py-4 font-semibold">Product Code</th>
                                             <th className="px-6 py-4 font-semibold">Product Name</th>
-                                            <th className="px-6 py-4 font-semibold text-right">Unit Price</th>
+                                            <th className="px-6 py-4 font-semibold text-right">Cost Price</th>
+                                            <th className="px-6 py-4 font-semibold text-right">Sale Price</th>
                                             <th className="px-6 py-4 font-semibold text-center">Stock</th>
+                                            <th className="px-6 py-4 font-semibold text-center">Stock Status</th>
                                             <th className="px-6 py-4 font-semibold text-center">Reorder Lvl</th>
                                             <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                         </tr>
@@ -224,7 +234,7 @@ const ProductList = () => {
                                     <tbody className="divide-y divide-gray-50">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan="8" className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
@@ -237,10 +247,16 @@ const ProductList = () => {
                                                         <div>{p.name}</div>
                                                         <div className="text-[11px] font-medium text-textMuted mt-0.5">{p.subcategory || section.label}</div>
                                                     </td>
-                                                    <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.unit_price)}</td>
+                                                    <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.cost_price)}</td>
+                                                    <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${isLowStock ? 'bg-red-50 text-danger border border-red-100' : 'bg-green-50 text-success border border-green-100'}`}>
                                                             {p.stock_quantity}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.stock_status === 'Low Stock' ? 'bg-amber-50 text-amber-700 border border-amber-100' : p.stock_status === 'Out of Stock' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                            {p.stock_status}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center text-textMuted font-medium">{p.reorder_level}</td>

@@ -13,7 +13,8 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
         subcategory: '',
         stock_quantity: 0,
         reorder_level: 10,
-        unit_price: 0,
+        cost_price: 0,
+        sale_price: 0,
         category: 'Tech',
     });
 
@@ -25,6 +26,8 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                 ...initialData,
                 category: normalizedCategory,
                 subcategory: initialData.subcategory || subcategories[0]?.value || '',
+                cost_price: initialData.cost_price ?? 0,
+                sale_price: initialData.sale_price ?? initialData.unit_price ?? 0,
             });
         } else {
             const defaultCategory = 'Tech';
@@ -37,7 +40,8 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                 subcategory: defaultSubcategory,
                 stock_quantity: 0,
                 reorder_level: 10,
-                unit_price: 0,
+                cost_price: 0,
+                sale_price: 0,
                 category: defaultCategory,
             });
         }
@@ -145,14 +149,28 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price (Rs)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price (Rs)</label>
                                 <input
                                     type="number"
-                                    name="unit_price"
+                                    name="cost_price"
                                     min="0"
                                     step="0.01"
                                     required
-                                    value={formData.unit_price}
+                                    value={formData.cost_price}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Sale Price (Rs)</label>
+                                <input
+                                    type="number"
+                                    name="sale_price"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                    value={formData.sale_price}
                                     onChange={handleChange}
                                     className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />

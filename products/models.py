@@ -12,6 +12,12 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=100, blank=True, null=True)
     subcategory = models.CharField(max_length=150, blank=True, null=True)
+    cost_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
     unit_price = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
@@ -46,6 +52,20 @@ class Product(models.Model):
         return self.stock_quantity < self.reorder_level
 
     @property
+    def stock_status(self):
+        """Return a human-readable stock status."""
+        if self.stock_quantity <= 0:
+            return 'Out of Stock'
+        if self.stock_quantity <= self.reorder_level:
+            return 'Low Stock'
+        return 'In Stock'
+
+    @property
+    def sale_price(self):
+        """Backward-compatible alias for the selling price."""
+        return self.unit_price
+
+    @property
     def inventory_value(self):
-        """Calculate total inventory value for this product"""
-        return self.stock_quantity * self.unit_price
+        """Calculate total inventory value for this product using cost price."""
+        return self.stock_quantity * self.cost_price

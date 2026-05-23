@@ -4,6 +4,7 @@ import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import SaleForm from './SaleForm';
 import SalesCharts from './SalesCharts';
+import SaleSlipModal from './SaleSlipModal';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
 
 const SalesList = () => {
@@ -15,6 +16,17 @@ const SalesList = () => {
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentSale, setCurrentSale] = useState(null);
+    const [saleSlipOpen, setSaleSlipOpen] = useState(false);
+    const [selectedSlipSale, setSelectedSlipSale] = useState(null);
+    const [createdSale, setCreatedSale] = useState(null);
+    const [createMessage, setCreateMessage] = useState('');
+
+    const closeSaleForm = () => {
+        setIsFormOpen(false);
+        setCurrentSale(null);
+        setCreatedSale(null);
+        setCreateMessage('');
+    };
 
     useEffect(() => {
         fetchSales();
@@ -36,15 +48,24 @@ const SalesList = () => {
     };
 
     const handleCreateOrUpdate = async (saleData) => {
+        let savedSale = null;
+
         if (currentSale) {
-            await api.put(`sales/${currentSale.id}/`, saleData);
+            const res = await api.put(`sales/${currentSale.id}/`, saleData);
+            savedSale = res.data?.data || res.data || null;
+            setCreateMessage('Sale updated successfully.');
+            setCreatedSale(null);
+            setIsFormOpen(false);
         } else {
-            await api.post('sales/', saleData);
+            const res = await api.post('sales/', saleData);
+            savedSale = res.data?.data || res.data || null;
+            setCreatedSale(savedSale);
+            setCreateMessage('Sale created successfully. You can now generate the slip.');
         }
+
         await fetchSales();
         // Dispatch event to notify all listeners (especially AI Insights Widget) of sale creation
         window.dispatchEvent(new CustomEvent('saleCreated', { detail: { timestamp: Date.now() } }));
-        setIsFormOpen(false);
         setCurrentSale(null);
     };
 
@@ -59,12 +80,44 @@ const SalesList = () => {
 
     const openAddForm = () => {
         setCurrentSale(null);
+        setCreatedSale(null);
+        setCreateMessage('');
         setIsFormOpen(true);
     };
 
     const openEditForm = (item) => {
         setCurrentSale(item);
+        setCreatedSale(null);
+        setCreateMessage('');
         setIsFormOpen(true);
+    };
+
+    const handleGenerateCreatedSaleSlip = async () => {
+        if (!createdSale) {
+            return;
+        }
+
+        try {
+            const res = await api.get(`sales/${createdSale.id}/`);
+            const salePayload = res.data?.data || res.data || createdSale;
+            setSelectedSlipSale(salePayload);
+            setSaleSlipOpen(true);
+        } catch (error) {
+            setSelectedSlipSale(createdSale);
+            setSaleSlipOpen(true);
+        }
+    };
+
+    const handleViewSlip = async (sale) => {
+        try {
+            const res = await api.get(`sales/${sale.id}/`);
+            const salePayload = res.data?.data || res.data || sale;
+            setSelectedSlipSale(salePayload);
+            setSaleSlipOpen(true);
+        } catch (error) {
+            setSelectedSlipSale(sale);
+            setSaleSlipOpen(true);
+        }
     };
 
     const filteredSales = sales.filter(s =>
@@ -152,7 +205,11 @@ const SalesList = () => {
                                         <td className="px-6 py-4 text-textMuted">{s.sale_date}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{s.customer_name}</td>
                                         <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(s.product_category) || 'N/A'}</td>
-                                        <td className="px-6 py-4 font-bold text-textMain">{s.product_name || `Product ID: ${s.product}`}</td>
+                                        <td className="px-6 py-4 font-bold text-textMain">
+                                            {Array.isArray(s.line_items) && s.line_items.length > 1
+                                                ? `${s.line_items.length} Products`
+                                                : (s.product_name || `Product ID: ${s.product}`)}
+                                        </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100">
                                                 {s.quantity_sold}
@@ -164,6 +221,13 @@ const SalesList = () => {
                                         <td className="px-6 py-4 font-bold text-success text-right">{formatPKR(s.total_price)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-3">
+                                                <button
+                                                    onClick={() => handleViewSlip(s)}
+                                                    className="inline-flex items-center justify-center p-1.5 text-gray-400 hover:text-amber-600 bg-gray-50 hover:bg-amber-50 rounded-lg transition-colors border border-gray-100 hover:border-amber-100"
+                                                    title="View Slip"
+                                                >
+                                                    <Receipt className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => openEditForm(s)}
                                                     className="text-gray-400 hover:text-primary transition-colors"
@@ -198,9 +262,21 @@ const SalesList = () => {
 
             <SaleForm
                 isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
+                onClose={closeSaleForm}
                 onSubmit={handleCreateOrUpdate}
                 initialData={currentSale}
+                createdSale={createdSale}
+                createMessage={createMessage}
+                onGenerateCreatedSaleSlip={handleGenerateCreatedSaleSlip}
+            />
+
+            <SaleSlipModal
+                isOpen={saleSlipOpen}
+                sale={selectedSlipSale}
+                onClose={() => {
+                    setSaleSlipOpen(false);
+                    setSelectedSlipSale(null);
+                }}
             />
         </div>
     );
