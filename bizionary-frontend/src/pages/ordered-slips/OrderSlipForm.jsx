@@ -50,7 +50,8 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, submitting = false, errorMes
     );
 
     const selectedProduct = availableProducts.find((item) => item.id === Number(formData.product));
-    const totalAmount = Number(formData.quantity_ordered || 0) * Number(selectedProduct?.unit_price || 0);
+    const selectedUnitCost = Number(selectedProduct?.cost_price || 0);
+    const totalAmount = Number(formData.quantity_ordered || 0) * selectedUnitCost;
 
     const handleChange = (event) => {
         const { name, value, type } = event.target;
@@ -92,7 +93,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, submitting = false, errorMes
             product: selectedProduct.id,
             company_name: formData.company_name,
             quantity_ordered: Number(formData.quantity_ordered || 0),
-            unit_cost: Number(selectedProduct.unit_price || 0),
+            unit_cost: selectedUnitCost,
             notes: formData.notes,
         });
     };
@@ -163,7 +164,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, submitting = false, errorMes
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
                                     <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-800">
-                                        {selectedProduct ? `Rs ${Number(selectedProduct.unit_price || 0).toLocaleString()}` : 'Select a product'}
+                                        {selectedProduct ? `Rs ${selectedUnitCost.toLocaleString()}` : 'Select a product'}
                                     </div>
                                 </div>
 
