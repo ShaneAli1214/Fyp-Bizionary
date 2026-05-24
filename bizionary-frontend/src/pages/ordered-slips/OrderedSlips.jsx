@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, CheckCircle2, Clock3, Download, Package, Filter } from 'lucide-react';
+import { Plus, Search, CheckCircle2, Clock3, Download, Package, Filter, Trash2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import api from '../../services/api';
 import { formatPKR } from '../../utils/currency';
@@ -73,6 +73,7 @@ const OrderedSlips = () => {
             setFormSuccess('Order slip generated successfully.');
             setIsFormOpen(false);
             await fetchOrderedSlips();
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'created', timestamp: Date.now() } }));
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to generate order slip.'));
         } finally {
@@ -93,6 +94,7 @@ const OrderedSlips = () => {
             await api.post(`purchases/ordered-slips/${id}/mark-partial/`, { quantity_received: quantityReceived });
             await fetchOrderedSlips();
             setFormSuccess('Partial receipt saved and stock updated.');
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'partial-received', slipId: id, timestamp: Date.now() } }));
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to mark partial receipt.'));
         } finally {
@@ -107,8 +109,29 @@ const OrderedSlips = () => {
             await api.post(`purchases/ordered-slips/${id}/mark-complete/`);
             await fetchOrderedSlips();
             setFormSuccess('Slip marked complete and received stamp generated.');
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'completed', slipId: id, timestamp: Date.now() } }));
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to mark slip complete.'));
+        } finally {
+            setBusySlipId(null);
+        }
+    };
+
+    const handleDeleteSlip = async (id) => {
+        const confirmed = window.confirm('Delete this ordered slip? This cannot be undone.');
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setBusySlipId(id);
+            setFormError('');
+            await api.delete(`purchases/ordered-slips/${id}/`);
+            await fetchOrderedSlips();
+            setFormSuccess('Ordered slip deleted successfully.');
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'deleted', slipId: id, timestamp: Date.now() } }));
+        } catch (error) {
+            setFormError(formatApiError(error, 'Failed to delete ordered slip.'));
         } finally {
             setBusySlipId(null);
         }
@@ -477,6 +500,14 @@ const OrderedSlips = () => {
                                     </div>
 
                                     <div className="flex items-center gap-2 flex-wrap">
+                                        <button
+                                            onClick={() => handleDeleteSlip(slip.id)}
+                                            disabled={busySlipId === slip.id}
+                                            className="inline-flex items-center px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                                        >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Delete
+                                        </button>
                                         <button
                                             onClick={() => handleDownload(slip, false)}
                                             className="inline-flex items-center px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-textMain hover:bg-slate-50"

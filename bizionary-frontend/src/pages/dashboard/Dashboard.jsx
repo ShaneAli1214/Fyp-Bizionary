@@ -10,7 +10,6 @@ import { Package, AlertTriangle, Receipt, ChevronDown } from 'lucide-react';
 import SalesByProduct from '../../components/dashboard/SalesByProduct';
 import SalesHistory from '../../components/dashboard/SalesHistory';
 // Removed InventoryTurnover, DSOCard, ProductHeatmap per user request
-import CalendarWidget from '../../components/dashboard/CalendarWidget';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
 
 const Dashboard = () => {
@@ -269,10 +268,6 @@ const Dashboard = () => {
         prev_revenue: Number(monthlyPerformance[idx - 1]?.revenue || 0)
     }));
 
-    // KPI sparkline sample data (safe fallback)
-    const sampleSpark = monthlyPerformance.slice(-8).map((r) => ({ value: Number(r.revenue || 0) }));
-    const sampleSparkAvailable = Array.isArray(sampleSpark) && sampleSpark.length > 0;
-
     return (
         <div className="space-y-8">
             {/* Header/Hero Section */}
@@ -280,9 +275,6 @@ const Dashboard = () => {
                 <div>
                     <h1 className="text-2xl font-extrabold text-textMain dark:text-slate-100">Business Overview</h1>
                     <p className="text-textMuted dark:text-slate-300 text-sm mt-1">Live business snapshot from your current ERP data.</p>
-                </div>
-                <div className="w-full md:w-56">
-                  <CalendarWidget onChange={() => {}} />
                 </div>
             </div>
 
@@ -292,7 +284,6 @@ const Dashboard = () => {
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-textMain">Insights</h3>
-                    <button className="text-xs text-primary font-semibold">Add Tiles</button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -303,13 +294,6 @@ const Dashboard = () => {
                                 <div className="text-xs text-textMuted">Total Revenue</div>
                                 <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(kpis.total_revenue)}</div>
                             </div>
-                                <div style={{ width: 110, height: 72, maxWidth: '100%' }} className="flex-shrink-0">
-                                    {sampleSparkAvailable ? (
-                                        <ReactECharts option={{ xAxis:{type:'category',show:false,data:sampleSpark.map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: sampleSpark.map(s=>s.value), lineStyle:{color:'#0A6ED1', width:2}, areaStyle:{color:'rgba(10,110,209,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72, maxWidth: '100%' }} />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs text-textMuted">No recent data</div>
-                                    )}
-                                </div>
                         </div>
                     </div>
 

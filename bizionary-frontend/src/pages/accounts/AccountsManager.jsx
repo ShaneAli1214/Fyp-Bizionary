@@ -43,6 +43,18 @@ const AccountsManager = () => {
         fetchKpis();
     }, [refreshTrigger]);
 
+    useEffect(() => {
+        const handleOrderedSlipUpdated = () => {
+            triggerRefresh();
+        };
+
+        window.addEventListener('orderedSlipUpdated', handleOrderedSlipUpdated);
+
+        return () => {
+            window.removeEventListener('orderedSlipUpdated', handleOrderedSlipUpdated);
+        };
+    }, []);
+
     const handleAddRecord = () => {
         setSelectedRecord(null);
         setIsModalOpen(true);

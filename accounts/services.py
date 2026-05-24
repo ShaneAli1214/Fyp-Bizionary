@@ -28,10 +28,10 @@ class AccountsService:
     @staticmethod
     def total_expense():
         """
-        Calculate total expenses from operational purchases data
+        Calculate total expenses from the expense ledger
         Returns: Decimal
         """
-        result = Purchase.objects.aggregate(total=Sum('total_cost'))
+        result = Expense.objects.aggregate(total=Sum('amount'))
         return result['total'] or Decimal('0.00')
 
     @staticmethod

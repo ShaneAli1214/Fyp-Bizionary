@@ -4,6 +4,7 @@ from .models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     product_code = serializers.CharField(source='sku')
+    categoryId = serializers.CharField(source='category', required=False, allow_blank=True, allow_null=True)
     sale_price = serializers.DecimalField(source='unit_price', max_digits=10, decimal_places=2)
     is_low_stock = serializers.ReadOnlyField()
     stock_status = serializers.ReadOnlyField()
@@ -17,6 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'product_code',
             'description',
             'category',
+            'categoryId',
             'subcategory',
             'cost_price',
             'unit_price',

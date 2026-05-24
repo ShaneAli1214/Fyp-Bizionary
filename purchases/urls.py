@@ -14,6 +14,8 @@ urlpatterns = [
     # ==================== Purchase CRUD ====================
     path('', views.purchase_list, name='purchase-list'),
     path('<int:pk>/', views.purchase_detail, name='purchase-detail'),
+    path('companies/', views.company_list_create, name='company-list-create'),
+    path('companies/<int:pk>/', views.company_detail_delete, name='company-detail-delete'),
     path('ordered-slips/', views.ordered_slip_list, name='ordered-slip-list'),
     path('ordered-slips/<int:pk>/', views.ordered_slip_detail, name='ordered-slip-detail'),
     path('ordered-slips/<int:pk>/mark-partial/', views.ordered_slip_mark_partial, name='ordered-slip-mark-partial'),

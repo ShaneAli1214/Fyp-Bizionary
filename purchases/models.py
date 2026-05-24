@@ -62,6 +62,28 @@ class Purchase(models.Model):
         super().save(*args, **kwargs)
 
 
+class SupplierCompany(models.Model):
+    """Persisted supplier/company record for custom purchase workflows."""
+
+    name = models.CharField(max_length=255, unique=True)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    contact_number = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'supplier_companies'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['category']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class OrderedSlip(models.Model):
     """Purchase request slip that is sent to a supplier before stock is received."""
 

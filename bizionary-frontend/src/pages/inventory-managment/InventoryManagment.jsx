@@ -2,22 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
-import { Package, Plus, Receipt } from 'lucide-react';
+import { Package, Plus, Receipt, Trash2 } from 'lucide-react';
 import OrderSlipForm from '../ordered-slips/OrderSlipForm';
-import { PRODUCT_CATEGORIES, normalizeProductCategory, getCompanyForCategory } from '../../utils/productCategories';
+import { PRODUCT_CATEGORIES, normalizeProductCategory, getCompanyForCategory, getCategoryPrefix } from '../../utils/productCategories';
+
+const normalizeCategoryKey = (category) => String(category || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
 const InventoryManagment = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [purchasesLoading, setPurchasesLoading] = useState(true);
     const [stockLoading, setStockLoading] = useState(true);
     const [stocks, setStocks] = useState([]);
-    const [purchaseSummary, setPurchaseSummary] = useState([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
     const [selectedOrderSlip, setSelectedOrderSlip] = useState(null);
+    const [formMode, setFormMode] = useState('existing');
+    const [registeredCompanies, setRegisteredCompanies] = useState([]);
 
     const formatApiError = (error, fallbackMessage) => {
         const payload = error?.response?.data;
@@ -72,21 +78,81 @@ const InventoryManagment = () => {
         }
     };
 
+    const fetchRegisteredCompanies = async () => {
+        try {
+            const res = await api.get('purchases/companies/');
+            const companies = res.data?.results || res.data?.data || res.data || [];
+            setRegisteredCompanies(companies);
+        } catch (error) {
+            console.warn('Failed to fetch registered companies from purchases API.');
+            setRegisteredCompanies([]);
+        }
+    };
+
     const handleCreateOrderSlip = async (orderSlipData) => {
         setSubmitting(true);
         setFormError('');
         setFormSuccess('');
 
         try {
-            const payload = {
-                ...orderSlipData,
-                status: 'PENDING',
-            };
+            let response = null;
 
-            const response = await api.post('purchases/ordered-slips/', payload);
+            if (orderSlipData?.mode === 'custom' && orderSlipData.custom_product) {
+                const customProduct = orderSlipData.custom_product;
+                const resolvedCategory = customProduct.category || 'Tech';
+                const resolvedSubcategory = customProduct.subcategory || '';
+                const prefix = getCategoryPrefix(resolvedCategory) || 'CU';
+                const cleanName = String(customProduct.product_name || 'CUSTOM PRODUCT').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
+                const productCode = `${prefix}-${cleanName.slice(0, 16) || 'ITEM'}-${Date.now().toString().slice(-6)}`;
+
+                if (customProduct.company_mode === 'create' || customProduct.company_contact_number) {
+                    await api.post('purchases/companies/', {
+                        name: customProduct.company_name,
+                        category: resolvedCategory,
+                        categoryId: normalizeCategoryKey(customProduct.categoryId || resolvedCategory),
+                        contact_number: customProduct.company_contact_number || '',
+                    });
+                }
+
+                const productPayload = {
+                    product_code: productCode,
+                    name: customProduct.product_name,
+                    category: resolvedCategory,
+                    categoryId: normalizeCategoryKey(customProduct.categoryId || resolvedCategory),
+                    subcategory: resolvedSubcategory,
+                    cost_price: Number(customProduct.cost_price || 0),
+                    unit_price: Number(customProduct.cost_price || 0),
+                    sale_price: Number(customProduct.salePrice || customProduct.sale_price || 0),
+                    stock_quantity: 0,
+                    reorder_level: Number(orderSlipData.quantity_ordered || 1),
+                };
+
+                const createdProduct = await api.post('products/', productPayload);
+                const slipPayload = {
+                    product: createdProduct.data.id,
+                    company_name: orderSlipData.company_name,
+                    company_email: customProduct.company_email || '',
+                    quantity_ordered: Number(orderSlipData.quantity_ordered || 0),
+                    unit_cost: Number(orderSlipData.unit_cost || customProduct.cost_price || 0),
+                    notes: orderSlipData.notes || customProduct.notes || '',
+                    status: 'PENDING',
+                };
+
+                response = await api.post('purchases/ordered-slips/', slipPayload);
+            } else {
+                const payload = {
+                    ...orderSlipData,
+                    status: 'PENDING',
+                };
+
+                response = await api.post('purchases/ordered-slips/', payload);
+            }
+
             setSelectedOrderSlip(response.data);
             setFormSuccess('Order slip generated and email sent.');
             setIsFormOpen(false);
+            fetchRegisteredCompanies();
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'created', timestamp: Date.now() } }));
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to generate order slip.'));
         } finally {
@@ -94,53 +160,35 @@ const InventoryManagment = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchPurchasesSummary = async () => {
-            try {
-                setPurchasesLoading(true);
-                const res = await api.get('purchases/');
-                // Support multiple API response shapes: {results: [...]}, {data: [...]}, or [...]
-                const purchases = res.data?.results || res.data?.data || res.data || [];
+    const handleDeleteCompany = async (companyId) => {
+        const confirmed = window.confirm('Delete this company? This will remove it from the dropdown lists.');
+        if (!confirmed) {
+            return;
+        }
 
-                const grouped = PRODUCT_CATEGORIES.map((category) => {
-                    const company = getCompanyForCategory(category.value);
-                    const records = purchases.filter((item) => normalizeProductCategory(item.product_category) === category.value);
-                    // Calculate total based on CURRENT unit price
-                    // quantity_purchased × current_unit_price (what it's worth today)
-                    const totalBought = records.reduce((sum, item) => {
-                        const qty = Number(item.quantity_purchased || 0);
-                        const currentPrice = Number(item.current_unit_price || 0);
-                        return sum + (qty * currentPrice);
-                    }, 0);
-                    return {
-                        category: category.value,
-                        company,
-                        totalBought,
-                        orders: records.length,
-                    };
-                });
-
-                setPurchaseSummary(grouped);
-            } catch (error) {
-                console.warn('Inventory management purchases summary API call failed.');
-                setPurchaseSummary([]);
-            } finally {
-                setPurchasesLoading(false);
-            }
-        };
-
-        fetchPurchasesSummary();
-    }, []);
+        try {
+            setFormError('');
+            await api.delete(`purchases/companies/${companyId}/`);
+            await fetchRegisteredCompanies();
+            setFormSuccess('Company deleted successfully.');
+        } catch (error) {
+            setFormError(formatApiError(error, 'Failed to delete company.'));
+        }
+    };
 
     useEffect(() => {
         fetchStocks();
     }, []);
 
     useEffect(() => {
-        if (!purchasesLoading && !stockLoading) {
+        fetchRegisteredCompanies();
+    }, []);
+
+    useEffect(() => {
+        if (!stockLoading) {
             setLoading(false);
         }
-    }, [purchasesLoading, stockLoading]);
+    }, [stockLoading]);
 
     if (loading) {
         return (
@@ -153,10 +201,13 @@ const InventoryManagment = () => {
     const stocksByCategory = PRODUCT_CATEGORIES.map((category) => {
         const items = stocks.filter((item) => normalizeProductCategory(item.category) === category.value);
         const totalValue = items.reduce((sum, item) => sum + Number(item.value || 0), 0);
+        const matchingCompanies = registeredCompanies.filter((company) => String(company.categoryId || '').trim() === category.value || normalizeProductCategory(company.category) === category.value || String(company.category || '').trim() === category.value);
+        const displayCompany = matchingCompanies[0]?.name || getCompanyForCategory(category.value);
         return {
             ...category,
             items,
             totalValue,
+            displayCompany,
         };
     });
 
@@ -171,11 +222,24 @@ const InventoryManagment = () => {
 
                     <div className="flex flex-col sm:flex-row gap-2">
                         <button
-                            onClick={() => setIsFormOpen(true)}
+                            onClick={() => {
+                                setFormMode('existing');
+                                setIsFormOpen(true);
+                            }}
                             className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Order Products
+                        </button>
+                        <button
+                            onClick={() => {
+                                setFormMode('custom');
+                                setIsFormOpen(true);
+                            }}
+                            className="inline-flex items-center justify-center px-4 py-2 bg-white text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-all border border-primary/20 shadow-sm"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Quick Add / Custom Order
                         </button>
                         <button
                             onClick={() => navigate('/ordered-slips')}
@@ -211,33 +275,29 @@ const InventoryManagment = () => {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-bold text-textMain">Purchases by Company</h2>
-                        <p className="text-xs text-textMuted mt-1">Business logic: We buy products from these 3 companies in PKR.</p>
+                        <h2 className="text-lg font-bold text-textMain">Registered Companies</h2>
+                        <p className="text-xs text-textMuted mt-1">Delete saved company records from the dropdown source.</p>
                     </div>
-                    <button
-                        onClick={() => navigate('/purchases')}
-                        className="text-xs font-bold text-primary hover:text-primaryDark"
-                    >
-                        View Purchases
-                    </button>
                 </div>
 
                 <div className="divide-y divide-gray-100">
-                    {purchasesLoading && (
-                        <div className="px-6 py-8 text-center text-textMuted text-sm">Loading purchases summary...</div>
+                    {registeredCompanies.length === 0 && (
+                        <div className="px-6 py-8 text-center text-textMuted text-sm">No saved companies found.</div>
                     )}
 
-                    {!purchasesLoading && purchaseSummary.length === 0 && (
-                        <div className="px-6 py-8 text-center text-textMuted text-sm">No purchase records found.</div>
-                    )}
-
-                    {!purchasesLoading && purchaseSummary.map((item) => (
-                        <div key={item.category} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:bg-slate-50/70 transition-colors">
+                    {registeredCompanies.map((company) => (
+                        <div key={company.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50/70 transition-colors">
                             <div>
-                                <p className="text-sm font-bold text-textMain">{item.company}</p>
-                                <p className="text-xs text-textMuted mt-0.5">{item.category} • {item.orders} purchase order(s)</p>
+                                <p className="text-sm font-bold text-textMain">{company.name}</p>
+                                <p className="text-xs text-textMuted mt-0.5">{company.categoryId || company.category || 'Uncategorized'}</p>
                             </div>
-                            <p className="text-sm font-extrabold text-emerald-700">We bought products of {formatPKR(item.totalBought)}</p>
+                            <button
+                                onClick={() => handleDeleteCompany(company.id)}
+                                className="inline-flex items-center px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                            </button>
                         </div>
                     ))}
                 </div>
@@ -266,7 +326,7 @@ const InventoryManagment = () => {
                         <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between gap-4">
                             <div>
                                 <h3 className="text-base font-bold text-textMain">{section.label} Section</h3>
-                                <p className="text-[11px] text-textMuted mt-0.5">Direct Company: {getCompanyForCategory(section.value)}</p>
+                                <p className="text-[11px] text-textMuted mt-0.5">Direct Company: {section.displayCompany || 'Not registered yet'}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[11px] font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
@@ -341,8 +401,10 @@ const InventoryManagment = () => {
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 onSubmit={handleCreateOrderSlip}
+                onCompanySaved={fetchRegisteredCompanies}
                 submitting={submitting}
                 errorMessage={formError}
+                initialMode={formMode}
             />
         </div>
     );

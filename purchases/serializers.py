@@ -1,6 +1,24 @@
 from rest_framework import serializers
-from .models import Purchase, OrderedSlip
+from .models import Purchase, OrderedSlip, SupplierCompany
 from .company_mapping import company_for_category
+
+
+class SupplierCompanySerializer(serializers.ModelSerializer):
+    categoryId = serializers.CharField(source='category', required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = SupplierCompany
+        fields = (
+            'id',
+            'name',
+            'category',
+            'categoryId',
+            'contact_number',
+            'email',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
 class PurchaseSerializer(serializers.ModelSerializer):
