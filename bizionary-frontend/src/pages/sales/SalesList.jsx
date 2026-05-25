@@ -28,6 +28,16 @@ const SalesList = () => {
         setCreateMessage('');
     };
 
+    const emitInventoryRefresh = (source, action) => {
+        window.dispatchEvent(new CustomEvent('inventoryRefreshRequested', {
+            detail: {
+                source,
+                action,
+                timestamp: Date.now(),
+            },
+        }));
+    };
+
     useEffect(() => {
         fetchSales();
     }, []);
@@ -66,6 +76,7 @@ const SalesList = () => {
         await fetchSales();
         // Dispatch event to notify all listeners (especially AI Insights Widget) of sale creation
         window.dispatchEvent(new CustomEvent('saleCreated', { detail: { timestamp: Date.now() } }));
+        emitInventoryRefresh('sales', currentSale ? 'updated' : 'created');
         setCurrentSale(null);
     };
 
@@ -73,6 +84,7 @@ const SalesList = () => {
         try {
             await api.delete(`sales/${id}/`);
             await fetchSales();
+            emitInventoryRefresh('sales', 'deleted');
         } catch (error) {
             alert("Failed to delete sale.");
         }

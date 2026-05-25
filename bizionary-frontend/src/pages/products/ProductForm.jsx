@@ -2,47 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
-import { getSubcategoriesForCategory, getProductsForCategoryAndSubcategory } from '../../utils/productCatalog';
+import { getProductsForCategoryAndSubcategory } from '../../utils/productCatalog';
 
-const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = false, errorMessage = '', getNextProductCode }) => {
+const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = false, errorMessage = '', getNextProductCode, supplierOptions = [] }) => {
     const isEditing = !!initialData;
     const [formData, setFormData] = useState({
         name: '',
         product_code: '',
-        description: '',
-        subcategory: '',
-        stock_quantity: 0,
-        reorder_level: 10,
+        category: 'Tech',
+        brand: '',
+        unit: '',
         cost_price: 0,
         sale_price: 0,
-        category: 'Tech',
+        supplier: '',
+        status: 'ACTIVE',
     });
 
     useEffect(() => {
         if (initialData) {
             const normalizedCategory = normalizeProductCategory(initialData.category) || 'Tech';
-            const subcategories = getSubcategoriesForCategory(normalizedCategory);
             setFormData({
                 ...initialData,
                 category: normalizedCategory,
-                subcategory: initialData.subcategory || subcategories[0]?.value || '',
                 cost_price: initialData.cost_price ?? 0,
                 sale_price: initialData.sale_price ?? initialData.unit_price ?? 0,
+                brand: initialData.brand || '',
+                unit: initialData.unit || '',
+                supplier: initialData.supplier_id || initialData.supplier || '',
+                status: initialData.status || 'ACTIVE',
             });
         } else {
             const defaultCategory = 'Tech';
-            const defaultSubcategory = getSubcategoriesForCategory(defaultCategory)[0]?.value || '';
-            const defaultProduct = getProductsForCategoryAndSubcategory(defaultCategory, defaultSubcategory)[0] || '';
+            const defaultProduct = getProductsForCategoryAndSubcategory(defaultCategory, '')[0] || '';
             setFormData({
                 name: defaultProduct,
                 product_code: getNextProductCode ? getNextProductCode(defaultCategory) : '',
-                description: '',
-                subcategory: defaultSubcategory,
-                stock_quantity: 0,
-                reorder_level: 10,
+                category: defaultCategory,
+                brand: '',
+                unit: '',
                 cost_price: 0,
                 sale_price: 0,
-                category: defaultCategory,
+                supplier: '',
+                status: 'ACTIVE',
             });
         }
     }, [initialData, isOpen, getNextProductCode]);
@@ -52,25 +53,12 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
 
         if (name === 'category' && !isEditing) {
             const normalizedCategory = normalizeProductCategory(value) || 'Tech';
-            const firstSubcategory = getSubcategoriesForCategory(normalizedCategory)[0]?.value || '';
-            const firstProduct = getProductsForCategoryAndSubcategory(normalizedCategory, firstSubcategory)[0] || '';
+            const firstProduct = getProductsForCategoryAndSubcategory(normalizedCategory, '')[0] || '';
             setFormData((prev) => ({
                 ...prev,
                 name: firstProduct || prev.name,
                 category: normalizedCategory,
-                subcategory: firstSubcategory,
                 product_code: getNextProductCode ? getNextProductCode(normalizedCategory) : prev.product_code,
-            }));
-            return;
-        }
-
-        if (name === 'subcategory' && !isEditing) {
-            const currentCategory = formData.category || 'Tech';
-            const firstProduct = getProductsForCategoryAndSubcategory(currentCategory, value)[0] || '';
-            setFormData((prev) => ({
-                ...prev,
-                subcategory: value,
-                name: firstProduct || prev.name,
             }));
             return;
         }
@@ -108,22 +96,16 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                 <input
                                     type="text"
                                     name="name"
-                                    list="catalog-product-names"
                                     required
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                    placeholder="Choose an exact product name"
+                                    placeholder="Enter the master product name"
                                 />
-                                <datalist id="catalog-product-names">
-                                    {getProductsForCategoryAndSubcategory(formData.category, formData.subcategory).map((productName) => (
-                                        <option key={productName} value={productName} />
-                                    ))}
-                                </datalist>
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Code</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Product ID / SKU</label>
                                 <input
                                     type="text"
                                     name="product_code"
@@ -137,46 +119,6 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                             </div>
 
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                <textarea
-                                    name="description"
-                                    rows={2}
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                    placeholder="Brief product description..."
-                                ></textarea>
-                            </div>
-
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price (Rs)</label>
-                                <input
-                                    type="number"
-                                    name="cost_price"
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                    value={formData.cost_price}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                />
-                            </div>
-
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Sale Price (Rs)</label>
-                                <input
-                                    type="number"
-                                    name="sale_price"
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                    value={formData.sale_price}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                />
-                            </div>
-
-                            <div className="col-span-2 sm:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                                 <select
                                     name="category"
@@ -191,44 +133,83 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                                <input
+                                    type="text"
+                                    name="brand"
+                                    value={formData.brand}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    placeholder="Brand name"
+                                />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <input
+                                    type="text"
+                                    name="unit"
+                                    value={formData.unit}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    placeholder="Piece, KG, Liter"
+                                />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (Rs)</label>
+                                <input
+                                    type="number"
+                                    name="cost_price"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                    value={formData.cost_price}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (Rs)</label>
+                                <input
+                                    type="number"
+                                    name="sale_price"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                    value={formData.sale_price}
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
                                 <select
-                                    name="subcategory"
-                                    value={formData.subcategory}
+                                    name="supplier"
+                                    value={formData.supplier || ''}
                                     onChange={handleChange}
                                     className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
                                 >
-                                    <option value="" disabled>Select a sub category...</option>
-                                    {getSubcategoriesForCategory(formData.category).map((option) => (
-                                        <option key={option.value} value={option.value}>{option.value}</option>
+                                    <option value="">No supplier linked</option>
+                                    {supplierOptions.map((supplier) => (
+                                        <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Current Stock</label>
-                                <input
-                                    type="number"
-                                    name="stock_quantity"
-                                    min="0"
-                                    required
-                                    value={formData.stock_quantity}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select
+                                    name="status"
+                                    value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                />
-                            </div>
-
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
-                                <input
-                                    type="number"
-                                    name="reorder_level"
-                                    min="0"
-                                    required
-                                    value={formData.reorder_level}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                />
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                >
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                </select>
                             </div>
 
                         </div>

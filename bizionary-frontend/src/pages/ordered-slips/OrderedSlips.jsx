@@ -20,6 +20,16 @@ const OrderedSlips = () => {
     const [partialQuantities, setPartialQuantities] = useState({});
     const [busySlipId, setBusySlipId] = useState(null);
 
+    const emitInventoryRefresh = (action) => {
+        window.dispatchEvent(new CustomEvent('inventoryRefreshRequested', {
+            detail: {
+                source: 'ordered-slips',
+                action,
+                timestamp: Date.now(),
+            },
+        }));
+    };
+
     const fetchOrderedSlips = async () => {
         try {
             setLoading(true);
@@ -74,6 +84,7 @@ const OrderedSlips = () => {
             setIsFormOpen(false);
             await fetchOrderedSlips();
             window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'created', timestamp: Date.now() } }));
+            emitInventoryRefresh('created');
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to generate order slip.'));
         } finally {
@@ -95,6 +106,7 @@ const OrderedSlips = () => {
             await fetchOrderedSlips();
             setFormSuccess('Partial receipt saved and stock updated.');
             window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'partial-received', slipId: id, timestamp: Date.now() } }));
+            emitInventoryRefresh('partial-received');
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to mark partial receipt.'));
         } finally {
@@ -110,6 +122,7 @@ const OrderedSlips = () => {
             await fetchOrderedSlips();
             setFormSuccess('Slip marked complete and received stamp generated.');
             window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'completed', slipId: id, timestamp: Date.now() } }));
+            emitInventoryRefresh('completed');
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to mark slip complete.'));
         } finally {
@@ -130,6 +143,7 @@ const OrderedSlips = () => {
             await fetchOrderedSlips();
             setFormSuccess('Ordered slip deleted successfully.');
             window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'deleted', slipId: id, timestamp: Date.now() } }));
+            emitInventoryRefresh('deleted');
         } catch (error) {
             setFormError(formatApiError(error, 'Failed to delete ordered slip.'));
         } finally {

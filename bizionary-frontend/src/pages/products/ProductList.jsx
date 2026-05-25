@@ -4,9 +4,11 @@ import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import ProductForm from './ProductForm';
 import { PRODUCT_CATEGORIES, getCategoryPrefix, normalizeProductCategory } from '../../utils/productCategories';
+import { normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
+    const [supplierOptions, setSupplierOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
@@ -19,7 +21,19 @@ const ProductList = () => {
 
     useEffect(() => {
         fetchProducts();
+        fetchSuppliers();
     }, []);
+
+    const fetchSuppliers = async () => {
+        try {
+            const res = await api.get('purchases/companies/');
+            const companies = res.data?.results || res.data?.data || res.data || [];
+            setSupplierOptions(Array.isArray(companies) ? companies : []);
+        } catch (error) {
+            console.warn('Failed to fetch supplier options from backend.');
+            setSupplierOptions([]);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -27,12 +41,7 @@ const ProductList = () => {
             const res = await api.get('products/');
             // Support DRF pagination (`results`) or custom `{data: [...]}` shapes
             const productsPayload = res.data?.results || res.data?.data || res.data || [];
-            setProducts(productsPayload.map((item) => ({
-                ...item,
-                cost_price: item.cost_price ?? 0,
-                sale_price: item.sale_price ?? item.unit_price ?? 0,
-                stock_status: item.stock_status || (item.stock_quantity <= 0 ? 'Out of Stock' : item.stock_quantity <= item.reorder_level ? 'Low Stock' : 'In Stock'),
-            })));
+            setProducts(productsPayload.map((item) => normalizeProductRecord(item)));
         } catch (error) {
             console.warn('Failed to fetch products from backend.');
             setProducts([]);
@@ -74,12 +83,15 @@ const ProductList = () => {
         try {
             const normalizedCategory = normalizeProductCategory(productData.category) || 'Tech';
             const payload = {
-                ...productData,
                 category: normalizedCategory,
                 product_code: productData.product_code,
-                unit_price: Number(productData.sale_price || 0),
+                name: productData.name,
+                brand: productData.brand || '',
+                unit: productData.unit || '',
                 cost_price: Number(productData.cost_price || 0),
-                sale_price: Number(productData.sale_price || 0),
+                unit_price: Number(productData.sale_price || 0),
+                supplier: productData.supplier || null,
+                status: productData.status || 'ACTIVE',
             };
 
             if (!currentProduct && !payload.product_code) {
@@ -87,7 +99,7 @@ const ProductList = () => {
             }
 
             if (currentProduct) {
-                await api.put(`products/${currentProduct.id}/`, payload);
+                await api.patch(`products/${currentProduct.id}/`, payload);
                 setFormSuccess('Product updated successfully.');
             } else {
                 await api.post('products/', payload);
@@ -152,7 +164,8 @@ const ProductList = () => {
 
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.product_code || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (p.product_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.brand || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const productsByCategory = PRODUCT_CATEGORIES.map((categoryItem) => ({
@@ -218,48 +231,57 @@ const ProductList = () => {
                                 </span>
                             </div>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
+                                        <table className="w-full text-sm text-left">
                                     <thead className="bg-white text-textMuted text-xs uppercase tracking-wider border-b border-gray-100">
                                         <tr>
-                                            <th className="px-6 py-4 font-semibold">Product Code</th>
-                                            <th className="px-6 py-4 font-semibold">Product Name</th>
-                                            <th className="px-6 py-4 font-semibold text-right">Cost Price</th>
-                                            <th className="px-6 py-4 font-semibold text-right">Sale Price</th>
-                                            <th className="px-6 py-4 font-semibold text-center">Stock</th>
-                                            <th className="px-6 py-4 font-semibold text-center">Stock Status</th>
-                                            <th className="px-6 py-4 font-semibold text-center">Reorder Lvl</th>
-                                            <th className="px-6 py-4 font-semibold text-center">Actions</th>
+                                                    <th className="px-6 py-4 font-semibold">SKU</th>
+                                                    <th className="px-6 py-4 font-semibold">Product Name</th>
+                                                    <th className="px-6 py-4 font-semibold">Category</th>
+                                                    <th className="px-6 py-4 font-semibold">Brand</th>
+                                                    <th className="px-6 py-4 font-semibold">Unit</th>
+                                                    <th className="px-6 py-4 font-semibold text-right">Purchase Price</th>
+                                                    <th className="px-6 py-4 font-semibold text-right">Selling Price</th>
+                                                    <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
+                                                    <th className="px-6 py-4 font-semibold">Supplier</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Current Stock</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Status</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan="8" className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan="12" className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
                                         ) : section.items.map((p) => {
-                                            const isLowStock = p.stock_quantity <= p.reorder_level;
+                                            const profitMargin = toNumber(p.profit_margin, toNumber(p.sale_price) - toNumber(p.cost_price));
                                             return (
                                                 <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">{p.product_code}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">{p.product_code || p.sku}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain">
                                                         <div>{p.name}</div>
-                                                        <div className="text-[11px] font-medium text-textMuted mt-0.5">{p.subcategory || section.label}</div>
                                                     </td>
+                                                    <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(p.category) || section.label}</td>
+                                                    <td className="px-6 py-4 text-textMuted">{p.brand || '—'}</td>
+                                                    <td className="px-6 py-4 text-textMuted">{p.unit || '—'}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.cost_price)}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
+                                                    <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatPKR(profitMargin)}</td>
+                                                    <td className="px-6 py-4 text-textMuted">
+                                                        {p.supplier_name || supplierOptions.find((supplier) => Number(supplier.id) === Number(p.supplier_id))?.name || '—'}
+                                                    </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${isLowStock ? 'bg-red-50 text-danger border border-red-100' : 'bg-green-50 text-success border border-green-100'}`}>
-                                                            {p.stock_quantity}
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                            {toNumber(p.current_stock)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.stock_status === 'Low Stock' ? 'bg-amber-50 text-amber-700 border border-amber-100' : p.stock_status === 'Out of Stock' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                                                            {p.stock_status}
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.status === 'INACTIVE' ? 'bg-gray-100 text-gray-700 border border-gray-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                            {p.status === 'INACTIVE' ? 'Inactive' : 'Active'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-center text-textMuted font-medium">{p.reorder_level}</td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className="flex items-center justify-center gap-3">
                                                             <button
@@ -305,6 +327,7 @@ const ProductList = () => {
                 submitting={submitting}
                 errorMessage={formError}
                 getNextProductCode={getNextProductCode}
+                supplierOptions={supplierOptions}
             />
         </div>
     );

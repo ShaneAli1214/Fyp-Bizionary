@@ -10,16 +10,12 @@ import { Package, AlertTriangle, Receipt, ChevronDown } from 'lucide-react';
 import SalesByProduct from '../../components/dashboard/SalesByProduct';
 import SalesHistory from '../../components/dashboard/SalesHistory';
 // Removed InventoryTurnover, DSOCard, ProductHeatmap per user request
-import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState('');
-    const [stockThreshold, setStockThreshold] = useState(5);
     const [pendingInvoicesOpen, setPendingInvoicesOpen] = useState(false);
-    const [lowStockOpen, setLowStockOpen] = useState(false);
-    const [openLowStockCategory, setOpenLowStockCategory] = useState('');
     const [data, setData] = useState({
         kpis: null,
         monthlyPerformance: [],
@@ -140,32 +136,6 @@ const Dashboard = () => {
     }
 
     const { kpis, monthlyPerformance, dailyPerformance, recentSales, pendingInvoices } = data;
-    const inventoryProducts = data.inventoryProducts || [];
-    const lowStockItems = inventoryProducts
-        .filter((item) => Number(item?.stock_quantity || 0) <= Number(stockThreshold || 0))
-        .map((item) => ({
-            id: item.id,
-            category: normalizeProductCategory(item.category),
-            product_name: item.name || item.product_name || 'Unnamed product',
-            quantity: Number(item.stock_quantity || item.quantity || 0),
-        }))
-        .filter((item) => item.category)
-        .sort((a, b) => a.category.localeCompare(b.category) || a.product_name.localeCompare(b.product_name));
-
-    const lowStockCategoryOrder = PRODUCT_CATEGORIES.map((category) => category.value);
-    const lowStockGroups = lowStockItems.reduce((accumulator, item) => {
-        const categoryKey = item.category || 'Uncategorized';
-        if (!accumulator[categoryKey]) {
-            accumulator[categoryKey] = [];
-        }
-        accumulator[categoryKey].push(item);
-        return accumulator;
-    }, {});
-    const lowStockCategoryKeys = [
-        ...lowStockCategoryOrder.filter((category) => lowStockGroups[category]?.length),
-        ...Object.keys(lowStockGroups).filter((category) => !lowStockCategoryOrder.includes(category))
-    ];
-
     const latestRevenue = monthlyPerformance[monthlyPerformance.length - 1]?.revenue ?? 0;
     const selectedMonthLabel = selectedMonth || monthlyPerformance[monthlyPerformance.length - 1]?.period || 'N/A';
 
@@ -365,108 +335,6 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Low Stock Items - expanded detail row */}
-            <div className="bg-surface p-5 rounded-xl border border-surface/10 shadow-sm relative overflow-visible z-20">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                        <div className="text-xs text-textMuted uppercase tracking-wide font-semibold">Low Stock Items</div>
-                        <div className="mt-1 flex items-center gap-2">
-                            <div className="text-2xl font-extrabold text-textMain">{lowStockItems.length}</div>
-                            <button
-                                type="button"
-                                aria-expanded={lowStockOpen}
-                                aria-label="Toggle low stock items list"
-                                onClick={() => setLowStockOpen((open) => {
-                                    const next = !open;
-                                    if (!next) {
-                                        setOpenLowStockCategory('');
-                                    }
-                                    return next;
-                                })}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-surface/20 bg-background/80 text-textMuted transition hover:bg-surface hover:text-textMain"
-                            >
-                                <ChevronDown className={`h-4 w-4 transition-transform ${lowStockOpen ? 'rotate-180' : ''}`} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className="hidden md:flex flex-col items-end text-right">
-                        <div className="text-xs text-textMuted">Rule</div>
-                        <div className="flex items-center gap-2 text-sm font-semibold text-textMain">
-                            <span>Stock quantity ≤</span>
-                            <input
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={stockThreshold}
-                                onChange={(event) => setStockThreshold(Math.max(0, Number(event.target.value || 0)))}
-                                className="w-16 rounded-md border border-transparent bg-slate-50 px-2 py-1 text-sm font-semibold text-textMain text-center outline-none transition hover:border-slate-300 focus:border-primary focus:bg-white"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {lowStockOpen && (
-                    <div className="mt-4 rounded-xl border border-surface/20 bg-white shadow-lg overflow-hidden">
-                        <div className="px-4 py-3 border-b border-surface/10 bg-white">
-                            <div className="grid grid-cols-[minmax(180px,220px)_1fr_auto] gap-4 items-center text-sm font-semibold text-textMain">
-                                <div>Category</div>
-                                <div>Product Name</div>
-                                <div className="text-right">Quantity</div>
-                            </div>
-                        </div>
-
-                        <div className="max-h-80 overflow-y-auto bg-white">
-                            {lowStockCategoryKeys.length > 0 ? (
-                                lowStockCategoryKeys.map((categoryKey) => {
-                                    const categoryLabel = PRODUCT_CATEGORIES.find((item) => item.value === categoryKey)?.label || categoryKey;
-                                    const categoryItems = lowStockGroups[categoryKey] || [];
-                                    const isOpen = openLowStockCategory === categoryKey;
-
-                                    return (
-                                        <div key={categoryKey} className="border-b border-surface/10 last:border-b-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => setOpenLowStockCategory((current) => (current === categoryKey ? '' : categoryKey))}
-                                                className="w-full px-4 py-3 text-left hover:bg-surface/60 transition grid grid-cols-[1fr_auto] items-center gap-4"
-                                            >
-                                                <div className="min-w-0">
-                                                    <div className="text-sm font-semibold text-textMain break-words">{categoryLabel}</div>
-                                                    <div className="text-xs text-textMuted mt-0.5">{categoryItems.length} low-stock item{categoryItems.length === 1 ? '' : 's'}</div>
-                                                </div>
-                                                <ChevronDown className={`h-4 w-4 shrink-0 text-textMuted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-
-                                            {isOpen && (
-                                                <div className="border-t border-surface/10 bg-white">
-                                                    {categoryItems.map((item) => (
-                                                        <div
-                                                            key={item.id}
-                                                            className="grid grid-cols-[minmax(180px,220px)_1fr_auto] gap-4 items-center px-4 py-3 text-sm hover:bg-surface/40"
-                                                        >
-                                                            <div className="min-w-0 text-textMuted whitespace-normal break-words">
-                                                                {categoryLabel}
-                                                            </div>
-                                                            <div className="min-w-0 text-textMain font-medium whitespace-normal break-words">
-                                                                {item.product_name}
-                                                            </div>
-                                                            <div className="shrink-0 text-right font-semibold text-rose-700">
-                                                                {item.quantity} in stock
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="px-4 py-4 text-sm text-textMuted">No items are at or below the low-stock threshold.</div>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Custom analytics widgets removed per user request */}
