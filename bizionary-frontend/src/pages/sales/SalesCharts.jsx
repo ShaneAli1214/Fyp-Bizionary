@@ -2,43 +2,79 @@ import React, { useEffect, useState } from 'react';
 import { ResponsiveContainer, ComposedChart, Bar, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import api from '../../services/api';
 import { formatPKR } from '../../utils/currency';
+import { formatDayLabel } from '../../utils/chartDates';
+
+const SALES_START_DATE = '2026-01-01';
+const SALES_END_DATE = '2026-01-30';
 
 const SalesCharts = ({ className }) => {
-  const [monthlyPerformance, setMonthlyPerformance] = useState([]);
+  const [dailyPerformance, setDailyPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+
     const fetchData = async () => {
       try {
-        const res = await api.get('dashboard/sales-performance/', { params: { period: 'monthly' } });
-        if (!cancelled) setMonthlyPerformance(res.data || []);
-      } catch (e) {
-        console.warn('Failed to load sales charts data', e);
+        setLoading(true);
+        const res = await api.get('dashboard/sales-performance/', {
+          params: {
+            period: 'daily',
+            start_date: SALES_START_DATE,
+            end_date: SALES_END_DATE,
+          },
+        });
+        if (!cancelled) {
+          setDailyPerformance(Array.isArray(res.data) ? res.data : []);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDailyPerformance([]);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) return <div className="h-64 flex items-center justify-center">Loading charts...</div>;
-  if (!monthlyPerformance || monthlyPerformance.length === 0) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">No monthly sales data</div>;
+  if (!dailyPerformance || dailyPerformance.length === 0) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">No last 30 days sales data</div>;
 
-  const compData = monthlyPerformance.map((row, idx) => ({
-    period: row.period,
-    revenue: Number(row.revenue || 0),
-    prev_revenue: Number(monthlyPerformance[idx - 1]?.revenue || 0)
-  }));
+  const compData = dailyPerformance.map((row, idx) => {
+    return {
+      period: row.period,
+      label: formatDayLabel(row.period),
+      revenue: Number(row.revenue || 0),
+      prev_revenue: Number(dailyPerformance[idx - 1]?.revenue || 0)
+    };
+  });
 
   return (
     <div className={className}>
+      <div className="mb-3 text-sm font-semibold text-textMain">Last 30 Days Sales Data</div>
       <ResponsiveContainer width="100%" height={360}>
-        <ComposedChart data={compData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+        <ComposedChart data={compData} margin={{ top: 10, right: 12, left: 0, bottom: 28 }}>
           <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e6eef8" />
-          <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} dy={10} />
+          <XAxis
+            dataKey="label"
+            interval={0}
+            angle={-45}
+            textAnchor="end"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tickMargin={10}
+            height={58}
+            dy={10}
+          />
           <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => `Rs ${v / 1000}k`} />
           <Tooltip formatter={(val) => formatPKR(val)} />
           <Bar dataKey="revenue" barSize={18} radius={[8,8,0,0]} fill="#0A6ED1" />

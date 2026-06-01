@@ -86,8 +86,6 @@ const ProductList = () => {
                 category: normalizedCategory,
                 product_code: productData.product_code,
                 name: productData.name,
-                brand: productData.brand || '',
-                unit: productData.unit || '',
                 cost_price: Number(productData.cost_price || 0),
                 unit_price: Number(productData.sale_price || 0),
                 supplier: productData.supplier || null,
@@ -164,8 +162,7 @@ const ProductList = () => {
 
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.product_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.brand || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (p.product_code || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const productsByCategory = PRODUCT_CATEGORIES.map((categoryItem) => ({
@@ -237,12 +234,11 @@ const ProductList = () => {
                                                     <th className="px-6 py-4 font-semibold">SKU</th>
                                                     <th className="px-6 py-4 font-semibold">Product Name</th>
                                                     <th className="px-6 py-4 font-semibold">Category</th>
-                                                    <th className="px-6 py-4 font-semibold">Brand</th>
-                                                    <th className="px-6 py-4 font-semibold">Unit</th>
+                                                    {/* Brand and Unit columns removed */}
                                                     <th className="px-6 py-4 font-semibold text-right">Purchase Price</th>
                                                     <th className="px-6 py-4 font-semibold text-right">Selling Price</th>
                                                     <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
-                                                    <th className="px-6 py-4 font-semibold">Supplier</th>
+                                                    {/* Supplier column removed */}
                                                     <th className="px-6 py-4 font-semibold text-center">Current Stock</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Status</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
@@ -251,7 +247,7 @@ const ProductList = () => {
                                     <tbody className="divide-y divide-gray-50">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan="12" className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan="9" className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
@@ -264,14 +260,10 @@ const ProductList = () => {
                                                         <div>{p.name}</div>
                                                     </td>
                                                     <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(p.category) || section.label}</td>
-                                                    <td className="px-6 py-4 text-textMuted">{p.brand || '—'}</td>
-                                                    <td className="px-6 py-4 text-textMuted">{p.unit || '—'}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.cost_price)}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
                                                     <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatPKR(profitMargin)}</td>
-                                                    <td className="px-6 py-4 text-textMuted">
-                                                        {p.supplier_name || supplierOptions.find((supplier) => Number(supplier.id) === Number(p.supplier_id))?.name || '—'}
-                                                    </td>
+                                                    {/* Supplier cell removed */}
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
                                                             {toNumber(p.current_stock)}

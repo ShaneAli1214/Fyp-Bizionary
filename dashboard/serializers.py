@@ -17,6 +17,15 @@ class TopProductSerializer(serializers.Serializer):
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 
+class ProductSalesProfitabilitySerializer(serializers.Serializer):
+    """Serializer for product sales and profitability table"""
+    product_id = serializers.IntegerField()
+    product_name = serializers.CharField()
+    quantity_sold = serializers.IntegerField()
+    total_sales = serializers.DecimalField(max_digits=15, decimal_places=2)
+    profit_generated = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
 class LowStockProductSerializer(serializers.Serializer):
     """Serializer for low stock products"""
     product_id = serializers.IntegerField()

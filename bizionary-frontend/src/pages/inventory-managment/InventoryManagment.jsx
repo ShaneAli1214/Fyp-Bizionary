@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
-import { ArrowDownRight, ArrowUpRight, AlertTriangle, CircleDollarSign, Package, Plus, Receipt, Trash2, ChevronDown } from 'lucide-react';
+import { ArrowUpRight, AlertTriangle, CircleDollarSign, Package, Plus, Receipt, Trash2, ChevronDown } from 'lucide-react';
 import OrderSlipForm from '../ordered-slips/OrderSlipForm';
-import { buildIncomingQuantityMap, buildInventoryRows, buildReservedQuantityMap, normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
+import { buildIncomingQuantityMap, buildInventoryRows, normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
 import { getCategoryPrefix } from '../../utils/productCategories';
 
 const InventoryManagment = () => {
@@ -22,7 +22,6 @@ const InventoryManagment = () => {
     const [formMode, setFormMode] = useState('existing');
     const [stockThreshold, setStockThreshold] = useState(5);
     const [lowStockOpen, setLowStockOpen] = useState(false);
-    const [outOfStockOpen, setOutOfStockOpen] = useState(false);
     const [openLowStockCategory, setOpenLowStockCategory] = useState('');
 
     const extractList = (payload) => payload?.results || payload?.data || payload || [];
@@ -66,7 +65,8 @@ const InventoryManagment = () => {
             setProducts(productsRes.status === 'fulfilled' ? extractList(productsRes.value.data).map((item) => normalizeProductRecord(item)) : []);
             setSales(salesRes.status === 'fulfilled' ? extractList(salesRes.value.data) : []);
             setOrderedSlips(slipsRes.status === 'fulfilled' ? extractList(slipsRes.value.data) : []);
-            setRegisteredCompanies(companiesRes.status === 'fulfilled' ? extractList(companiesRes.value.data) : []);
+            // Only keep companies that appear to be persisted (have an `id`)
+            setRegisteredCompanies(companiesRes.status === 'fulfilled' ? extractList(companiesRes.value.data).filter((c) => c && (c.id || c.id === 0)) : []);
         } catch (error) {
             console.warn('Failed to fetch inventory data.', error);
             setProducts([]);
@@ -105,8 +105,6 @@ const InventoryManagment = () => {
                     product_code: productCode,
                     name: customProduct.product_name,
                     category: resolvedCategory,
-                    brand: customProduct.brand || '',
-                    unit: customProduct.unit || 'Piece',
                     cost_price: Number(customProduct.cost_price || 0),
                     unit_price: Number(customProduct.cost_price || 0),
                     sale_price: Number(customProduct.salePrice || customProduct.sale_price || 0),
@@ -184,9 +182,8 @@ const InventoryManagment = () => {
         };
     }, []);
 
-    const reservedMap = useMemo(() => buildReservedQuantityMap(sales), [sales]);
     const incomingMap = useMemo(() => buildIncomingQuantityMap(orderedSlips), [orderedSlips]);
-    const inventoryRows = useMemo(() => buildInventoryRows(products, reservedMap, incomingMap), [products, reservedMap, incomingMap]);
+    const inventoryRows = useMemo(() => buildInventoryRows(products, {}, incomingMap), [products, incomingMap]);
 
     const lowStockRows = useMemo(() => inventoryRows
         .filter((item) => Number(item?.available_qty || 0) <= Number(stockThreshold || 0)), [inventoryRows, stockThreshold]);
@@ -201,14 +198,7 @@ const InventoryManagment = () => {
         .filter((item) => item.category)
         .sort((a, b) => a.category.localeCompare(b.category) || a.product_name.localeCompare(b.product_name)), [lowStockRows]);
 
-    const outOfStockRows = useMemo(() => inventoryRows
-        .filter((item) => Number(item?.available_qty || 0) === 0)
-        .map((item) => ({
-            id: item.id,
-            sku: item.sku || item.product_code || '',
-            product_name: item.name || item.product_name || 'Unnamed product',
-        }))
-        .sort((a, b) => a.sku.localeCompare(b.sku) || a.product_name.localeCompare(b.product_name)), [inventoryRows]);
+    
 
     const lowStockGroups = useMemo(() => lowStockItems.reduce((accumulator, item) => {
         const categoryKey = item.category || 'Uncategorized';
@@ -223,24 +213,18 @@ const InventoryManagment = () => {
     const dashboardMetrics = useMemo(() => {
         return inventoryRows.reduce((summary, item) => {
             const availableQty = toNumber(item.available_qty);
-            const reservedQty = toNumber(item.reserved_qty);
             const incomingQty = toNumber(item.incoming_qty);
-            const damagedQty = toNumber(item.damaged_quantity);
 
             summary.totalProducts += 1;
             summary.totalStockValue += toNumber(item.total_value);
-            summary.outOfStock += availableQty <= 0 ? 1 : 0;
+            // outOfStock metric removed per request
             summary.incomingStock += incomingQty;
-            summary.reservedStock += reservedQty;
-            summary.damagedItems += damagedQty;
             return summary;
         }, {
             totalProducts: 0,
             totalStockValue: 0,
-            outOfStock: 0,
+            
             incomingStock: 0,
-            reservedStock: 0,
-            damagedItems: 0,
         });
     }, [inventoryRows]);
 
@@ -248,10 +232,7 @@ const InventoryManagment = () => {
         { title: 'Total Products', value: dashboardMetrics.totalProducts, icon: Package, tone: 'bg-slate-50 text-slate-700 border-slate-200' },
         { title: 'Total Stock Value', value: formatPKR(dashboardMetrics.totalStockValue), icon: CircleDollarSign, tone: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
         { title: 'Low Stock Items', value: lowStockRows.length, icon: AlertTriangle, tone: 'bg-amber-50 text-amber-700 border-amber-100', interactive: true },
-        { title: 'Out of Stock', value: outOfStockRows.length, icon: ArrowDownRight, tone: 'bg-rose-50 text-rose-700 border-rose-100', interactive: true },
         { title: 'Incoming Stock', value: dashboardMetrics.incomingStock, icon: ArrowUpRight, tone: 'bg-sky-50 text-sky-700 border-sky-100' },
-        { title: 'Reserved Stock', value: dashboardMetrics.reservedStock, icon: Package, tone: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
-        { title: 'Damaged Items', value: dashboardMetrics.damagedItems, icon: Trash2, tone: 'bg-slate-50 text-slate-700 border-slate-200' },
     ];
 
     if (loading) {
@@ -268,7 +249,7 @@ const InventoryManagment = () => {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-extrabold text-textMain dark:text-slate-100">Inventory Managment</h1>
-                        <p className="text-textMuted dark:text-slate-300 text-sm mt-1">Operational view for stock availability, reservations, and incoming supply.</p>
+                        <p className="text-textMuted dark:text-slate-300 text-sm mt-1">Operational view for stock availability and incoming supply.</p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -305,63 +286,6 @@ const InventoryManagment = () => {
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {metricCards.map((card) => {
                         const Icon = card.icon;
-                        if (card.title === 'Out of Stock') {
-                            return (
-                                <div key={card.title} className={`rounded-2xl border bg-white p-4 shadow-sm ${card.tone} xl:col-span-2`}>
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <p className="text-xs font-semibold uppercase tracking-wider text-textMuted">{card.title}</p>
-                                            <p className="mt-2 text-2xl font-extrabold text-textMain">{card.value}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            aria-expanded={outOfStockOpen}
-                                            aria-label="Toggle out of stock items list"
-                                            onClick={() => setOutOfStockOpen((open) => !open)}
-                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-surface/20 bg-white/80 text-textMuted transition hover:bg-surface hover:text-textMain"
-                                        >
-                                            <ChevronDown className={`h-4 w-4 transition-transform ${outOfStockOpen ? 'rotate-180' : ''}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="mt-4 text-xs text-textMuted">
-                                        Products with Available QTY equal to 0.
-                                    </div>
-
-                                    {outOfStockOpen && (
-                                        <div className="mt-4 rounded-xl border border-surface/20 bg-white shadow-lg overflow-hidden">
-                                            <div className="px-4 py-3 border-b border-surface/10 bg-white">
-                                                <div className="grid grid-cols-[minmax(140px,180px)_1fr] gap-4 items-center text-sm font-semibold text-textMain">
-                                                    <div>SKU</div>
-                                                    <div>Product Name</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="max-h-56 overflow-y-auto bg-white divide-y divide-surface/10">
-                                                {outOfStockRows.length > 0 ? (
-                                                    outOfStockRows.map((item) => (
-                                                        <div
-                                                            key={item.id}
-                                                            className="grid grid-cols-[minmax(140px,180px)_1fr] gap-4 items-center px-4 py-3 text-sm hover:bg-surface/40"
-                                                        >
-                                                            <div className="min-w-0 text-textMuted font-mono text-xs whitespace-normal break-words">
-                                                                {item.sku}
-                                                            </div>
-                                                            <div className="min-w-0 text-textMain font-medium whitespace-normal break-words">
-                                                                {item.product_name}
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="px-4 py-4 text-sm text-textMuted">No products are currently out of stock.</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        }
-
                         if (card.interactive) {
                             return (
                                 <div key={card.title} className={`rounded-2xl border bg-white p-4 shadow-sm ${card.tone} xl:col-span-2`}>
@@ -508,88 +432,7 @@ const InventoryManagment = () => {
                 </div>
             )}
 
-            <div className="space-y-5">
-                <div className="px-1">
-                    <h2 className="text-lg font-bold text-textMain">Inventory Stock Table</h2>
-                    <p className="text-xs text-textMuted mt-1">Focused on available stock, committed stock, incoming stock, and valuation.</p>
-                </div>
-
-                {inventoryRows.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-8 text-center text-textMuted text-sm">
-                        No stock records found.
-                    </div>
-                ) : lowStockRows.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-8 text-center text-textMuted text-sm">
-                        No items match the selected low-stock threshold.
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between gap-4">
-                            <div>
-                                <h3 className="text-base font-bold text-textMain">Operational Inventory</h3>
-                                <p className="text-[11px] text-textMuted mt-0.5">Showing items at or below the selected low-stock threshold.</p>
-                            </div>
-                            <div className="text-[11px] font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">
-                                {lowStockRows.length} items
-                            </div>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-gray-100">
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">SKU</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Product Name</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Warehouse / Location</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Available QTY</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Reserved QTY</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Incoming QTY</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Cost Price</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Total Value</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {lowStockRows.map((item) => {
-                                        const availableQty = toNumber(item.available_qty);
-                                        const reservedQty = toNumber(item.reserved_qty);
-                                        const incomingQty = toNumber(item.incoming_qty);
-                                        const lowStock = availableQty <= Number(stockThreshold || 0);
-
-                                        return (
-                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">{item.sku || item.product_code}</td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded bg-slate-100 flex flex-shrink-0 items-center justify-center text-slate-400">
-                                                            <Package className="w-4 h-4" />
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="text-sm font-bold text-textMain truncate">{item.name}</p>
-                                                            <p className="text-[10px] text-textMuted font-bold uppercase mt-0.5">{item.category || 'Uncategorized'}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-textMuted">{item.warehouse}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${lowStock ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                                                        {availableQty}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-center text-sm font-semibold text-textMuted">{reservedQty}</td>
-                                                <td className="px-6 py-4 text-center text-sm font-semibold text-textMuted">{incomingQty}</td>
-                                                <td className="px-6 py-4 text-right text-sm text-gray-600 font-medium">{formatPKR(item.cost_price)}</td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <span className="text-sm font-bold text-emerald-700">{formatPKR(item.total_value)}</span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {/* Inventory Stock Table removed */}
 
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">

@@ -10,8 +10,6 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
         name: '',
         product_code: '',
         category: 'Tech',
-        brand: '',
-        unit: '',
         cost_price: 0,
         sale_price: 0,
         supplier: '',
@@ -26,8 +24,6 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                 category: normalizedCategory,
                 cost_price: initialData.cost_price ?? 0,
                 sale_price: initialData.sale_price ?? initialData.unit_price ?? 0,
-                brand: initialData.brand || '',
-                unit: initialData.unit || '',
                 supplier: initialData.supplier_id || initialData.supplier || '',
                 status: initialData.status || 'ACTIVE',
             });
@@ -38,8 +34,6 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                 name: defaultProduct,
                 product_code: getNextProductCode ? getNextProductCode(defaultCategory) : '',
                 category: defaultCategory,
-                brand: '',
-                unit: '',
                 cost_price: 0,
                 sale_price: 0,
                 supplier: '',
@@ -132,29 +126,7 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                 </select>
                             </div>
 
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                                <input
-                                    type="text"
-                                    name="brand"
-                                    value={formData.brand}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                    placeholder="Brand name"
-                                />
-                            </div>
-
-                            <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                                <input
-                                    type="text"
-                                    name="unit"
-                                    value={formData.unit}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                    placeholder="Piece, KG, Liter"
-                                />
-                            </div>
+                            {/* Brand and Unit fields removed */}
 
                             <div className="col-span-2 sm:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (Rs)</label>

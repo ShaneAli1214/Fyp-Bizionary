@@ -18,10 +18,12 @@ Performance Strategy:
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Sum, Count, F, Q, ExpressionWrapper, DecimalField
+from django.db.models import Sum, Count, Max, F, Q, ExpressionWrapper, DecimalField
 from django.db.models.functions import TruncMonth, TruncDay, ExtractMonth, ExtractYear
 from django.utils.dateparse import parse_date
+from django.utils import timezone
 from decimal import Decimal
+from datetime import timedelta
 
 from products.models import Product
 from sales.models import Sale
@@ -192,9 +194,9 @@ def dashboard_kpis(request):
         ordered_slips_pending_count = OrderedSlip.objects.filter(status='PENDING').count()
         pending_company_payables = purchase_pending_count + ordered_slips_pending_count
 
-        # KPI 9: Low Stock Products Count (stock_quantity < reorder_level)
+        # KPI 9: Low Stock Products Count (stock_quantity < min_stock)
         low_stock_count = Product.objects.filter(
-            stock_quantity__lt=F('reorder_level')
+            stock_quantity__lt=F('min_stock')
         ).count()
 
         # Note: Account balance removed - Screen 4 (Accounts) is independent
@@ -372,20 +374,20 @@ def low_stock_products(request):
         ]
     """
     try:
-        # Primary set: products below reorder level.
+        # Primary set: products below minimum stock threshold.
         low_stock = Product.objects.filter(
-            stock_quantity__lt=F('reorder_level')
+            stock_quantity__lt=F('min_stock')
         ).values(
             'id',
             'name',
             'sku',
             'stock_quantity',
-            'reorder_level',
+            'min_stock',
             'cost_price',
             'unit_price'
         ).order_by('stock_quantity')
 
-        # If nothing is currently below reorder level, return lowest-stock products
+        # If nothing is currently below the minimum stock threshold, return lowest-stock products
         # so the dashboard summary is still informative instead of empty.
         if not low_stock.exists():
             low_stock = Product.objects.values(
@@ -393,7 +395,7 @@ def low_stock_products(request):
                 'name',
                 'sku',
                 'stock_quantity',
-                'reorder_level',
+                'min_stock',
                 'cost_price',
                 'unit_price'
             ).order_by('stock_quantity')[:10]
@@ -406,12 +408,12 @@ def low_stock_products(request):
                 'product_name': item['name'],
                 'product_code': item['sku'],
                 'stock_quantity': item['stock_quantity'],
-                'reorder_level': item['reorder_level'],
+                'reorder_level': item['min_stock'],
                 'cost_price': item['cost_price'],
                 'unit_price': item['unit_price'],
-                'stock_status': 'Out of Stock' if (item['stock_quantity'] or 0) <= 0 else ('Low Stock' if (item['stock_quantity'] or 0) <= (item['reorder_level'] or 0) else 'In Stock'),
+                'stock_status': 'Out of Stock' if (item['stock_quantity'] or 0) <= 0 else ('Low Stock' if (item['stock_quantity'] or 0) <= (item['min_stock'] or 0) else 'In Stock'),
                 'inventory_value': (item['cost_price'] or Decimal('0.00')) * (item['stock_quantity'] or 0),
-                'isReorder': (item['stock_quantity'] or 0) < (item['reorder_level'] or 0),
+                'isReorder': (item['stock_quantity'] or 0) < (item['min_stock'] or 0),
             })
 
         serializer = LowStockProductSerializer(result, many=True)
@@ -436,6 +438,8 @@ def recent_sales(request):
     
     Query Parameters:
         - limit (optional): Number of sales to return (default: 10)
+        - start_date (optional): Lower bound date YYYY-MM-DD
+        - end_date (optional): Upper bound date YYYY-MM-DD
     
     Response:
         [
@@ -452,9 +456,31 @@ def recent_sales(request):
     """
     try:
         limit = int(request.query_params.get('limit', 10))
+        start_date = request.query_params.get('start_date', None)
+        end_date = request.query_params.get('end_date', None)
+
+        queryset = Sale.objects.select_related('product')
+
+        if start_date:
+            parsed_start_date = parse_date(start_date)
+            if not parsed_start_date:
+                return Response(
+                    {'error': 'Invalid start_date format. Use YYYY-MM-DD.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            queryset = queryset.filter(sale_date__gte=parsed_start_date)
+
+        if end_date:
+            parsed_end_date = parse_date(end_date)
+            if not parsed_end_date:
+                return Response(
+                    {'error': 'Invalid end_date format. Use YYYY-MM-DD.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            queryset = queryset.filter(sale_date__lte=parsed_end_date)
 
         # Use only stable sale fields so this endpoint works across schema variants.
-        recent_sales_data = Sale.objects.select_related('product').values(
+        recent_sales_data = queryset.values(
             'id',
             'product__name',
             'quantity_sold',
@@ -533,6 +559,8 @@ def sales_performance(request):
     
     Query Parameters:
         - period (optional): 'daily' or 'monthly' (default: 'monthly')
+        - timeframe (optional): '30days' to auto-apply last 30 days (daily)
+        - range (optional): 'last30' alias for timeframe
         - year (optional): Filter by specific year
         - date (optional): Filter by exact date YYYY-MM-DD
         - start_date (optional): Lower bound date YYYY-MM-DD
@@ -546,10 +574,20 @@ def sales_performance(request):
     """
     try:
         period = request.query_params.get('period', 'monthly').lower()
+        timeframe = request.query_params.get('timeframe', '').strip().lower()
+        range_filter = request.query_params.get('range', '').strip().lower()
         year_filter = request.query_params.get('year', None)
         specific_date = request.query_params.get('date', None)
         start_date = request.query_params.get('start_date', None)
         end_date = request.query_params.get('end_date', None)
+        parsed_start_date = None
+        parsed_end_date = None
+
+        if (timeframe in ('30days', 'last30', '30d') or range_filter == 'last30') and not start_date and not end_date:
+            parsed_end_date = timezone.localdate()
+            parsed_start_date = parsed_end_date - timedelta(days=29)
+            start_date = parsed_start_date.isoformat()
+            end_date = parsed_end_date.isoformat()
 
         queryset = Sale.objects.all()
         
@@ -566,7 +604,7 @@ def sales_performance(request):
             queryset = queryset.filter(sale_date=parsed_specific_date)
 
         if start_date:
-            parsed_start_date = parse_date(start_date)
+            parsed_start_date = parsed_start_date or parse_date(start_date)
             if not parsed_start_date:
                 return Response(
                     {'error': 'Invalid start_date format. Use YYYY-MM-DD.'},
@@ -575,7 +613,7 @@ def sales_performance(request):
             queryset = queryset.filter(sale_date__gte=parsed_start_date)
 
         if end_date:
-            parsed_end_date = parse_date(end_date)
+            parsed_end_date = parsed_end_date or parse_date(end_date)
             if not parsed_end_date:
                 return Response(
                     {'error': 'Invalid end_date format. Use YYYY-MM-DD.'},
@@ -605,12 +643,34 @@ def sales_performance(request):
             )
 
         result = []
-        for item in performance_data:
-            result.append({
-                'period': item['period_date'].strftime('%Y-%m-%d') if period == 'daily' and item['period_date'] else item['period_date'].strftime('%Y-%m') if item['period_date'] else 'N/A',
-                'total_sales': item['total_sales'],
-                'revenue': item['revenue']
-            })
+
+        if period == 'daily' and parsed_start_date and parsed_end_date:
+            aggregated_by_day = {}
+            for item in performance_data:
+                if not item['period_date']:
+                    continue
+                key = item['period_date'].date() if hasattr(item['period_date'], 'date') else item['period_date']
+                aggregated_by_day[key] = {
+                    'total_sales': item['total_sales'],
+                    'revenue': item['revenue'] or Decimal('0.00')
+                }
+
+            cursor = parsed_start_date
+            while cursor <= parsed_end_date:
+                day_values = aggregated_by_day.get(cursor, {'total_sales': 0, 'revenue': Decimal('0.00')})
+                result.append({
+                    'period': cursor.strftime('%Y-%m-%d'),
+                    'total_sales': day_values['total_sales'],
+                    'revenue': day_values['revenue']
+                })
+                cursor += timedelta(days=1)
+        else:
+            for item in performance_data:
+                result.append({
+                    'period': item['period_date'].strftime('%Y-%m-%d') if period == 'daily' and item['period_date'] else item['period_date'].strftime('%Y-%m') if item['period_date'] else 'N/A',
+                    'total_sales': item['total_sales'],
+                    'revenue': item['revenue']
+                })
 
         return Response(result, status=status.HTTP_200_OK)
 

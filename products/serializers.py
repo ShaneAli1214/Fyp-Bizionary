@@ -26,8 +26,6 @@ class ProductSerializer(serializers.ModelSerializer):
             'category',
             'categoryId',
             'subcategory',
-            'brand',
-            'unit',
             'cost_price',
             'unit_price',
             'sale_price',

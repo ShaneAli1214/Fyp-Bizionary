@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
+    AreaChart, Area, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import ReactECharts from 'echarts-for-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
-import { useNavigate } from 'react-router-dom';
-import { Package, AlertTriangle, Receipt, ChevronDown } from 'lucide-react';
-import SalesByProduct from '../../components/dashboard/SalesByProduct';
+import { ChevronDown } from 'lucide-react';
 import SalesHistory from '../../components/dashboard/SalesHistory';
 // Removed InventoryTurnover, DSOCard, ProductHeatmap per user request
 
+const SALES_START_DATE = '2026-01-01';
+const SALES_END_DATE = '2026-01-30';
+
 const Dashboard = () => {
-    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [selectedMonth, setSelectedMonth] = useState('');
     const [pendingInvoicesOpen, setPendingInvoicesOpen] = useState(false);
+    const [salesLoading, setSalesLoading] = useState(true);
     const [data, setData] = useState({
         kpis: null,
-        monthlyPerformance: [],
+        inventoryProducts: [],
+        pendingInvoices: [],
         dailyPerformance: [],
         recentSales: [],
-        inventoryProducts: [],
-        pendingInvoices: []
     });
 
     useEffect(() => {
@@ -43,48 +42,30 @@ const Dashboard = () => {
 
         const fetchDashboardData = async () => {
             try {
-                const [kpisRes, monthlyRes, salesRes, productsRes, payablesRes] = await Promise.allSettled([
+                const [kpisRes, productsRes, payablesRes, performanceRes, recentSalesRes] = await Promise.allSettled([
                     api.get('dashboard/kpis/'),
-                    api.get('dashboard/sales-performance/', {
-                        params: { period: 'monthly' },
-                    }),
-                    api.get('dashboard/recent-sales/'),
                     api.get('products/'),
-                    api.get('dashboard/outstanding-payables/')
-                ]);
-
-                const monthlyPerformance = monthlyRes.status === 'fulfilled' ? monthlyRes.value.data : [];
-                const monthToDisplay = selectedMonth || monthlyPerformance[monthlyPerformance.length - 1]?.period || '';
-
-                if (!selectedMonth && monthToDisplay) {
-                    setSelectedMonth(monthToDisplay);
-                }
-
-                let dailyPerformance = [];
-                if (/^\d{4}-\d{2}$/.test(monthToDisplay)) {
-                    const [yearStr, monthStr] = monthToDisplay.split('-');
-                    const year = Number(yearStr);
-                    const month = Number(monthStr);
-                    const from = new Date(year, month - 1, 1).toISOString().split('T')[0];
-                    const to = new Date(year, month, 0).toISOString().split('T')[0];
-
-                    const dailyRes = await api.get('dashboard/sales-performance/', {
+                    api.get('dashboard/outstanding-payables/'),
+                    api.get('dashboard/sales-performance/', {
                         params: {
                             period: 'daily',
-                            start_date: from,
-                            end_date: to,
+                            start_date: SALES_START_DATE,
+                            end_date: SALES_END_DATE,
                         },
-                    });
-                    dailyPerformance = dailyRes.data || [];
-                }
+                    }),
+                    api.get('dashboard/recent-sales/', {
+                        params: {
+                            start_date: SALES_START_DATE,
+                            end_date: SALES_END_DATE,
+                            limit: 500,
+                        },
+                    }),
+                ]);
 
                 setData({
                     kpis: {
                         ...normalizeKpis(kpisRes.status === 'fulfilled' ? kpisRes.value.data : {}),
                     },
-                    monthlyPerformance,
-                    dailyPerformance,
-                    recentSales: salesRes.status === 'fulfilled' ? salesRes.value.data : [],
                     inventoryProducts: productsRes.status === 'fulfilled' ? normalizeProducts(productsRes.value.data) : [],
                     pendingInvoices: payablesRes.status === 'fulfilled'
                         ? (payablesRes.value.data || []).map((item) => ({
@@ -95,10 +76,12 @@ const Dashboard = () => {
                             quantity: item.quantity ?? item.quantity_purchased ?? 0,
                             balance: item.balance,
                         }))
-                        : []
+                        : [],
+                    dailyPerformance: performanceRes.status === 'fulfilled' ? (performanceRes.value.data || []) : [],
+                    recentSales: recentSalesRes.status === 'fulfilled' ? (recentSalesRes.value.data || []) : [],
                 });
 
-                if ([kpisRes, monthlyRes, salesRes, productsRes, payablesRes].some(r => r.status === 'rejected')) {
+                if ([kpisRes, productsRes, payablesRes, performanceRes, recentSalesRes].some(r => r.status === 'rejected')) {
                     console.warn('Some dashboard endpoints failed; rendered available data only.');
                 }
             } catch (error) {
@@ -113,14 +96,14 @@ const Dashboard = () => {
                         low_stock_count: 0,
                         total_invoices: 0,
                     },
-                    monthlyPerformance: [],
+                    inventoryProducts: [],
+                    pendingInvoices: [],
                     dailyPerformance: [],
                     recentSales: [],
-                    inventoryProducts: [],
-                    pendingInvoices: []
                 });
             } finally {
                 setLoading(false);
+                setSalesLoading(false);
             }
         };
 
@@ -129,15 +112,17 @@ const Dashboard = () => {
         // Keep dashboard data in sync and recover automatically if backend starts later.
         const refreshTimer = setInterval(fetchDashboardData, 15000);
         return () => clearInterval(refreshTimer);
-    }, [selectedMonth]);
+    }, []);
 
-    if (loading) {
+    const { kpis, pendingInvoices, dailyPerformance, recentSales } = data;
+    const totalRevenue30d = useMemo(
+        () => dailyPerformance.reduce((sum, row) => sum + Number(row?.revenue || 0), 0),
+        [dailyPerformance]
+    );
+
+    if (loading || salesLoading) {
         return <div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
     }
-
-    const { kpis, monthlyPerformance, dailyPerformance, recentSales, pendingInvoices } = data;
-    const latestRevenue = monthlyPerformance[monthlyPerformance.length - 1]?.revenue ?? 0;
-    const selectedMonthLabel = selectedMonth || monthlyPerformance[monthlyPerformance.length - 1]?.period || 'N/A';
 
     const weekdayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const weekdayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -223,21 +208,6 @@ const Dashboard = () => {
         return null;
     };
 
-    const handleMonthlyPointClick = (state) => {
-        const monthKey = state?.activeLabel || state?.activePayload?.[0]?.payload?.period;
-        if (!monthKey || !/^\d{4}-\d{2}$/.test(monthKey)) {
-            return;
-        }
-        setSelectedMonth(monthKey);
-    };
-
-    // Prepare series for comparison: revenue vs previous revenue
-    const compData = monthlyPerformance.map((row, idx) => ({
-        period: row.period,
-        revenue: Number(row.revenue || 0),
-        prev_revenue: Number(monthlyPerformance[idx - 1]?.revenue || 0)
-    }));
-
     return (
         <div className="space-y-8">
             {/* Header/Hero Section */}
@@ -262,7 +232,7 @@ const Dashboard = () => {
                         <div className="flex items-start justify-between mb-3">
                             <div>
                                 <div className="text-xs text-textMuted">Total Revenue</div>
-                                <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(kpis.total_revenue)}</div>
+                                <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(totalRevenue30d)}</div>
                             </div>
                         </div>
                     </div>
@@ -337,18 +307,10 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Custom analytics widgets removed per user request */}
-
-            {/* Analytics charts removed as requested */}
-
-            {/* Bottom widgets replaced with simpler sales visualizations */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <SalesHistory monthlyPerformance={monthlyPerformance} />
-                </div>
-
-                <div className="lg:col-span-1">
-                    <SalesByProduct recentSales={recentSales} />
+            {/* Bottom sales visualization */}
+            <div className="grid grid-cols-1 gap-6">
+                <div>
+                    <SalesHistory dailyPerformance={dailyPerformance} />
                 </div>
             </div>
         </div>
