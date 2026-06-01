@@ -1,27 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-    AreaChart, Area, Tooltip, ResponsiveContainer,
-} from 'recharts';
-import ReactECharts from 'echarts-for-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import { ChevronDown } from 'lucide-react';
-import SalesHistory from '../../components/dashboard/SalesHistory';
-// Removed InventoryTurnover, DSOCard, ProductHeatmap per user request
-
-const SALES_START_DATE = '2026-01-01';
-const SALES_END_DATE = '2026-01-30';
+import RecentSalesTile from '../../components/dashboard/RecentSalesTile';
+import SalesPerformanceChart from '../../components/dashboard/SalesPerformanceChart';
+import useSalesInsights from '../../hooks/useSalesInsights';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [pendingInvoicesOpen, setPendingInvoicesOpen] = useState(false);
-    const [salesLoading, setSalesLoading] = useState(true);
+    const { periodOptions, selectedPeriod, setSelectedPeriod, selectedData } = useSalesInsights();
     const [data, setData] = useState({
         kpis: null,
         inventoryProducts: [],
         pendingInvoices: [],
-        dailyPerformance: [],
-        recentSales: [],
     });
 
     useEffect(() => {
@@ -42,24 +34,10 @@ const Dashboard = () => {
 
         const fetchDashboardData = async () => {
             try {
-                const [kpisRes, productsRes, payablesRes, performanceRes, recentSalesRes] = await Promise.allSettled([
+                const [kpisRes, productsRes, payablesRes] = await Promise.allSettled([
                     api.get('dashboard/kpis/'),
                     api.get('products/'),
                     api.get('dashboard/outstanding-payables/'),
-                    api.get('dashboard/sales-performance/', {
-                        params: {
-                            period: 'daily',
-                            start_date: SALES_START_DATE,
-                            end_date: SALES_END_DATE,
-                        },
-                    }),
-                    api.get('dashboard/recent-sales/', {
-                        params: {
-                            start_date: SALES_START_DATE,
-                            end_date: SALES_END_DATE,
-                            limit: 500,
-                        },
-                    }),
                 ]);
 
                 setData({
@@ -77,11 +55,9 @@ const Dashboard = () => {
                             balance: item.balance,
                         }))
                         : [],
-                    dailyPerformance: performanceRes.status === 'fulfilled' ? (performanceRes.value.data || []) : [],
-                    recentSales: recentSalesRes.status === 'fulfilled' ? (recentSalesRes.value.data || []) : [],
                 });
 
-                if ([kpisRes, productsRes, payablesRes, performanceRes, recentSalesRes].some(r => r.status === 'rejected')) {
+                if ([kpisRes, productsRes, payablesRes].some(r => r.status === 'rejected')) {
                     console.warn('Some dashboard endpoints failed; rendered available data only.');
                 }
             } catch (error) {
@@ -98,12 +74,9 @@ const Dashboard = () => {
                     },
                     inventoryProducts: [],
                     pendingInvoices: [],
-                    dailyPerformance: [],
-                    recentSales: [],
                 });
             } finally {
                 setLoading(false);
-                setSalesLoading(false);
             }
         };
 
@@ -114,99 +87,15 @@ const Dashboard = () => {
         return () => clearInterval(refreshTimer);
     }, []);
 
-    const { kpis, pendingInvoices, dailyPerformance, recentSales } = data;
-    const totalRevenue30d = useMemo(
-        () => dailyPerformance.reduce((sum, row) => sum + Number(row?.revenue || 0), 0),
-        [dailyPerformance]
+    const { kpis, pendingInvoices } = data;
+    const totalRevenue = useMemo(
+        () => Number(selectedData.totalSalesAmount || kpis?.total_revenue || 0),
+        [selectedData.totalSalesAmount, kpis]
     );
 
-    if (loading || salesLoading) {
+    if (loading) {
         return <div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
     }
-
-    const weekdayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const weekdayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const weekdayRevenue = dailyPerformance.reduce((acc, item) => {
-        const date = new Date(item.period);
-        if (Number.isNaN(date.getTime())) {
-            return acc;
-        }
-        const key = weekdayMap[date.getDay()];
-        acc[key] = (acc[key] || 0) + Number(item.revenue || 0);
-        return acc;
-    }, {});
-
-    const weekdayStats = weekdayOrder.map((day) => ({
-        day,
-        revenue: weekdayRevenue[day] || 0,
-    }));
-    const maxWeekdayRevenue = Math.max(...weekdayStats.map((d) => d.revenue), 1);
-    // Helper: Sparkline small chart with tooltip and last-value indicator
-    const Sparkline = ({ dataKey = 'value', data = [] }) => {
-        const last = data.length? data[data.length-1][dataKey] : 0;
-        return (
-            <div className="flex items-center gap-2">
-              <div style={{width:120,height:34}}>
-                <ResponsiveContainer width={120} height={34}>
-                    <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id="sparkGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="rgba(10,110,209,0.95)" stopOpacity={0.95} />
-                                <stop offset="100%" stopColor="rgba(10,110,209,0.12)" stopOpacity={0.12} />
-                            </linearGradient>
-                        </defs>
-                        <Tooltip formatter={(v)=>formatPKR(v)} cursor={false} />
-                        <Area type="monotone" dataKey={dataKey} stroke="#0A6ED1" strokeWidth={2} fill="url(#sparkGradient)" fillOpacity={0.2} dot={false} />
-                    </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="text-sm font-semibold text-textMain">{formatPKR(last)}</div>
-            </div>
-        );
-    };
-
-    // Gauge will be rendered using ECharts below for smoother animation
-    const Gauge = ({ value = 0, label = '', color = '#0A6ED1' }) => {
-        const option = {
-            series: [
-                {
-                    type: 'gauge',
-                    startAngle: 200,
-                    endAngle: -20,
-                    progress: { show: true, width: 12, itemStyle: { color } },
-                    axisLine: { lineStyle: { width: 12, color: [[1, '#07142733']] } },
-                    axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisLabel: { show: false },
-                    detail: {
-                        valueAnimation: true,
-                        formatter: '{value}%',
-                        color: '#fff',
-                        fontSize: 16,
-                    },
-                    data: [{ value: Math.round(value), name: label }],
-                    title: { show: true, offsetCenter: [0, '38%'], color: '#d7e6f5', fontSize: 12 },
-                },
-            ],
-            backgroundColor: 'transparent'
-        };
-
-        return <ReactECharts option={option} style={{ width: 120, height: 120 }} />;
-    };
-    // Custom Tooltip for Area Chart
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-[#0e2140] p-3 rounded-lg border border-[#2d4f78] shadow-lg text-sm">
-                    <p className="font-bold text-slate-100 mb-1">{label}</p>
-                    <p className="font-semibold text-cyan-300">
-                        {formatPKR(payload[0].value)}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <div className="space-y-8">
@@ -226,16 +115,24 @@ const Dashboard = () => {
                     <h3 className="text-sm font-bold text-textMain">Insights</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
                     {/* Total Revenue */}
                     <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm">
                         <div className="flex items-start justify-between mb-3">
                             <div>
                                 <div className="text-xs text-textMuted">Total Revenue</div>
-                                <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(totalRevenue30d)}</div>
+                                <div className="text-lg font-extrabold text-textMain mt-1">{formatPKR(totalRevenue)}</div>
+                                <div className="text-[11px] text-textMuted mt-1">{selectedData.periodLabel} • {selectedData.dateContext}</div>
                             </div>
                         </div>
                     </div>
+
+                    <RecentSalesTile
+                        periodOptions={periodOptions}
+                        selectedPeriod={selectedPeriod}
+                        onPeriodChange={setSelectedPeriod}
+                        selectedData={selectedData}
+                    />
 
                     {/* Pending Invoices */}
                     <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm relative overflow-visible z-30">
@@ -288,29 +185,13 @@ const Dashboard = () => {
                         )}
                     </div>
 
-                    {/* Recent Activity */}
-                    <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm">
-                        <div className="flex items-start justify-between mb-3">
-                            <div>
-                                <div className="text-xs text-textMuted">Recent Sales</div>
-                                <div className="text-lg font-extrabold text-textMain mt-1">{recentSales.length}</div>
-                            </div>
-                            <div style={{ width: 110, height: 72, maxWidth: '100%' }} className="flex-shrink-0">
-                                {Array.isArray(recentSales) && recentSales.length > 0 ? (
-                                    <ReactECharts option={{ xAxis:{type:'category',show:false,data: recentSales.slice(0,6).map((s,i)=>i)}, yAxis:{show:false}, tooltip:{ trigger:'axis', formatter: (params)=> formatPKR(params[0].value) }, series:[{type:'line', smooth:true, data: recentSales.slice(0,6).map(s=>s.total_price||0), lineStyle:{color:'#06b6d4',width:2}, areaStyle:{color:'rgba(6,182,212,0.12)'}}], backgroundColor:'transparent'}} style={{ width: 110, height: 72, maxWidth: '100%' }} />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs text-textMuted">No recent sales</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             {/* Bottom sales visualization */}
             <div className="grid grid-cols-1 gap-6">
                 <div>
-                    <SalesHistory dailyPerformance={dailyPerformance} />
+                    <SalesPerformanceChart selectedData={selectedData} />
                 </div>
             </div>
         </div>

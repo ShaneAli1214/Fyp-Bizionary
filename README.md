@@ -154,3 +154,14 @@ The backend exposes REST endpoints under routes such as:
 - `/api/purchases/`
 - `/api/sales/`
 
+## Utility Scripts
+
+- Import a 30-day sales workbook into SQLite:
+
+```bash
+python scripts/import_sales_from_excel.py --workbook output/30day_sales_AlNoor_cleaned.xlsx
+```
+
+- Add `--dry-run` to validate the workbook without writing rows.
+- Add `--replace-existing-imports` to clear rows created by the same invoice prefix before re-importing.
+
