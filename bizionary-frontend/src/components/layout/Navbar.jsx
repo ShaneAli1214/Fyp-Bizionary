@@ -1,115 +1,93 @@
-import React, { useState } from 'react';
-import { Search, Settings, User, LogOut, FileText, AlertTriangle, Menu } from 'lucide-react';
+import React from 'react';
+import { 
+    LayoutDashboard, 
+    Users, 
+    Package, 
+    Boxes, 
+    FileText, 
+    CreditCard, 
+    ShoppingCart, 
+    Lock, 
+    LogOut, 
+    Menu 
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-// Previous AppsStrip replaced by secondary nav bar for quick access
+import Logo from '../common/Logo';
 
 const Navbar = ({ onToggleSidebar }) => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    
+
+    const navItems = [
+        { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+        { label: 'Customers', path: '/accounts', icon: Users },
+        { label: 'Products', path: '/products', icon: Package },
+        { label: 'Stock', path: '/inventory-managment', icon: Boxes },
+        { label: 'Invoices', path: '/invoices', icon: FileText },
+        { label: 'Payments', path: '/sales', icon: CreditCard },
+        { label: 'Create Order', path: '/ordered-slips', icon: ShoppingCart },
+        { label: 'Admin', path: '/user-management', icon: Lock }
+    ];
 
     return (
-        <>
         <header className="h-16 topbar border-b border-surface/20 dark:border-slate-800 flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300">
-            {/* Mobile Sidebar Toggle */}
-            <div className="flex justify-center items-center md:hidden mr-4">
+            {/* Left Brand: Custom Logo Component */}
+            <div className="flex items-center gap-2 cursor-pointer text-white" onClick={() => navigate('/')}>
+                <Logo className="h-9 w-auto text-white" />
+                <span className="text-sm font-extrabold text-white tracking-wider uppercase">Bizionary</span>
+            </div>
+
+            {/* Mobile Sidebar Toggle - only show on tablet/mobile */}
+            <div className="flex justify-center items-center lg:hidden mr-4">
                 <button 
                     onClick={onToggleSidebar}
-                    className="p-2 text-textMuted dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors focus:outline-none"
+                    aria-label="Toggle navigation menu"
+                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                 >
                     <Menu className="h-6 w-6" />
                 </button>
             </div>
 
-            {/* Logo / Project name (always visible) */}
-            <div className="flex items-center gap-3 mr-3">
-                <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-white font-bold">
-                    B
+            {/* Desktop Navigation Links - matching the screenshot exactly */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2 flex-1 justify-center max-w-4xl px-4">
+                {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    return (
+                        <button
+                            key={item.label}
+                            onClick={() => navigate(item.path)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                                isActive 
+                                ? 'bg-white/20 text-white font-bold' 
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span>{item.label}</span>
+                        </button>
+                    );
+                })}
+            </nav>
+
+            {/* Right Logout Block */}
+            <div className="flex items-center gap-4 text-xs">
+                {/* User email & Logout button */}
+                <div className="hidden sm:flex items-center gap-2">
+                    <span className="text-white/70">Welcome, <strong>{user?.name || 'Admin'}</strong></span>
+                    <div className="h-4 w-px bg-white/20"></div>
                 </div>
-                <div className="hidden sm:block">
-                    <div className="text-sm font-bold text-white">Bizionary</div>
-                    <div className="text-[11px] text-white/90">CRM Enterprise</div>
-                </div>
-            </div>
-
-            {/* Removed long topbar nav - replaced by compact secondary nav below */}
-
-            {/* Search Bar - Left Side */}
-            <div className="flex-1 max-w-xl">
-                <div className="relative flex items-center w-full h-10 rounded-lg bg-white shadow-sm focus-within:ring-2 focus-within:ring-primary/20 border border-transparent transition-all overflow-hidden">
-                    <div className="grid place-items-center h-full w-10 text-textMuted">
-                        <Search className="h-4 w-4" />
-                    </div>
-                    <input
-                        className="peer h-full w-full outline-none text-sm text-textMain bg-transparent pr-2 placeholder-textMuted search-input"
-                        type="text"
-                        id="search"
-                        placeholder="Search transactions, customers, stock..."
-                    />
-                </div>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center space-x-4 pl-4 md:pl-6 relative">
-                {/* Settings */}
-                <div className="flex items-center space-x-3 relative">
-                    <button 
-                        onClick={() => navigate('/settings')}
-                        className="p-2.5 text-textMuted dark:text-gray-400 hover:text-primary dark:hover:text-primary hover:bg-surface/10 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 bg-background dark:bg-slate-800 border border-surface/20 dark:border-slate-700 shadow-sm"
-                    >
-                        <Settings className="h-5 w-5" />
-                    </button>
-                    <div className="h-8 w-px bg-gray-200 dark:bg-slate-700 mx-2"></div>
-                </div>
-
-                {/* User Profile */}
-                <div className="flex items-center space-x-3 group cursor-pointer relative">
-                    <div className="hidden md:flex flex-col items-end text-sm">
-                        <p className="font-bold text-white leading-snug">{user?.name || 'User'}</p>
-                        <p className="text-xs text-white/90">{user?.email || 'Admin'}</p>
-                    </div>
-
-                    <div className="h-10 w-10 rounded-full bg-white/10 border-2 border-white shadow-sm flex items-center justify-center text-white font-bold overflow-hidden relative transition-transform duration-300 group-hover:scale-105">
-                        {/* Fallback to simple icon since we don't have an actual image asset */}
-                        <User className="h-5 w-5 text-white" />
-                    </div>
-
-                    <button
-                        onClick={logout}
-                        className="absolute -right-2 top-10 mt-2 p-2 text-white bg-danger rounded-lg transition-all opacity-0 group-hover:opacity-100 shadow-md invisible group-hover:visible hover:scale-105 active:scale-95 z-50"
-                        title="Logout"
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </button>
-                </div>
+                <button
+                    onClick={logout}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-sm shadow-red-600/20"
+                >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Logout ({user?.email || 'admin@bizionary.com'})</span>
+                </button>
             </div>
         </header>
-
-        {/* Secondary apps nav (restored style) */}
-        <div className="secondary-nav-bar flex items-center px-4 md:px-6 py-2 gap-2 border-b border-surface/10 overflow-x-auto z-50 sticky top-16">
-            {[
-                { label: 'Dashboard', path: '/' },
-                { label: 'AI Insights', path: '/insights' },
-                { label: 'Smart Reorder Engine', path: '/smart-reorder' },
-                { label: 'Products', path: '/products' },
-                { label: 'Sales', path: '/sales' },
-                { label: 'Inventory Management', path: '/inventory-managment' },
-                { label: 'Ordered Slips', path: '/ordered-slips' },
-                { label: 'Accounts', path: '/accounts' },
-                { label: 'User Management', path: '/user-management' }
-            ].map(o => (
-                <button
-                    key={o.path}
-                    className={`secondary-nav-link ${location.pathname === o.path ? 'active' : ''}`}
-                    onClick={() => navigate(o.path)}
-                >
-                    {o.label}
-                </button>
-            ))}
-        </div>
-        </>
     );
 };
 

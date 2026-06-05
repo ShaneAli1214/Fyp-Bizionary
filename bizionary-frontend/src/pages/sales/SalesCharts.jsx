@@ -4,9 +4,6 @@ import api from '../../services/api';
 import { formatPKR } from '../../utils/currency';
 import { formatDayLabel } from '../../utils/chartDates';
 
-const SALES_START_DATE = '2026-01-01';
-const SALES_END_DATE = '2026-01-30';
-
 const SalesCharts = ({ className }) => {
   const [dailyPerformance, setDailyPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,8 +17,7 @@ const SalesCharts = ({ className }) => {
         const res = await api.get('dashboard/sales-performance/', {
           params: {
             period: 'daily',
-            start_date: SALES_START_DATE,
-            end_date: SALES_END_DATE,
+            timeframe: '30days',
           },
         });
         if (!cancelled) {

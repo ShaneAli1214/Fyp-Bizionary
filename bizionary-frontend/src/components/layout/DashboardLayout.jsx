@@ -11,11 +11,14 @@ const DashboardLayout = () => {
     const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
     return (
-        <div className="flex h-screen bg-background dark:bg-[#0b1120] overflow-hidden relative transition-colors duration-300">
+        <div className="relative flex h-screen bg-background dark:bg-[#0b1120] overflow-hidden transition-colors duration-300 flex-col md:flex-col lg:flex-col">
+            {/* Mobile Sidebar Drawer Overlay & Sidebar */}
             <Sidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
                 <Navbar onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
                     <Outlet />
                 </main>
             </div>

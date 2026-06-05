@@ -44,18 +44,18 @@ const RecentSalesTile = ({ periodOptions = [], selectedPeriod, onPeriodChange, s
                 </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-sm">
-                <div className="rounded-lg bg-background/70 p-3 border border-surface/10">
-                    <div className="text-[11px] text-textMuted">Quantity Sold</div>
-                    <div className="mt-1 font-bold text-textMain">{formatNumber(selectedData.totalQuantity)}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div className="rounded-lg bg-background/70 p-3 border border-surface/10 overflow-hidden">
+                    <div className="text-[11px] text-textMuted truncate">Quantity Sold</div>
+                    <div className="mt-1 font-bold text-textMain text-base md:text-lg truncate">{formatNumber(selectedData.totalQuantity)}</div>
                 </div>
-                <div className="rounded-lg bg-background/70 p-3 border border-surface/10">
-                    <div className="text-[11px] text-textMuted">Revenue</div>
-                    <div className="mt-1 font-bold text-textMain">{formatPKR(selectedData.totalSalesAmount)}</div>
+                <div className="rounded-lg bg-background/70 p-3 border border-surface/10 overflow-hidden">
+                    <div className="text-[11px] text-textMuted truncate">Revenue</div>
+                    <div className="mt-1 font-bold text-textMain text-base md:text-lg truncate">{formatPKR(selectedData.totalSalesAmount)}</div>
                 </div>
-                <div className="rounded-lg bg-background/70 p-3 border border-surface/10">
-                    <div className="text-[11px] text-textMuted">Profit</div>
-                    <div className="mt-1 font-bold text-textMain">{formatPKR(selectedData.totalProfit)}</div>
+                <div className="rounded-lg bg-background/70 p-3 border border-surface/10 overflow-hidden">
+                    <div className="text-[11px] text-textMuted truncate">Profit</div>
+                    <div className="mt-1 font-bold text-textMain text-base md:text-lg truncate">{formatPKR(selectedData.totalProfit)}</div>
                 </div>
             </div>
 

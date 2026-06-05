@@ -199,6 +199,23 @@ def dashboard_kpis(request):
             stock_quantity__lt=F('min_stock')
         ).count()
 
+        # Calculate new dashboard KPIs
+        invoice_customers = set(BillingInvoice.objects.values_list('customer_name', flat=True).distinct())
+        sale_customers = set(Sale.objects.values_list('customer_name', flat=True).distinct())
+        total_customers = len(invoice_customers | sale_customers)
+
+        total_orders = Sale.objects.count()
+
+        total_payments_count = Sale.objects.filter(payment_status='PAID').count() + BillingInvoice.objects.filter(status='PAID').count()
+
+        total_stock_batches = Purchase.objects.count()
+        if total_stock_batches == 0:
+            total_stock_batches = Product.objects.filter(stock_quantity__gt=0).count()
+
+        paid_sales = Sale.objects.filter(payment_status='PAID').aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        paid_invoices = BillingInvoice.objects.filter(status='PAID').aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
+        total_payments_value = to_2dp(paid_sales + paid_invoices)
+
         # Note: Account balance removed - Screen 4 (Accounts) is independent
 
         # Prepare response data
@@ -213,10 +230,17 @@ def dashboard_kpis(request):
             'pending_company_payables': pending_company_payables,
             'pending_invoices': pending_invoices,
 
-            # Legacy names
+            # Legacy names kept for backward compatibility
             'total_invoices': total_invoices,
             'unpaid_invoices': pending_invoices,
             'low_stock_count': low_stock_count,
+
+            # New KPIs
+            'total_customers': total_customers,
+            'total_orders': total_orders,
+            'total_payments_count': total_payments_count,
+            'total_stock_batches': total_stock_batches,
+            'total_payments_value': total_payments_value,
         }
 
         serializer = DashboardKPISerializer(data=kpi_data)
@@ -584,7 +608,10 @@ def sales_performance(request):
         parsed_end_date = None
 
         if (timeframe in ('30days', 'last30', '30d') or range_filter == 'last30') and not start_date and not end_date:
-            parsed_end_date = timezone.localdate()
+            latest_date = Sale.objects.aggregate(latest=Max('sale_date'))['latest']
+            if not latest_date:
+                latest_date = timezone.localdate()
+            parsed_end_date = latest_date
             parsed_start_date = parsed_end_date - timedelta(days=29)
             start_date = parsed_start_date.isoformat()
             end_date = parsed_end_date.isoformat()
@@ -677,5 +704,468 @@ def sales_performance(request):
     except Exception as e:
         return Response(
             {'error': f'Failed to fetch sales performance: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+def reset_system(request):
+    """
+    POST /api/dashboard/reset-system/
+    Resets the database by clearing all tables and running the populate script logic.
+    """
+    try:
+        from invoices.models import Invoice as BillingInvoice
+        from sales.models import Sale
+        from products.models import Product
+        from purchases.models import Purchase, OrderedSlip, SupplierCompany
+        from accounts.models import Revenue, Expense, Invoice as FinanceInvoice
+        from datetime import datetime, date, timedelta
+
+        # 1. Clear existing data
+        BillingInvoice.objects.all().delete()
+        Sale.objects.all().delete()
+        Purchase.objects.all().delete()
+        OrderedSlip.objects.all().delete()
+        SupplierCompany.objects.all().delete()
+        Revenue.objects.all().delete()
+        Expense.objects.all().delete()
+        FinanceInvoice.objects.all().delete()
+        Product.objects.all().delete()
+
+        # 2. Seed supplier companies
+        suppliers = [
+            {"name": "Apex Pharma", "category": "Medicine", "contact_number": "0300-1234567"},
+            {"name": "Nova Biotech", "category": "Medicine", "contact_number": "0312-3456789"},
+            {"name": "Global Health Care", "category": "Equipment", "contact_number": "0321-9876543"},
+            {"name": "MediCare Distributors", "category": "Supplies", "contact_number": "0333-5555555"},
+        ]
+        supplier_map = {}
+        for s_data in suppliers:
+            supplier, _ = SupplierCompany.objects.get_or_create(
+                name=s_data["name"],
+                defaults={
+                    "category": s_data["category"],
+                    "contact_number": s_data["contact_number"]
+                }
+            )
+            supplier_map[s_data["name"]] = supplier
+
+        # 3. Seed products
+        from product_catalog import ALL_PRODUCTS
+        product_map = {}
+        for product_data in ALL_PRODUCTS:
+            sup_name = product_data.get('supplier', 'Apex Pharma')
+            supplier_obj = supplier_map.get(sup_name, None)
+            
+            product = Product.objects.create(
+                sku=product_data['sku'],
+                name=product_data['name'],
+                category=product_data['category'],
+                description=f"{product_data.get('brand', '')} - {sup_name}",
+                unit_price=product_data['unit_price'],
+                cost_price=product_data.get('cost_price', Decimal(str(product_data['unit_price'])) * Decimal('0.7')),
+                stock_quantity=product_data['stock_quantity'],
+                min_stock=product_data['reorder_level'],
+                supplier=supplier_obj,
+                status='ACTIVE'
+            )
+            product_map[product_data['sku']] = product
+
+        # 4. Seed sales
+        from product_catalog.master_data import SALES_DATA
+        for sale_data in SALES_DATA:
+            product = product_map.get(sale_data['product_sku'])
+            if product:
+                total_price = (sale_data['quantity_sold'] * sale_data['unit_price']) - sale_data['discount']
+                Sale.objects.create(
+                    product=product,
+                    customer_name=sale_data['customer_name'],
+                    quantity_sold=sale_data['quantity_sold'],
+                    unit_price=sale_data['unit_price'],
+                    total_price=total_price,
+                    discount=sale_data['discount'],
+                    payment_method=sale_data['payment_method'],
+                    payment_status=sale_data['payment_status'],
+                    sale_date=datetime.strptime(sale_data['sale_date'], '%Y-%m-%d').date(),
+                    notes=f"Real data sales transaction for {product.name}"
+                )
+
+        # 5. Seed invoices (billing app)
+        from product_catalog.master_data import INVOICES_DATA
+        for invoice_data in INVOICES_DATA:
+            BillingInvoice.objects.create(
+                invoice_number=invoice_data['invoice_number'],
+                customer_name=invoice_data['customer_name'],
+                customer_email=invoice_data['customer_email'],
+                customer_phone=invoice_data['customer_phone'],
+                invoice_date=datetime.strptime(invoice_data['invoice_date'], '%Y-%m-%d').date(),
+                due_date=datetime.strptime(invoice_data['due_date'], '%Y-%m-%d').date(),
+                subtotal=invoice_data['subtotal'],
+                tax_amount=invoice_data['tax_amount'],
+                discount_amount=invoice_data['discount_amount'],
+                total_amount=invoice_data['total_amount'],
+                amount_paid=invoice_data['amount_paid'],
+                status=invoice_data['status'],
+                notes=invoice_data['notes']
+            )
+
+        # 6. Seed accounts finance app data (Revenues, Expenses, Invoices)
+        # Seed Revenues (from sales)
+        for sale in Sale.objects.all()[:10]:
+            Revenue.objects.create(
+                source=f"Sale transaction #{sale.id} ({sale.customer_name})",
+                amount=sale.total_price,
+                date=sale.sale_date,
+                description=f"Generated automatically from Sale #{sale.id}"
+            )
+            
+        # Seed Expenses
+        expenses = [
+            {"category": "PAYROLL", "amount": Decimal("120000.00"), "vendor": "Staff Salaries", "description": "Monthly payroll payment"},
+            {"category": "SUPPLIES", "amount": Decimal("15000.00"), "vendor": "Office Depot", "description": "Office stationary and printing paper"},
+            {"category": "RENT_UTILITIES", "amount": Decimal("45000.00"), "vendor": "K-Electric / Building Owner", "description": "Office rent & electric utility"},
+            {"category": "MARKETING", "amount": Decimal("30000.00"), "vendor": "Meta Ads / Google Ads", "description": "Online advertising campaign"},
+        ]
+        for exp in expenses:
+            Expense.objects.create(
+                category=exp["category"],
+                amount=exp["amount"],
+                date=date.today() - timedelta(days=15),
+                vendor=exp["vendor"],
+                description=exp["description"]
+            )
+
+        # Seed finance app Invoices
+        for binv in BillingInvoice.objects.all()[:5]:
+            FinanceInvoice.objects.create(
+                invoice_number=binv.invoice_number,
+                client_name=binv.customer_name,
+                amount=binv.total_amount,
+                status='PAID' if binv.status == 'PAID' else 'PENDING',
+                due_date=binv.due_date,
+                description=binv.notes or f"Client invoice {binv.invoice_number}"
+            )
+
+        # 7. Seed purchase orders (so stock batches are populated)
+        # Create a few purchases
+        for i, (sku, product) in enumerate(list(product_map.items())[:3]):
+            Purchase.objects.create(
+                product=product,
+                company_name=suppliers[i % len(suppliers)]["name"],
+                quantity_purchased=50,
+                unit_cost=product.cost_price,
+                total_cost=product.cost_price * Decimal("50.00"),
+                purchase_date=date.today() - timedelta(days=5),
+                payment_status="PAID"
+            )
+
+        return Response({'success': True, 'message': 'System reset and populated with ERP real data successfully.'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'success': False, 'error': f'Failed to reset system: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def sales_by_period(request):
+    """
+    Returns aggregated sales data grouped by period (daily, weekly, monthly, last10Days)
+    with category breakdown and Recharts chart data.
+    """
+    try:
+        period = request.query_params.get('period', 'last10Days')
+        
+        # 1. Determine reference date
+        latest_date = Sale.objects.aggregate(latest=Max('sale_date'))['latest']
+        if not latest_date:
+            latest_date = timezone.localdate()
+            
+        # 2. Determine date ranges and pre-populate chart points
+        chart_points = []
+        date_to_label = {}
+        
+        if period == 'daily':
+            start_date = latest_date
+            end_date = latest_date
+            labels = ['9 AM', '11 AM', '1 PM', '3 PM', '5 PM', '7 PM', '9 PM', '11 PM']
+            for label in labels:
+                chart_points.append({'period': label})
+            date_context = latest_date.strftime('%B %d, %Y')
+            period_label = 'Daily'
+            x_axis_type = 'hour'
+            x_axis_label = 'Hours of the day'
+            
+        elif period == 'weekly':
+            end_date = latest_date
+            start_date = latest_date - timedelta(days=6)
+            # Pre-populate 7 days
+            for i in range(7):
+                d = start_date + timedelta(days=i)
+                label = d.strftime('%a')
+                chart_points.append({'period': label})
+                # map specific date to label
+                date_to_label[d.isoformat()] = label
+            date_context = f"{start_date.strftime('%b %d')} - {latest_date.strftime('%B %d, %Y')}"
+            period_label = 'Weekly'
+            x_axis_type = 'day'
+            x_axis_label = 'Days of the week'
+            
+        elif period == 'last10Days':
+            end_date = latest_date
+            start_date = latest_date - timedelta(days=9)
+            # Pre-populate 10 days
+            for i in range(10):
+                d = start_date + timedelta(days=i)
+                label = d.strftime('%b %d')
+                chart_points.append({'period': label})
+                date_to_label[d.isoformat()] = label
+            date_context = f"{start_date.strftime('%b %d')} - {latest_date.strftime('%B %d, %Y')}"
+            period_label = 'Last 10 Days'
+            x_axis_type = 'day'
+            x_axis_label = 'Days'
+            
+        else:  # monthly
+            # Group sales for the month containing the latest sale
+            start_date = latest_date.replace(day=1)
+            # Get last day of month
+            if start_date.month == 12:
+                next_month = start_date.replace(year=start_date.year + 1, month=1, day=1)
+            else:
+                next_month = start_date.replace(month=start_date.month + 1, day=1)
+            end_date = next_month - timedelta(days=1)
+            
+            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+            for label in labels:
+                chart_points.append({'period': label})
+            date_context = f"{start_date.strftime('%B %d')} - {end_date.strftime('%B %d, %Y')}"
+            period_label = 'Monthly'
+            x_axis_type = 'week'
+            x_axis_label = 'Weeks of the month'
+            
+        # 3. Query sales in the range
+        sales_qs = Sale.objects.filter(
+            sale_date__gte=start_date,
+            sale_date__lte=end_date
+        ).select_related('product')
+        
+        # Define category mapping and color mapping
+        CATEGORY_MAPPING = {
+            'Electronics & Applications': 'electronics_appliances',
+            'Grocery & Food Items': 'grocery_food_items',
+            'Clothing & Textiles': 'clothing_textiles',
+            'Construction & Hardware': 'construction_hardware',
+            'Pharmaceuticals & Health': 'pharmaceuticals_health',
+            'Stationery & Office Supplies': 'stationery_office_supplies',
+            'Automobiles & Accessories': 'automobiles_accessories',
+        }
+        
+        CATEGORY_COLORS = {
+            'electronics_appliances': '#0A6ED1',
+            'grocery_food_items': '#06B6D4',
+            'clothing_textiles': '#8B5CF6',
+            'construction_hardware': '#F59E0B',
+            'pharmaceuticals_health': '#16A34A',
+            'stationery_office_supplies': '#F97316',
+            'automobiles_accessories': '#EF4444',
+        }
+        
+        def get_category_info(cat_name):
+            if not cat_name:
+                return 'other', '#94A3B8'
+            if cat_name in CATEGORY_MAPPING:
+                key = CATEGORY_MAPPING[cat_name]
+            else:
+                key = cat_name.lower().replace('&', 'and').replace(' ', '_').replace('-', '_')
+            color = CATEGORY_COLORS.get(key, '#94A3B8')
+            return key, color
+            
+        # Initialize category metrics
+        category_stats = {}
+        
+        # 4. Process sales to compute category aggregates and point sales
+        # To map each sale to its chart point index:
+        point_sales = {p['period']: {} for p in chart_points}
+        
+        total_sales_amount = Decimal('0.00')
+        total_profit = Decimal('0.00')
+        total_quantity = 0
+        
+        for sale in sales_qs:
+            prod = sale.product
+            cat_name = prod.category or 'Other'
+            subcat_name = prod.subcategory or 'Other'
+            prod_name = prod.name
+            
+            qty = sale.quantity_sold
+            revenue = sale.total_price
+            
+            # profit calculation: check cost price
+            cost_price = prod.cost_price or (prod.unit_price * Decimal('0.72'))
+            profit = revenue - (qty * cost_price)
+            
+            total_sales_amount += revenue
+            total_profit += profit
+            total_quantity += qty
+            
+            # Get category keys
+            cat_key, cat_color = get_category_info(cat_name)
+            
+            # Update category statistics dict
+            if cat_name not in category_stats:
+                category_stats[cat_name] = {
+                    'quantity_sold': 0,
+                    'revenue': Decimal('0.00'),
+                    'profit': Decimal('0.00'),
+                    'subcategories': {}
+                }
+            category_stats[cat_name]['quantity_sold'] += qty
+            category_stats[cat_name]['revenue'] += revenue
+            category_stats[cat_name]['profit'] += profit
+            
+            subcats = category_stats[cat_name]['subcategories']
+            if subcat_name not in subcats:
+                subcats[subcat_name] = {
+                    'quantity_sold': 0,
+                    'revenue': Decimal('0.00'),
+                    'profit': Decimal('0.00'),
+                    'products': {}
+                }
+            subcats[subcat_name]['quantity_sold'] += qty
+            subcats[subcat_name]['revenue'] += revenue
+            subcats[subcat_name]['profit'] += profit
+            
+            prods = subcats[subcat_name]['products']
+            if prod_name not in prods:
+                prods[prod_name] = {
+                    'quantity_sold': 0,
+                    'revenue': Decimal('0.00'),
+                    'profit': Decimal('0.00')
+                }
+            prods[prod_name]['quantity_sold'] += qty
+            prods[prod_name]['revenue'] += revenue
+            prods[prod_name]['profit'] += profit
+            
+            # Map sale to period label
+            if period == 'daily':
+                hour = sale.created_at.hour if sale.created_at else 12
+                if hour < 10: label = '9 AM'
+                elif hour < 12: label = '11 AM'
+                elif hour < 14: label = '1 PM'
+                elif hour < 16: label = '3 PM'
+                elif hour < 18: label = '5 PM'
+                elif hour < 20: label = '7 PM'
+                elif hour < 22: label = '9 PM'
+                else: label = '11 PM'
+            elif period in ('weekly', 'last10Days'):
+                date_str = sale.sale_date.isoformat()
+                label = date_to_label.get(date_str, 'N/A')
+            else:  # monthly
+                day = sale.sale_date.day
+                if day <= 7: label = 'Week 1'
+                elif day <= 14: label = 'Week 2'
+                elif day <= 21: label = 'Week 3'
+                else: label = 'Week 4'
+                
+            if label in point_sales:
+                if cat_key not in point_sales[label]:
+                    point_sales[label][cat_key] = 0
+                    point_sales[label][f'{cat_key}_revenue'] = Decimal('0.00')
+                point_sales[label][cat_key] += qty
+                point_sales[label][f'{cat_key}_revenue'] += revenue
+                
+        # 5. Populate final chartData lists
+        formatted_chart_data = []
+        for point in chart_points:
+            label = point['period']
+            point_data = {'period': label}
+            
+            point_revenue = Decimal('0.00')
+            point_qty = 0
+            
+            # We want to map all possible category keys
+            for cat_key in CATEGORY_COLORS.keys():
+                qty = point_sales[label].get(cat_key, 0)
+                rev = point_sales[label].get(f'{cat_key}_revenue', Decimal('0.00'))
+                point_data[cat_key] = qty
+                point_data[f'{cat_key}_revenue'] = float(rev)
+                point_revenue += rev
+                point_qty += qty
+                
+            point_data['revenue'] = float(point_revenue)
+            # profit calculated on 28% for fallback or cost margin
+            point_data['profit'] = float(point_revenue * Decimal('0.28'))
+            formatted_chart_data.append(point_data)
+            
+        # 6. Format nested category structure
+        formatted_categories = []
+        for cat_name, cat_data in category_stats.items():
+            cat_key, cat_color = get_category_info(cat_name)
+            
+            formatted_subcats = []
+            flat_products = []
+            
+            for subcat_name, subcat_data in cat_data['subcategories'].items():
+                formatted_prods = []
+                for prod_name, prod_data in subcat_data['products'].items():
+                    prod_item = {
+                        'name': prod_name,
+                        'category': cat_name,
+                        'subcategory': subcat_name,
+                        'quantitySold': prod_data['quantity_sold'],
+                        'revenue': float(prod_data['revenue']),
+                        'profit': float(prod_data['profit'])
+                    }
+                    formatted_prods.append(prod_item)
+                    flat_products.append(prod_item)
+                    
+                formatted_subcats.append({
+                    'name': subcat_name,
+                    'quantitySold': subcat_data['quantity_sold'],
+                    'revenue': float(subcat_data['revenue']),
+                    'profit': float(subcat_data['profit']),
+                    'products': formatted_prods
+                })
+                
+            formatted_categories.append({
+                'name': cat_name,
+                'key': cat_key,
+                'color': cat_color,
+                'quantitySold': cat_data['quantity_sold'],
+                'revenue': float(cat_data['revenue']),
+                'profit': float(cat_data['profit']),
+                'subcategories': formatted_subcats,
+                'products': flat_products
+            })
+            
+        # Handle case if there are no categories populated to prevent frontend crash
+        if not formatted_categories:
+            for cat_name, cat_key in CATEGORY_MAPPING.items():
+                formatted_categories.append({
+                    'name': cat_name,
+                    'key': cat_key,
+                    'color': CATEGORY_COLORS[cat_key],
+                    'quantitySold': 0,
+                    'revenue': 0.0,
+                    'profit': 0.0,
+                    'subcategories': [],
+                    'products': []
+                })
+                
+        response_data = {
+            'period': period,
+            'periodLabel': period_label,
+            'dateContext': date_context,
+            'xAxisType': x_axis_type,
+            'xAxisLabel': x_axis_label,
+            'totalSalesAmount': float(total_sales_amount),
+            'totalProfit': float(total_profit),
+            'totalQuantity': total_quantity,
+            'categories': formatted_categories,
+            'chartData': formatted_chart_data
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to compile sales insights: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

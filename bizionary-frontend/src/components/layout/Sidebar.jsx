@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, Settings, Package, ShoppingCart, Boxes, Brain, Bot, Lock, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Logo from '../common/Logo';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { user } = useAuth();
@@ -20,29 +21,29 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     return (
         <>
-            {/* Mobile Overlay */}
+            {/* Mobile Overlay - click to close drawer */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in"
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in duration-300 ease-out"
                     onClick={onClose}
+                    aria-hidden="true"
                 />
             )}
             
-                <div className={`fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0 w-64 h-screen bg-surface dark:bg-slate-900 border-r border-surface/20 dark:border-slate-800 flex flex-col flex-shrink-0 transition-transform duration-300 lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-white dark:bg-slate-900 border-r border-surface/20 dark:border-slate-800 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Logo Section */}
                 <div className="h-24 flex items-center justify-between px-6 border-b border-transparent">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-sm shadow-primary/30">
-                            <LayoutDashboard className="w-6 h-6" />
-                        </div>
-                        <div className="flex flex-col">
-                            <h1 className="text-xl font-bold text-textMain dark:text-white tracking-tight leading-tight">Bizionary</h1>
-                            <span className="text-xs text-textMuted dark:text-gray-400 tracking-wide font-medium">CRM Enterprise</span>
-                        </div>
+                    <div className="flex items-center gap-2 text-slate-800 dark:text-white">
+                        <Logo className="h-10 w-auto" />
+                        <span className="text-lg font-black tracking-wider uppercase">Bizionary</span>
                     </div>
                     
                     {/* Mobile Close Button */}
-                    <button className="md:hidden text-textMuted hover:text-textMain dark:text-gray-400 dark:hover:text-white p-1" onClick={onClose}>
+                    <button 
+                        className="text-textMuted hover:text-textMain dark:text-gray-400 dark:hover:text-white p-1 hover:bg-surface/10 dark:hover:bg-slate-800 rounded transition-colors"
+                        onClick={onClose}
+                        aria-label="Close navigation menu"
+                    >
                         <X className="w-6 h-6" />
                     </button>
                 </div>

@@ -68,3 +68,10 @@ class DashboardKPISerializer(serializers.Serializer):
     unpaid_invoices = serializers.IntegerField()
 
     low_stock_count = serializers.IntegerField()
+    
+    # New dashboard KPIs
+    total_customers = serializers.IntegerField(required=False)
+    total_orders = serializers.IntegerField(required=False)
+    total_payments_count = serializers.IntegerField(required=False)
+    total_stock_batches = serializers.IntegerField(required=False)
+    total_payments_value = serializers.DecimalField(max_digits=15, decimal_places=2, required=False)
