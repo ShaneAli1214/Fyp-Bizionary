@@ -9,7 +9,8 @@ import {
     ShoppingCart, 
     Lock, 
     LogOut, 
-    Menu 
+    Menu,
+    ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -22,12 +23,11 @@ const Navbar = ({ onToggleSidebar }) => {
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { label: 'Customers', path: '/accounts', icon: Users },
+        { label: 'Accounts', path: '/accounts', icon: CreditCard },
         { label: 'Products', path: '/products', icon: Package },
         { label: 'Stock', path: '/inventory-managment', icon: Boxes },
-        { label: 'Invoices', path: '/invoices', icon: FileText },
-        { label: 'Payments', path: '/sales', icon: CreditCard },
-        { label: 'Create Order', path: '/ordered-slips', icon: ShoppingCart },
+        { label: 'Sales', path: '/sales', icon: ShoppingCart },
+        { label: 'Create Order', path: '/ordered-slips', icon: ClipboardList },
         { label: 'Admin', path: '/user-management', icon: Lock }
     ];
 

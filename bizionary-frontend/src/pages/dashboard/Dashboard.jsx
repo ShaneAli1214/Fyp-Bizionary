@@ -209,9 +209,16 @@ const Dashboard = () => {
 
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {/* 1. Customers */}
+                {/* 7. Total Revenue */}
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Customers</div>
+                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Total Revenue</div>
+                    <div className="text-2xl font-black text-slate-800 dark:text-slate-200">{formatPKR(kpis.total_revenue)}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">From Sales</div>
+                </div>
+
+                {/* 1. Accounts */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
+                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Accounts</div>
                     <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_customers}</div>
                     <button 
                         onClick={() => navigate('/accounts')}
@@ -233,10 +240,10 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* 3. Orders */}
+                {/* 3. Purchase Orders */}
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Orders</div>
-                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_orders}</div>
+                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Purchase Orders</div>
+                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_stock_batches}</div>
                     <button 
                         onClick={() => navigate('/ordered-slips')}
                         className="px-6 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 uppercase"
@@ -245,22 +252,10 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* 4. Invoices */}
+                {/* 5. Sales */}
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Invoices</div>
-                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_purchase_orders || kpis.total_invoices}</div>
-                    <button 
-                        onClick={() => navigate('/invoices')}
-                        className="px-6 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 uppercase"
-                    >
-                        View
-                    </button>
-                </div>
-
-                {/* 5. Payments */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Payments</div>
-                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_payments_count}</div>
+                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Sales</div>
+                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_orders}</div>
                     <button 
                         onClick={() => navigate('/sales')}
                         className="px-6 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 uppercase"
@@ -281,19 +276,6 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* 7. Total Revenue */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Total Revenue</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-200">{formatPKR(kpis.total_revenue)}</div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">From Invoices</div>
-                </div>
-
-                {/* 8. Total Payments */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Total Payments</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-200">{formatPKR(kpis.total_payments_value)}</div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">Received</div>
-                </div>
             </div>
 
             {/* Quick Actions Header Banner */}
@@ -319,17 +301,6 @@ const Dashboard = () => {
                         className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
                     >
                         + Add Product
-                    </button>
-
-                    {/* + Create Invoice */}
-                    <button
-                        onClick={() => {
-                            setRecordModalType('invoices');
-                            setIsRecordModalOpen(true);
-                        }}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
-                    >
-                        + Create Invoice
                     </button>
 
                     {/* + Record Payment */}
