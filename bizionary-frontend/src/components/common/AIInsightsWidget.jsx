@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, AlertTriangle, Package, Zap, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Package, Zap, Eye, EyeOff, RefreshCw, X } from 'lucide-react';
 import { insightsApi } from '../../services/insightsApi';
 
 const AIInsightsWidget = () => {
@@ -10,7 +10,7 @@ const AIInsightsWidget = () => {
     const [dailyRecommendation, setDailyRecommendation] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
     const [lastUpdated, setLastUpdated] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
     const intervalRef = useRef(null);
@@ -95,25 +95,37 @@ const AIInsightsWidget = () => {
         return (
             <button
                 onClick={() => setIsVisible(true)}
-                className="fixed top-24 right-5 z-50 w-14 h-14 ai-gradient rounded-full text-white shadow-2xl ai-glow flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+                className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4.5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20 hover:from-amber-600 hover:to-orange-700 font-bold text-xs tracking-wider uppercase"
                 title="Show AI Insights"
             >
-                <Eye className="w-6 h-6" />
+                <Zap className="w-4 h-4 fill-yellow-300/40 text-yellow-300 animate-pulse pointer-events-none" />
+                <span>AI Insights</span>
             </button>
         );
     }
 
     return (
-        <div className="fixed top-24 right-5 z-50 w-80 max-h-96 overflow-hidden insights-fade-in">
-            <div className="ai-gradient rounded-xl shadow-2xl ai-glow backdrop-blur-sm bg-white/10 border border-white/20">
+        <>
+            {/* Backdrop to dismiss on click outside */}
+            <div 
+                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs transition-opacity duration-300"
+                onClick={() => setIsVisible(false)}
+            />
+            
+            {/* Slide-out Sidebar Panel */}
+            <div className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-gradient-to-b from-[#1C3A5A] to-[#0D1E30] text-white shadow-2xl z-50 flex flex-col border-l border-white/10 transition-transform duration-300 ease-in-out transform translate-x-0 animate-slide-in-right">
                 {/* Header */}
-                <div className="p-4 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-white/20 p-1.5 rounded-lg">
-                            <TrendingUp className="w-4 h-4" />
+                <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/10">
+                    <div className="flex items-center gap-2.5">
+                        <div className="bg-white/10 p-2 rounded-xl text-yellow-400">
+                            <Zap className="w-4.5 h-4.5 fill-yellow-400/20 text-yellow-400 animate-pulse pointer-events-none" />
                         </div>
-                        <h3 className="font-bold text-sm">AI Insights</h3>
+                        <div>
+                            <h3 className="font-bold text-sm tracking-wide">AI Insights</h3>
+                            <p className="text-[10px] text-white/50">Real-time business intelligence</p>
+                        </div>
                     </div>
+                    
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => {
@@ -121,99 +133,100 @@ const AIInsightsWidget = () => {
                                 fetchInsights().finally(() => setIsRefreshing(false));
                             }}
                             disabled={isRefreshing}
-                            className="bg-white/20 hover:bg-white/30 rounded-lg p-1.5 transition-colors disabled:opacity-50"
+                            className="bg-white/10 hover:bg-white/20 rounded-xl p-2 transition-all disabled:opacity-50 text-white"
                             title="Refresh insights"
                         >
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="bg-white/20 hover:bg-white/30 rounded-lg p-1.5 transition-colors"
-                            title="Hide AI Insights"
+                            className="bg-white/10 hover:bg-white/20 rounded-xl p-2 transition-all text-white font-bold"
+                            title="Minimize Insights"
                         >
-                            <EyeOff className="w-4 h-4" />
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="px-4 pb-4 space-y-4 max-h-72 overflow-y-auto">
-                    <p className="text-xs opacity-90 text-center">
-                        Real-time business intelligence {lastUpdated ? `- ${lastUpdated}` : ''}
+                <div className="p-5 flex-1 overflow-y-auto space-y-5">
+                    <p className="text-[10px] text-white/50 text-center">
+                        Last updated {lastUpdated ? `@ ${lastUpdated}` : 'just now'}
                     </p>
+                    
                     {/* Pricing Optimization */}
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="w-4 h-4 text-green-300" />
-                            <h4 className="text-white font-semibold text-xs">Pricing Optimization</h4>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+                        <div className="flex items-center gap-2.5 mb-3">
+                            <TrendingUp className="w-4.5 h-4.5 text-green-400" />
+                            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Pricing Optimization</h4>
                         </div>
                         {pricingSuggestions.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                                 {pricingSuggestions.slice(0, 3).map((item, idx) => (
-                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2">
-                                        <TrendingUp className="w-3 h-3 mt-0.5 text-green-300 flex-shrink-0" />
-                                        <span>{item.product_name}: {item.reason}</span>
+                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 flex-shrink-0" />
+                                        <span><strong className="text-white">{item.product_name}</strong>: {item.reason}</span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-white/70 text-xs">No pricing suggestions available</p>
+                            <p className="text-white/60 text-xs">No pricing suggestions available</p>
                         )}
                     </div>
 
                     {/* Demand Alert */}
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Zap className="w-4 h-4 text-yellow-300" />
-                            <h4 className="text-white font-semibold text-xs">Demand Alert</h4>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+                        <div className="flex items-center gap-2.5 mb-3">
+                            <Zap className="w-4.5 h-4.5 text-yellow-400" />
+                            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Demand Alert</h4>
                         </div>
                         {demandAlerts.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                                 {demandAlerts.slice(0, 3).map((item, idx) => (
-                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2">
-                                        <Zap className="w-3 h-3 mt-0.5 text-yellow-300 flex-shrink-0" />
-                                        <span>{item.product_name}: {item.recommendation}</span>
+                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1.5 flex-shrink-0" />
+                                        <span><strong className="text-white">{item.product_name}</strong>: {item.recommendation}</span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-white/70 text-xs">No high-demand items</p>
+                            <p className="text-white/60 text-xs">No high-demand items detected</p>
                         )}
                     </div>
 
                     {/* Stock Warning */}
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Package className="w-4 h-4 text-red-300" />
-                            <h4 className="text-white font-semibold text-xs">Stock Warning</h4>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+                        <div className="flex items-center gap-2.5 mb-3">
+                            <Package className="w-4.5 h-4.5 text-rose-400" />
+                            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Stock Warning</h4>
                         </div>
                         {stockWarnings.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                                 {stockWarnings.slice(0, 3).map((item, idx) => (
-                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2">
-                                        <AlertTriangle className="w-3 h-3 mt-0.5 text-red-300 flex-shrink-0" />
-                                        <span>{item.product_name}: {item.current_stock} left ({item.urgency})</span>
+                                    <div key={idx} className="text-white/90 text-xs flex items-start gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 flex-shrink-0" />
+                                        <span><strong className="text-white">{item.product_name}</strong>: {item.current_stock} units left ({item.urgency})</span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-white/70 text-xs">All stocks adequate</p>
+                            <p className="text-white/60 text-xs">All stocks adequate</p>
                         )}
                     </div>
 
                     {/* Daily AI Recommendation */}
-                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2">
-                        <h4 className="text-white font-semibold text-xs">AI Recommendation (Daily)</h4>
-                        <p className="text-[11px] text-white/95 bg-white/10 rounded-md p-2">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md space-y-2.5">
+                        <h4 className="text-white font-bold text-xs uppercase tracking-wider">Daily Recommendation</h4>
+                        <p className="text-xs text-white/90 leading-relaxed bg-white/5 rounded-xl p-3 border border-white/5">
                             {dailyRecommendation || 'No recommendation available yet.'}
                         </p>
-                        <p className="text-[10px] text-white/75">
+                        <p className="text-[10px] text-white/50 italic leading-snug">
                             This recommendation is generated automatically from live sales data and updates daily.
                         </p>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

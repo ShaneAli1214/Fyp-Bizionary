@@ -24,13 +24,13 @@ const Sidebar = ({ isOpen, onClose }) => {
             {/* Mobile Overlay - click to close drawer */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in duration-300 ease-out"
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-in fade-in duration-300 ease-out"
                     onClick={onClose}
                     aria-hidden="true"
                 />
             )}
             
-                <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-white dark:bg-slate-900 border-r border-surface/20 dark:border-slate-800 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-white dark:bg-slate-900 border-r border-surface/20 dark:border-slate-800 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Logo Section */}
                 <div className="h-24 flex items-center justify-between px-6 border-b border-transparent">
                     <div className="flex items-center gap-2 text-slate-800 dark:text-white">
@@ -65,8 +65,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                                         key={item.name}
                                         to={item.href}
                                         onClick={() => {
-                                            // Auto-close sidebar on mobile when navigating
-                                            if (window.innerWidth < 768 && onClose) {
+                                            // Auto-close sidebar on mobile/tablet when navigating
+                                            if (window.innerWidth < 1024 && onClose) {
                                                 onClose();
                                             }
                                         }}
