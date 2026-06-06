@@ -1,6 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Settings, Package, ShoppingCart, Boxes, Brain, Bot, Lock, X } from 'lucide-react';
+import { 
+    LayoutDashboard, 
+    CreditCard, 
+    Package, 
+    Boxes, 
+    ShoppingCart, 
+    ClipboardList, 
+    Lock, 
+    X 
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 
@@ -9,78 +18,79 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const navigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-        { name: 'AI Insights', href: '/insights', icon: Brain },
-        { name: 'Smart Reorder Engine', href: '/smart-reorder', icon: Bot },
+        { name: 'Accounts', href: '/accounts', icon: CreditCard },
         { name: 'Products', href: '/products', icon: Package },
+        { name: 'Stock', href: '/inventory-managment', icon: Boxes },
         { name: 'Sales', href: '/sales', icon: ShoppingCart },
-        { name: 'Inventory Managment', href: '/inventory-managment', icon: Boxes },
-        { name: 'Ordered Slips', href: '/ordered-slips', icon: Package },
-        { name: 'Accounts', href: '/accounts', icon: FolderKanban },
-        { name: 'User Management', href: '/user-management', icon: Settings, adminOnly: true },
+        { name: 'Create Order', href: '/ordered-slips', icon: ClipboardList },
+        { name: 'Admin', href: '/user-management', icon: Lock, adminOnly: true }
     ];
+
+    const isUserAdmin = user?.role === 'Admin' || user?.role === 'Super Admin' || user?.role_name === 'Super Admin' || user?.role_name === 'Admin';
 
     return (
         <>
             {/* Mobile Overlay - click to close drawer */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in duration-300 ease-out"
+                    className="fixed inset-0 bg-black/60 z-40 md:hidden animate-in fade-in duration-300 ease-out"
                     onClick={onClose}
                     aria-hidden="true"
                 />
             )}
             
-                <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-white dark:bg-slate-900 border-r border-surface/20 dark:border-slate-800 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-[#003A6B] border-r border-white/10 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Logo Section */}
-                <div className="h-24 flex items-center justify-between px-6 border-b border-transparent">
-                    <div className="flex items-center gap-2 text-slate-800 dark:text-white">
-                        <Logo className="h-10 w-auto" />
-                        <span className="text-lg font-black tracking-wider uppercase">Bizionary</span>
+                <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
+                    <div className="flex items-center gap-2 text-white">
+                        <Logo className="h-9 w-auto text-white" />
+                        <span className="text-sm font-extrabold tracking-wider uppercase">Bizionary</span>
                     </div>
                     
                     {/* Mobile Close Button */}
                     <button 
-                        className="text-textMuted hover:text-textMain dark:text-gray-400 dark:hover:text-white p-1 hover:bg-surface/10 dark:hover:bg-slate-800 rounded transition-colors"
+                        className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded transition-colors"
                         onClick={onClose}
                         aria-label="Close navigation menu"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Navigation Links */}
                 <div className="flex-1 overflow-y-auto py-6 px-4">
-                        <div className="sidebar-section">
-                            <span className="sidebar-title">Navigation</span>
-                        </div>
-                        <nav className="space-y-1.5">
+                    <nav className="space-y-1">
                         {navigation.map((item) => {
-                            if (item.adminOnly && user?.role !== 'Admin') {
+                            if (item.adminOnly && !isUserAdmin) {
                                 return null;
                             }
                             
                             const Icon = item.icon;
                             return (
-                                    <NavLink
-                                        key={item.name}
-                                        to={item.href}
-                                        onClick={() => {
-                                            // Auto-close sidebar on mobile when navigating
-                                            if (window.innerWidth < 768 && onClose) {
-                                                onClose();
-                                            }
-                                        }}
-                                        className={({ isActive }) =>
-                                            `flex items-center sidebar-link text-sm font-semibold rounded-2xl transition-all duration-200 ${isActive ? 'nav-active' : 'text-textMuted hover:bg-surface/10 hover:text-textMain'}`
+                                <NavLink
+                                    key={item.name}
+                                    to={item.href}
+                                    onClick={() => {
+                                        // Auto-close sidebar on mobile when navigating
+                                        if (window.innerWidth < 768 && onClose) {
+                                            onClose();
                                         }
-                                    >
-                                        {({ isActive }) => (
-                                            <>
-                                                <Icon className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-white' : 'text-textMuted'}`} />
-                                                <span className="truncate">{item.name}</span>
-                                            </>
-                                        )}
-                                    </NavLink>
+                                    }}
+                                    className={({ isActive }) =>
+                                        `flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
+                                            isActive 
+                                            ? 'bg-white/20 text-white font-bold shadow-inner' 
+                                            : 'text-white/80 hover:text-white hover:bg-white/10'
+                                        }`
+                                    }
+                                >
+                                    {({ isActive }) => (
+                                        <>
+                                            <Icon className={`h-4.5 w-4.5 flex-shrink-0 transition-colors ${isActive ? 'text-white' : 'text-white/85'}`} />
+                                            <span className="truncate">{item.name}</span>
+                                        </>
+                                    )}
+                                </NavLink>
                             );
                         })}
                     </nav>
