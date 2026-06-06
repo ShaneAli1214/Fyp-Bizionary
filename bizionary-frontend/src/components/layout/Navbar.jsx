@@ -32,12 +32,26 @@ const Navbar = ({ onToggleSidebar }) => {
     ];
 
     return (
-        <header className="h-16 topbar border-b border-surface/20 dark:border-slate-800 flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300">
-            {/* Left Brand: Custom Logo Component */}
-            <div className="flex items-center gap-2 cursor-pointer text-white" onClick={() => navigate('/')}>
-                <Logo className="h-9 w-auto text-white" />
-                <span className="text-sm font-extrabold text-white tracking-wider uppercase">Bizionary</span>
+        <header className="h-16 text-white flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300 relative">
+            {/* Custom Hanging Tab Background */}
+            <div className="absolute inset-0 -z-10 overflow-visible pointer-events-none">
+                {/* Left hanging tab & slope background */}
+                <svg className="absolute left-0 top-0 h-[96px] w-[240px] text-[var(--color-topbar)]" viewBox="0 0 240 96" fill="currentColor">
+                    <path d="M 0 0 L 240 0 L 240 64 L 200 96 L 0 96 Z" />
+                    <path d="M 0 96 L 200 96 L 240 64" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+                </svg>
+                {/* Right horizontal header background */}
+                <div className="absolute left-[239px] right-0 top-0 h-16 bg-[var(--color-topbar)] border-b border-white/10"></div>
             </div>
+
+            {/* Left Brand: Absolute positioned to hang down centered in the tab */}
+            <div className="absolute left-0 top-0 h-24 flex items-center pl-3 md:pl-6 pr-4 gap-2.5 cursor-pointer text-white z-10" onClick={() => navigate('/')}>
+                <Logo className="h-12 w-auto text-white" />
+                <span className="text-base font-black text-white tracking-wider uppercase">Bizionary</span>
+            </div>
+
+            {/* Spacer to push menu and links past the logo tab */}
+            <div className="w-[200px] sm:w-[240px] shrink-0 h-full pointer-events-none"></div>
 
             {/* Mobile Sidebar Toggle - only show on tablet/mobile */}
             <div className="flex justify-center items-center lg:hidden mr-4">
