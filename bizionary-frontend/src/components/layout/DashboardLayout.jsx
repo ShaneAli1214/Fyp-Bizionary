@@ -18,7 +18,7 @@ const DashboardLayout = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
                 <Navbar onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
-                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
+                <main className="flex-1 overflow-y-auto p-4 pt-10 md:p-6 md:pt-12 lg:p-8 lg:pt-16 relative">
                     <Outlet />
                 </main>
             </div>
