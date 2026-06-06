@@ -93,7 +93,11 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
 
     const categoryOptions = useMemo(() => {
         const dynamicCategories = products
-            .map((item) => String(item.categoryId || item.category || '').trim())
+            .map((item) => {
+                const raw = String(item.categoryId || item.category || '').trim();
+                const normalized = normalizeProductCategory(raw);
+                return normalized || raw;
+            })
             .filter(Boolean);
 
         const merged = [...PRODUCT_CATEGORIES.map((item) => item.value), ...dynamicCategories];

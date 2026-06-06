@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, Edit2, Trash2, Filter, Receipt } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
@@ -20,6 +20,26 @@ const SalesList = () => {
     const [selectedSlipSale, setSelectedSlipSale] = useState(null);
     const [createdSale, setCreatedSale] = useState(null);
     const [createMessage, setCreateMessage] = useState('');
+
+    const categoryOptions = useMemo(() => {
+        const dynamicCategories = sales
+            .map((item) => String(item.product_category || '').trim())
+            .filter(Boolean)
+            .map((cat) => normalizeProductCategory(cat) || cat);
+
+        const merged = [...PRODUCT_CATEGORIES.map((item) => item.value), ...dynamicCategories];
+        return Array.from(new Set(merged)).map((value) => {
+            const match = PRODUCT_CATEGORIES.find((item) => item.value === value);
+            return match || { value, label: value };
+        });
+    }, [sales]);
+
+    const getCategoryLabel = (category) => {
+        if (!category) return 'N/A';
+        const normalized = normalizeProductCategory(category);
+        const match = PRODUCT_CATEGORIES.find((item) => item.value === (normalized || category));
+        return match ? match.label : category;
+    };
 
     const closeSaleForm = () => {
         setIsFormOpen(false);
@@ -138,7 +158,10 @@ const SalesList = () => {
             (s.customer_name && s.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
             s.id.toString().includes(searchTerm)
         ) &&
-        (categoryFilter === 'ALL' || normalizeProductCategory(s.product_category) === categoryFilter)
+        (
+            categoryFilter === 'ALL' || 
+            (normalizeProductCategory(s.product_category) || s.product_category) === categoryFilter
+        )
     );
 
     return (
@@ -168,7 +191,7 @@ const SalesList = () => {
                             className="w-full sm:w-44 pl-9 pr-3 py-2 border border-gray-100 rounded-xl text-sm bg-surface text-textMain outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="ALL">All Categories</option>
-                            {PRODUCT_CATEGORIES.map((item) => (
+                            {categoryOptions.map((item) => (
                                 <option key={item.value} value={item.value}>{item.label}</option>
                             ))}
                         </select>
@@ -216,7 +239,7 @@ const SalesList = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">#SL-{s.id.toString().padStart(4, '0')}</td>
                                         <td className="px-6 py-4 text-textMuted">{s.sale_date}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{s.customer_name}</td>
-                                        <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(s.product_category) || 'N/A'}</td>
+                                        <td className="px-6 py-4 text-textMuted">{getCategoryLabel(s.product_category)}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">
                                             {Array.isArray(s.line_items) && s.line_items.length > 1
                                                 ? `${s.line_items.length} Products`
