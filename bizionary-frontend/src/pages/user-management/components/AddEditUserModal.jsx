@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Eye, EyeOff } from 'lucide-react';
+import { X, Eye, EyeOff, Key } from 'lucide-react';
 
 const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +11,10 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
         password: '',
         role: '',
         department: '',
+        designation: '',
+        phone: '',
+        employee_id: '',
+        date_of_joining: '',
         status: 'ACTIVE'
     });
 
@@ -21,9 +25,13 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
                 email: user.email || '',
                 first_name: user.first_name || '',
                 last_name: user.last_name || '',
-                password: '', // Don't prefill password
+                password: '', // Don't prefill password on edit
                 role: user.role || '',
                 department: user.department || '',
+                designation: user.designation || '',
+                phone: user.phone || '',
+                employee_id: user.employee_id || '',
+                date_of_joining: user.date_of_joining || '',
                 status: user.status || 'ACTIVE'
             });
         } else {
@@ -35,6 +43,10 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
                 password: '',
                 role: '',
                 department: '',
+                designation: '',
+                phone: '',
+                employee_id: '',
+                date_of_joining: new Date().toISOString().split('T')[0],
                 status: 'ACTIVE'
             });
         }
@@ -48,177 +60,286 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleAutoGeneratePassword = () => {
+        // Generate random string
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+        let pass = '';
+        for (let i = 0; i < 12; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setFormData(prev => ({ ...prev, password: pass }));
+        setShowPassword(true); // Show generated password to user
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        
         // Construct payload to submit
         const payload = { ...formData };
+        
+        // Cleanup empty fields or fields not modified
         if (!payload.password && user) {
             delete payload.password; // Don't send empty password on edit
         }
+        if (!payload.employee_id) {
+            delete payload.employee_id; // Auto generate on server
+        }
+        if (!payload.department) {
+            payload.department = null;
+        }
+        if (!payload.role) {
+            payload.role = null;
+        }
+
         onSave(payload);
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-surface rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-gray-100">
+                
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-[#1C3A5A]">
                     <div>
-                        <h2 className="text-xl font-bold text-textMain">
-                            {user ? 'Edit User details' : 'Add New System User'}
+                        <h2 className="text-xl font-bold text-white">
+                            {user ? 'Edit Corporate User' : 'Provision New System User'}
                         </h2>
-                        <p className="text-sm text-textMuted mt-1">
-                            {user ? 'Update access levels and personal information.' : 'Provision a new account with specific roles and access.'}
+                        <p className="text-xs text-white/80 mt-1">
+                            {user ? 'Modify profile settings, security states and team placements.' : 'Register a new employee account and set role access permissions.'}
                         </p>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                        className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
                 
-                <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
+                {/* Body (Form) */}
+                <div className="p-6 overflow-y-auto flex-1 bg-gray-50/20">
                     <form id="user-form" onSubmit={handleSubmit} className="space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">Username <span className="text-red-500">*</span></label>
-                                <input 
-                                    type="text" 
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                                    placeholder="e.g. johndoe"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">Email Address <span className="text-red-500">*</span></label>
-                                <input 
-                                    type="email" 
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                                    placeholder="john@bizionary.com"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">First Name</label>
-                                <input 
-                                    type="text" 
-                                    name="first_name"
-                                    value={formData.first_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                                    placeholder="John"
-                                />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">Last Name</label>
-                                <input 
-                                    type="text" 
-                                    name="last_name"
-                                    value={formData.last_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                                    placeholder="Doe"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-gray-700">
-                                    Initial Password {user ? '(Leave blank to keep current)' : '<span className="text-red-500">*</span>'}
-                                </label>
-                            </div>
-                            <div className="relative">
-                                <input 
-                                    type={showPassword ? "text" : "password"} 
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required={!user}
-                                    className="w-full pl-4 pr-12 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">System Role <span className="text-red-500">*</span></label>
-                                <select 
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm appearance-none"
-                                >
-                                    <option value="" disabled>Select a role...</option>
-                                    {roles.map(r => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700">Department</label>
-                                <select 
-                                    name="department"
-                                    value={formData.department}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm appearance-none"
-                                >
-                                    <option value="">None / Unassigned</option>
-                                    {departments.map(d => (
-                                        <option key={d.id} value={d.id}>{d.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
                         
-                        {user && (
-                            <div className="space-y-1.5 border-t border-gray-100 pt-5 mt-2">
-                                <label className="text-sm font-semibold text-gray-700">Account Status</label>
-                                <select 
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    className="w-full md:w-1/2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm appearance-none"
-                                >
-                                    <option value="ACTIVE">ACTIVE</option>
-                                    <option value="INACTIVE">INACTIVE</option>
-                                </select>
+                        {/* Section: Account Info */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 pl-0.5">Account Credentials</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Username <span className="text-red-500">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        name="username"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="e.g. zain_ali"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Email Address <span className="text-red-500">*</span></label>
+                                    <input 
+                                        type="email" 
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="zain@bizionary.com"
+                                    />
+                                </div>
                             </div>
-                        )}
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-700 flex justify-between items-center">
+                                    <span>Password {user ? '(Leave blank to keep current)' : <span className="text-red-500">*</span>}</span>
+                                    {!user && (
+                                        <button 
+                                            type="button" 
+                                            onClick={handleAutoGeneratePassword}
+                                            className="text-xs font-semibold text-[#1C3A5A] hover:underline flex items-center gap-1"
+                                        >
+                                            <Key className="w-3 h-3" /> Auto-generate
+                                        </button>
+                                    )}
+                                </label>
+                                <div className="relative">
+                                    <input 
+                                        type={showPassword ? "text" : "password"} 
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        required={!user}
+                                        className="w-full pl-4 pr-12 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder={user ? "••••••••" : "Min 8 characters"}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-gray-100/80 my-2" />
+
+                        {/* Section: Profile Info */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 pl-0.5">Profile Information</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">First Name <span className="text-red-500">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="Zain"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Last Name <span className="text-red-500">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="Ali"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Phone Number</label>
+                                    <input 
+                                        type="text" 
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="e.g. 0300-1234567"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Employee ID <span className="text-xs text-gray-400 font-normal">(Leave blank to auto-generate)</span></label>
+                                    <input 
+                                        type="text" 
+                                        name="employee_id"
+                                        value={formData.employee_id}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm font-mono"
+                                        placeholder="BZ-0002"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-gray-100/80 my-2" />
+
+                        {/* Section: Organizational Placements */}
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 pl-0.5">Corporate Assignments</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">System Role <span className="text-red-500">*</span></label>
+                                    <select 
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm appearance-none"
+                                    >
+                                        <option value="" disabled>Select a role...</option>
+                                        {roles.map(r => (
+                                            <option key={r.id} value={r.id}>{r.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Department</label>
+                                    <select 
+                                        name="department"
+                                        value={formData.department}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm appearance-none"
+                                    >
+                                        <option value="">None / Unassigned</option>
+                                        {departments.map(d => (
+                                            <option key={d.id} value={d.id}>{d.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Designation</label>
+                                    <input 
+                                        type="text" 
+                                        name="designation"
+                                        value={formData.designation}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                        placeholder="e.g. HR Manager / Senior Accountant"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-700">Date of Joining</label>
+                                    <input 
+                                        type="date" 
+                                        name="date_of_joining"
+                                        value={formData.date_of_joining}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {user && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-700">Account Status</label>
+                                        <select 
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm appearance-none"
+                                        >
+                                            <option value="ACTIVE">ACTIVE</option>
+                                            <option value="INACTIVE">INACTIVE</option>
+                                            <option value="SUSPENDED">SUSPENDED</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </form>
                 </div>
                 
+                {/* Footer Buttons */}
                 <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-white">
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md"
+                        className="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all"
                     >
                         Cancel
                     </button>
                     <button 
                         type="submit"
                         form="user-form"
-                        className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primaryDark rounded-xl shadow-sm shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/40"
+                        className="px-5 py-2.5 text-xs font-bold text-white bg-[#1C3A5A] hover:bg-[#2B527E] active:bg-[#152e4a] rounded-xl shadow-md transition-all transform hover:-translate-y-0.5"
                     >
                         {user ? 'Save Changes' : 'Create User'}
                     </button>

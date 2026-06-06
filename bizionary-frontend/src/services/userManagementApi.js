@@ -13,6 +13,9 @@ export const userManagementApi = {
     createUser: (data) => api.post('user-management/users/', data),
     updateUser: (id, data) => api.put(`user-management/users/${id}/`, data),
     deactivateUser: (id) => api.delete(`user-management/users/${id}/`),
+    toggleStatus: (id, status) => api.patch(`user-management/users/${id}/status/`, { status }),
+    resetPassword: (id, password) => api.post(`user-management/users/${id}/reset-password/`, { password }),
+    getAuditLogs: (params) => api.get('user-management/audit-logs/', { params }),
 
     // Roles
     getRoles: () => api.get('user-management/roles/'),

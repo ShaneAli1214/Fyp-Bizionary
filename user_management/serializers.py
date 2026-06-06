@@ -4,6 +4,7 @@ DRF serializers for API request/response handling
 """
 
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
 from .models import (
     Department, Role, ERPUser, Module, Permission, 
     ActivityLog, UserInvite, SecuritySetting
@@ -48,7 +49,7 @@ class ModuleSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Module
-        fields = ['id', 'name', 'description', 'active', 'created_at']
+        fields = ['id', 'name', 'description', 'is_active', 'created_at']
         read_only_fields = ['created_at']
 
 
@@ -80,7 +81,7 @@ class PermissionSerializer(serializers.ModelSerializer):
             )
 
         # Check if module is active
-        if module and not module.active:
+        if module and not module.is_active:
             raise serializers.ValidationError(
                 "Cannot assign permissions for inactive modules"
             )
@@ -176,38 +177,52 @@ class ERPUserSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source='role.name', read_only=True)
     role_level = serializers.CharField(source='role.level', read_only=True)
     permissions = PermissionSerializer(many=True, read_only=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = ERPUser
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name',
+            'id', 'username', 'email', 'first_name', 'last_name', 'password',
+            'employee_id', 'phone', 'designation', 'date_of_joining',
             'department', 'department_name', 'role', 'role_name', 'role_level',
-            'status', 'is_active', 'two_factor_enabled', 'password_changed_date',
+            'status', 'is_active', 'two_factor_enabled', 'password_changed_at',
             'last_login', 'last_activity', 'login_count', 'permissions',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'password_changed_date', 'last_login', 'last_activity',
+            'id', 'password_changed_at', 'last_login', 'last_activity',
             'login_count', 'created_at', 'updated_at'
         ]
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
 
     def create(self, validated_data):
         """Create new user with hashed password"""
-        user = ERPUser.objects.create_user(**validated_data)
+        password = validated_data.pop('password', None)
+        if not password:
+            # Auto-generate password if not provided
+            import secrets
+            password = secrets.token_urlsafe(10)
+        
+        validated_data['password_hash'] = make_password(password)
+        
+        # If employee_id not provided, auto generate one
+        if not validated_data.get('employee_id'):
+            last_user = ERPUser.objects.order_by('-id').first()
+            next_id = 1 if not last_user else (last_user.id + 1)
+            validated_data['employee_id'] = f"BZ-{str(next_id).zfill(4)}"
+
+        user = ERPUser.objects.create(**validated_data)
         return user
 
     def update(self, instance, validated_data):
         """Update user - handle password separately"""
         password = validated_data.pop('password', None)
+        if password:
+            instance.password_hash = make_password(password)
+            from django.utils import timezone
+            instance.password_changed_at = timezone.now()
         
         for key, value in validated_data.items():
             setattr(instance, key, value)
-
-        if password:
-            instance.set_password(password)
 
         instance.save()
         return instance
@@ -230,9 +245,18 @@ class ERPUserSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_employee_id(self, value):
+        """Validate employee_id uniqueness"""
+        user = self.instance
+        if value and ERPUser.objects.filter(employee_id=value).exclude(pk=user.pk if user else None).exists():
+            raise serializers.ValidationError(
+                "This Employee ID is already registered"
+            )
+        return value
+
     def validate_password(self, value):
-        """Validate password strength"""
-        if len(value) < 8:
+        """Validate password strength if provided"""
+        if value and len(value) < 8:
             raise serializers.ValidationError(
                 "Password must be at least 8 characters long"
             )

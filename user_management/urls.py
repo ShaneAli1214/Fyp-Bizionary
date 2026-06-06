@@ -297,8 +297,12 @@ urlpatterns = [
     # ========================================================================
     path('users/', views.user_list_view, name='user-list'),
     path('users/<int:pk>/', views.user_detail_view, name='user-detail'),
+    path('users/<int:pk>/status/', views.toggle_status_view, name='user-toggle-status'),
+    path('users/<int:pk>/reset-password/', views.reset_password_view, name='user-reset-password'),
     path('users/<int:user_id>/permissions/', views.user_permissions_view, name='user-permissions'),
     path('users/<int:user_id>/activity/', views.user_activity_view, name='user-activity'),
+    path('auth/login/', views.login_view, name='login'),
+    path('audit-logs/', views.audit_log_list_view, name='audit-log-list'),
 
     # ========================================================================
     # Module Endpoints

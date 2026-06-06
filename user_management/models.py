@@ -96,25 +96,33 @@ class ERPUser(models.Model):
     email = models.EmailField(unique=True, validators=[EmailValidator()])
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    password = models.CharField(max_length=255)
+    password_hash = models.CharField(max_length=255, db_column='password_hash', default='')
+    employee_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    designation = models.CharField(max_length=100, null=True, blank=True)
+    date_of_joining = models.DateField(null=True, blank=True)
     
     # Organization Info
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
-        related_name='users'
+        related_name='users',
+        null=True,
+        blank=True
     )
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,
-        related_name='users'
+        related_name='users',
+        null=True,
+        blank=True
     )
     
     # Account Status
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='PENDING'
+        default='ACTIVE'
     )
     is_active = models.BooleanField(default=True)
     

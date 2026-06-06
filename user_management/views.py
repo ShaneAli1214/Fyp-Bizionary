@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
+from rest_framework.pagination import PageNumberPagination
 from .models import (
     Department, Role, ERPUser, Module, Permission, 
     ActivityLog, UserInvite, SecuritySetting
@@ -19,6 +21,27 @@ from .serializers import (
     ActivityLogSerializer, UserInviteSerializer, SecuritySettingSerializer
 )
 from .services import UserManagementService
+
+
+def get_request_user(request):
+    """
+    Helper to extract user from Authorization header token
+    """
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        if token.startswith('erp-token-'):
+            try:
+                parts = token.split('-')
+                if len(parts) >= 3:
+                    user_id = int(parts[2])
+                    user = ERPUser.objects.select_related('role', 'department').get(pk=user_id)
+                    user.last_activity = timezone.now()
+                    user.save(update_fields=['last_activity'])
+                    return user
+            except Exception:
+                pass
+    return None
 
 
 # ============================================================================
@@ -312,12 +335,21 @@ def role_detail_view(request, pk):
 @api_view(['GET', 'POST'])
 def user_list_view(request):
     """
-    GET: Get all users with optional filters
-    POST: Create new user
-    Query params: status, role, department
+    GET: Get all users with optional filters, search, and pagination
+    POST: Create new user (enforce admin role)
     """
     if request.method == 'GET':
-        users = ERPUser.objects.all()
+        users = ERPUser.objects.select_related('role', 'department').all()
+
+        # Apply search by name or email
+        search_query = request.query_params.get('search')
+        if search_query:
+            users = users.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(username__icontains=search_query)
+            )
 
         # Apply filters
         status_filter = request.query_params.get('status')
@@ -332,22 +364,61 @@ def user_list_view(request):
         if dept_filter:
             users = users.filter(department_id=dept_filter)
 
-        serializer = ERPUserSerializer(users, many=True)
-        return Response({
-            'success': True,
-            'count': users.count(),
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
+        # Server-side pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = int(request.query_params.get('limit', request.query_params.get('page_size', 10)))
+        
+        try:
+            paginated_users = paginator.paginate_queryset(users, request)
+            serializer = ERPUserSerializer(paginated_users, many=True)
+            return Response({
+                'success': True,
+                'count': users.count(),
+                'total_pages': paginator.page.paginator.num_pages,
+                'current_page': paginator.page.number,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception:
+            serializer = ERPUserSerializer(users, many=True)
+            return Response({
+                'success': True,
+                'count': users.count(),
+                'total_pages': 1,
+                'current_page': 1,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
+        # Enforce that only Super Admin (or any user if database is empty) can create users
+        if ERPUser.objects.filter(role__level='ADMIN').exists():
+            requesting_user = get_request_user(request)
+            if not requesting_user or requesting_user.role.level != 'ADMIN':
+                return Response({
+                    'success': False,
+                    'error': 'Permission Denied. Only a Super Admin can create new users.'
+                }, status=status.HTTP_403_FORBIDDEN)
+        else:
+            requesting_user = None
+
         serializer = ERPUserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            
+            # Log audit activity
+            creator_name = requesting_user.username if requesting_user else "System Setup"
+            ActivityLog.objects.create(
+                user=user if not requesting_user else requesting_user,
+                action='CREATE',
+                module='User Management',
+                description=f"User {user.username} (Employee ID: {user.employee_id}) created by {creator_name}."
+            )
+            
             return Response({
                 'success': True,
                 'message': 'User created successfully',
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
+            
         return Response({
             'success': False,
             'errors': serializer.errors
@@ -358,8 +429,8 @@ def user_list_view(request):
 def user_detail_view(request, pk):
     """
     GET: Get user details with permissions and activity
-    PUT: Update user
-    DELETE: Deactivate user
+    PUT: Update user (enforce admin role)
+    DELETE: Deactivate user (soft delete, enforce admin role)
     """
     user = get_object_or_404(ERPUser, pk=pk)
 
@@ -371,27 +442,60 @@ def user_detail_view(request, pk):
         }, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
+        requesting_user = get_request_user(request)
+        if not requesting_user or requesting_user.role.level != 'ADMIN':
+            return Response({
+                'success': False,
+                'error': 'Permission Denied. Only a Super Admin can modify user accounts.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
         serializer = ERPUserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            
+            # Log audit activity
+            ActivityLog.objects.create(
+                user=requesting_user,
+                action='UPDATE',
+                module='User Management',
+                description=f"Updated details of user {user.username}."
+            )
+            
             return Response({
                 'success': True,
                 'message': 'User updated successfully',
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
+            
         return Response({
             'success': False,
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # Soft delete - mark as inactive
+        requesting_user = get_request_user(request)
+        if not requesting_user or requesting_user.role.level != 'ADMIN':
+            return Response({
+                'success': False,
+                'error': 'Permission Denied. Only a Super Admin can deactivate users.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
         user.status = 'INACTIVE'
+        user.is_active = False
         user.save()
+        
+        # Log audit activity
+        ActivityLog.objects.create(
+            user=requesting_user,
+            action='DELETE',
+            module='User Management',
+            description=f"Deactivated user {user.username}."
+        )
+        
         return Response({
             'success': True,
             'message': 'User deactivated successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -682,3 +786,217 @@ def security_settings_view(request):
             'success': False,
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ============================================================================
+# Authentication View
+# ============================================================================
+
+@api_view(['POST'])
+def login_view(request):
+    """
+    POST: Authenticate user using email and password.
+    Returns token and user info.
+    """
+    email = request.data.get('email')
+    password = request.data.get('password')
+    
+    if not email or not password:
+        return Response({
+            'success': False,
+            'error': 'Please provide both email and password.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        user = ERPUser.objects.select_related('role', 'department').get(email=email)
+    except ERPUser.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Invalid email or password.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    if user.status == 'SUSPENDED':
+        return Response({
+            'success': False,
+            'error': 'Your account has been suspended. Please contact support.'
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    if user.status == 'INACTIVE':
+        return Response({
+            'success': False,
+            'error': 'Your account is inactive. Please contact support.'
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    if check_password(password, user.password_hash):
+        # Update user login count and last login timestamp
+        user.login_count += 1
+        user.last_login = timezone.now()
+        user.last_activity = timezone.now()
+        user.save()
+        
+        # Log login activity
+        ActivityLog.objects.create(
+            user=user,
+            action='LOGIN',
+            description=f"User {user.username} logged in successfully.",
+            status='SUCCESS'
+        )
+        
+        import uuid
+        token = f"erp-token-{user.id}-{uuid.uuid4().hex}"
+        
+        return Response({
+            'success': True,
+            'token': token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role_name': user.role.name if user.role else 'No Role',
+                'role_level': user.role.level if user.role else 'STAFF',
+                'department_name': user.department.name if user.department else 'No Department',
+            }
+        }, status=status.HTTP_200_OK)
+    else:
+        # Log failed login activity
+        ActivityLog.objects.create(
+            user=user,
+            action='LOGIN',
+            description=f"Failed login attempt for user {user.username}.",
+            status='FAILURE'
+        )
+        return Response({
+            'success': False,
+            'error': 'Invalid email or password.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ============================================================================
+# Status Toggle, Reset Password & Audit Log Endpoints
+# ============================================================================
+
+@api_view(['PATCH'])
+def toggle_status_view(request, pk):
+    """
+    PATCH: Toggle status between Active, Inactive, Suspended
+    """
+    requesting_user = get_request_user(request)
+    if not requesting_user or requesting_user.role.level != 'ADMIN':
+        return Response({
+            'success': False,
+            'error': 'Permission Denied. Only a Super Admin can change user status.'
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    user = get_object_or_404(ERPUser, pk=pk)
+    new_status = request.data.get('status')
+    if not new_status or new_status not in ['ACTIVE', 'INACTIVE', 'SUSPENDED']:
+        return Response({
+            'success': False,
+            'error': 'Invalid status value. Must be ACTIVE, INACTIVE, or SUSPENDED.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    old_status = user.status
+    user.status = new_status
+    if new_status == 'INACTIVE' or new_status == 'SUSPENDED':
+        user.is_active = False
+    else:
+        user.is_active = True
+    user.save()
+    
+    # Log audit activity
+    ActivityLog.objects.create(
+        user=requesting_user,
+        action='UPDATE',
+        module='User Management',
+        description=f"Changed status of user {user.username} from {old_status} to {new_status}."
+    )
+    
+    return Response({
+        'success': True,
+        'message': f"User status updated to {new_status} successfully.",
+        'data': ERPUserSerializer(user).data
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def reset_password_view(request, pk):
+    """
+    POST: Reset user password (Admin-initiated)
+    """
+    requesting_user = get_request_user(request)
+    if not requesting_user or requesting_user.role.level != 'ADMIN':
+        return Response({
+            'success': False,
+            'error': 'Permission Denied. Only a Super Admin can reset user passwords.'
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    user = get_object_or_404(ERPUser, pk=pk)
+    new_password = request.data.get('password')
+    
+    if not new_password:
+        import secrets
+        new_password = secrets.token_urlsafe(10)
+        auto_generated = True
+    else:
+        if len(new_password) < 8:
+            return Response({
+                'success': False,
+                'error': 'Password must be at least 8 characters long.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        auto_generated = False
+        
+    user.password_hash = make_password(new_password)
+    user.password_changed_at = timezone.now()
+    user.save()
+    
+    # Log audit activity
+    ActivityLog.objects.create(
+        user=requesting_user,
+        action='PASSWORD_CHANGE',
+        module='User Management',
+        description=f"Reset password for user {user.username}."
+    )
+    
+    return Response({
+        'success': True,
+        'message': 'Password reset successfully.',
+        'password': new_password if auto_generated else None,
+        'auto_generated': auto_generated
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def audit_log_list_view(request):
+    """
+    GET: List all user management activity logs / audit logs
+    """
+    requesting_user = get_request_user(request)
+    if not requesting_user or requesting_user.role.level != 'ADMIN':
+        return Response({
+            'success': False,
+            'error': 'Permission Denied. Only a Super Admin can view audit logs.'
+        }, status=status.HTTP_403_FORBIDDEN)
+        
+    logs = ActivityLog.objects.select_related('user').order_by('-timestamp')
+    
+    # Optional pagination
+    paginator = PageNumberPagination()
+    paginator.page_size = int(request.query_params.get('limit', 20))
+    
+    try:
+        paginated_logs = paginator.paginate_queryset(logs, request)
+        serializer = ActivityLogSerializer(paginated_logs, many=True)
+        return Response({
+            'success': True,
+            'count': logs.count(),
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception:
+        serializer = ActivityLogSerializer(logs, many=True)
+        return Response({
+            'success': True,
+            'count': logs.count(),
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
