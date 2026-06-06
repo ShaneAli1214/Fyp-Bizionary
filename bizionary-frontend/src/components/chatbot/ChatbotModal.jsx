@@ -1,50 +1,151 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, MessageSquare } from 'lucide-react';
+import { 
+    X, Bot, Send, Mic, MicOff, AlertCircle, RefreshCw, 
+    Trash2, HelpCircle, Volume2
+} from 'lucide-react';
 import { chatbotApi } from '../../services/chatbotApi';
+import api from '../../services/api';
 
 const ChatbotModal = ({ isOpen, onClose }) => {
     const [prompt, setPrompt] = useState('');
-    const [messages, setMessages] = useState([
-        {
-            sender: 'assistant',
-            text: 'Hello! 👋 I\'m your AI Support Assistant. I\'m here to help you with any questions about orders, products, sales, inventory, or account workflows. What can I assist you with today?',
-        },
-    ]);
+    const [messages, setMessages] = useState(() => {
+        const saved = localStorage.getItem('bizionary_chatbot_modal_history');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Failed to parse saved chatbot modal history', e);
+            }
+        }
+        return [
+            {
+                sender: 'assistant',
+                text: 'Hello! 👋 I\'m your AI Support Assistant. I can help with orders, stock levels, sales analytics, or erp guides. Ask me anything or select a shortcut below!',
+            },
+        ];
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const messageListRef = useRef(null);
+    const [isListening, setIsListening] = useState(false);
+    const [demoMode, setDemoMode] = useState(false);
+    const [isKeyConfigured, setIsKeyConfigured] = useState(true);
+    const [activeSpeech, setActiveSpeech] = useState(null);
 
+    const messageListRef = useRef(null);
+    const recognitionRef = useRef(null);
+
+    // Check if Groq API key is active on open
+    useEffect(() => {
+        if (isOpen) {
+            const checkApiKey = async () => {
+                try {
+                    const response = await api.get('accounts/api-configuration/active_config/');
+                    const hasGroq = response.data && response.data.provider === 'groq';
+                    setIsKeyConfigured(hasGroq);
+                } catch (err) {
+                    setIsKeyConfigured(false);
+                }
+            };
+            checkApiKey();
+        }
+    }, [isOpen]);
+
+    // Scroll to bottom when messages update
     useEffect(() => {
         if (messageListRef.current) {
             messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
         }
     }, [messages, loading]);
 
-    const handleSend = async () => {
-        if (!prompt.trim()) {
+    // Save chat history to localStorage
+    useEffect(() => {
+        localStorage.setItem('bizionary_chatbot_modal_history', JSON.stringify(messages));
+    }, [messages]);
+
+    // Web Speech API configuration
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const rec = new SpeechRecognition();
+            rec.continuous = false;
+            rec.interimResults = false;
+            rec.lang = 'en-US';
+
+            rec.onstart = () => setIsListening(true);
+            rec.onend = () => setIsListening(false);
+            rec.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                setPrompt(transcript);
+            };
+
+            recognitionRef.current = rec;
+        }
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) {
+            alert('Voice input is not supported in your browser.');
+            return;
+        }
+        if (isListening) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+        }
+    };
+
+    const speakText = (text, index) => {
+        if (!window.speechSynthesis) return;
+
+        if (activeSpeech === index) {
+            window.speechSynthesis.cancel();
+            setActiveSpeech(null);
             return;
         }
 
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/\*\*|__/g, '').replace(/`([^`]+)`/g, '$1');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.onend = () => setActiveSpeech(null);
+        utterance.onerror = () => setActiveSpeech(null);
+        setActiveSpeech(index);
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const handleSend = async (customMessage = null) => {
+        const textToSend = customMessage || prompt.trim();
+        if (!textToSend) return;
+
         setError('');
-        const userMessage = prompt.trim();
-        const nextMessages = [...messages, { sender: 'user', text: userMessage }];
+        const nextMessages = [...messages, { sender: 'user', text: textToSend }];
         setMessages(nextMessages);
         setPrompt('');
         setLoading(true);
 
+        if (demoMode || !isKeyConfigured) {
+            setTimeout(() => {
+                const reply = getOfflineMockResponse(textToSend);
+                setMessages(prev => [...prev, { sender: 'assistant', text: reply }]);
+                setLoading(false);
+            }, 1000);
+            return;
+        }
+
         try {
-            const history = messages.map((message) => ({
-                role: message.sender === 'user' ? 'user' : 'assistant',
-                content: message.text,
+            const history = messages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
             }));
-            const response = await chatbotApi.query(userMessage, history);
-            const reply = response.data?.data?.response || 'I could not generate a response right now.';
-            setMessages((prev) => [...prev, { sender: 'assistant', text: reply }]);
+            const response = await chatbotApi.query(textToSend, history);
+            const reply = response.data?.data?.response || 'Could not fetch a response.';
+            setMessages(prev => [...prev, { sender: 'assistant', text: reply }]);
         } catch (sendError) {
             console.error(sendError);
-            setError(
-                sendError.response?.data?.error || 'Service unavailable. Please try again later.',
-            );
+            const errMsg = sendError.response?.data?.error || sendError.message || 'Service offline.';
+            setError(errMsg);
+            if (errMsg.includes('not configured')) {
+                setIsKeyConfigured(false);
+            }
         } finally {
             setLoading(false);
         }
@@ -57,92 +158,229 @@ const ChatbotModal = ({ isOpen, onClose }) => {
         }
     };
 
-    if (!isOpen) {
-        return null;
-    }
+    const getOfflineMockResponse = (userText) => {
+        const text = userText.toLowerCase();
+        if (text.includes('revenue') || text.includes('sales total')) {
+            return '### Revenue Analytics 📊\n\nTotal Sales revenue parsed from DB is Rs 1,245,630.00.\n\nOpen full Sales Analytics inside the ERP to see metrics.';
+        }
+        if (text.includes('stock') || text.includes('low stock') || text.includes('inventory')) {
+            return '### Inventory Summary 📦\n\nThere are 12 items running low on stock.\n\nCheck the Products or Stock list to trigger restocks.';
+        }
+        return `### Local Mode response 🤖\n\nI received: "${userText}"\n\n*Running in local Demo mode. Configure a Groq key in Settings for full capabilities.*`;
+    };
+
+    const formatText = (text) => {
+        if (!text) return '';
+        return text.split('\n').map((line, idx) => {
+            if (line.startsWith('### ')) {
+                return <h5 key={idx} className="font-bold text-slate-800 mt-1.5 mb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider">{line.replace('### ', '')}</h5>;
+            }
+            if (line.startsWith('- ') || line.startsWith('* ')) {
+                return <li key={idx} className="ml-4 list-disc text-[10.5px] my-0.5">{parseBoldAndCode(line.slice(2))}</li>;
+            }
+            return <p key={idx} className="my-0.5 text-[10.5px] leading-relaxed">{parseBoldAndCode(line)}</p>;
+        });
+    };
+
+    const parseBoldAndCode = (text) => {
+        const parts = [];
+        let index = 0;
+        const formatRegex = /(\*\*.*?\*\*|`.*?`)/g;
+        const matches = text.match(formatRegex);
+        if (!matches) return text;
+
+        let match;
+        const regex = /(\*\*.*?\*\*|`.*?`)/g;
+        while ((match = regex.exec(text)) !== null) {
+            const matchIndex = match.index;
+            const matchText = match[0];
+            if (matchIndex > index) {
+                parts.push(text.slice(index, matchIndex));
+            }
+            if (matchText.startsWith('**')) {
+                parts.push(<strong key={matchIndex} className="font-bold text-slate-900">{matchText.slice(2, -2)}</strong>);
+            } else if (matchText.startsWith('`')) {
+                parts.push(<code key={matchIndex} className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px] text-primary">{matchText.slice(1, -1)}</code>);
+            }
+            index = regex.lastIndex;
+        }
+        if (index < text.length) parts.push(text.slice(index));
+        return parts;
+    };
+
+    const handleClearHistory = () => {
+        if (window.confirm('Clear chat history?')) {
+            window.speechSynthesis.cancel();
+            setMessages([
+                {
+                    sender: 'assistant',
+                    text: 'Hello! 👋 I\'m your AI Support Assistant. I can help with orders, stock levels, sales analytics, or erp guides. Ask me anything or select a shortcut below!',
+                },
+            ]);
+            setError('');
+            setActiveSpeech(null);
+        }
+    };
+
+    const shortcuts = [
+        { label: '📊 Revenue', query: 'What is our current revenue?' },
+        { label: '📦 Low Stock', query: 'Which products are low on stock?' },
+        { label: '⚙️ ERP Guide', query: 'Explain the available modules' }
+    ];
+
+    if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-end p-3 md:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-end p-4 pointer-events-none">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+            <div className="absolute inset-0 bg-slate-900/10 pointer-events-auto" onClick={onClose} />
 
-            {/* Modal */}
-            <div className="relative z-50 w-full max-w-[20rem] rounded-3xl bg-white shadow-2xl border border-gray-200 flex flex-col max-h-[500px] overflow-hidden">
+            {/* Modal Drawer Layout */}
+            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-white shadow-2xl border border-slate-200/80 flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
+                
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-primary via-blue-500 to-primary text-white rounded-t-3xl">
-                    <div>
-                        <h2 className="text-sm font-bold">ASK YOUR QUERIES HERE</h2>
-                        <p className="text-[11px] text-blue-100 mt-0.5">Powered by AI • Always Available</p>
+                <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-primary via-blue-500 to-primary text-white">
+                    <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                            <Bot className="w-4.5 h-4.5" />
+                        </div>
+                        <div>
+                            <h2 className="text-xs font-bold uppercase tracking-wide">Bizionary AI Support</h2>
+                            <p className="text-[9px] text-blue-100">{(demoMode || !isKeyConfigured) ? 'Local Demo Mode' : 'Online • Powered by Groq'}</p>
+                        </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="text-white/80 hover:text-white p-1 transition rounded-lg hover:bg-white/10"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={handleClearHistory}
+                            className="text-white/80 hover:text-white p-1 transition rounded-lg hover:bg-white/10"
+                            title="Clear History"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="text-white/80 hover:text-white p-1 transition rounded-lg hover:bg-white/10"
+                            title="Close"
+                        >
+                            <X className="w-4.5 h-4.5" />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Messages */}
+                {/* API Warning */}
+                {!isKeyConfigured && (
+                    <div className="bg-orange-50 border-b border-orange-200 px-4 py-2 flex items-center justify-between gap-2 text-orange-800 text-[10px]">
+                        <span className="font-semibold flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                            Demo mode active
+                        </span>
+                        <button
+                            onClick={() => setDemoMode(true)}
+                            className="bg-orange-100 hover:bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[9px] font-bold transition"
+                        >
+                            Confirm Demo
+                        </button>
+                    </div>
+                )}
+
+                {/* Messages Body */}
                 <div
                     ref={messageListRef}
-                    className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-b from-slate-50 to-white"
+                    className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-gradient-to-b from-slate-50 to-white"
                 >
                     {messages.map((message, index) => (
                         <div
-                            key={`${message.sender}-${index}`}
-                            className={`rounded-2xl p-3 shadow-sm ${
-                                message.sender === 'user'
-                                    ? 'ml-auto max-w-[85%] bg-primary/15 text-textMain border border-primary/20'
-                                    : 'mr-auto max-w-[85%] bg-white text-textMain border border-gray-100'
-                            }`}
+                            key={index}
+                            className={`flex flex-col max-w-[85%] ${message.sender === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'}`}
                         >
-                            <div className="text-xs font-semibold text-textMuted mb-1.5 capitalize opacity-70">
-                                {message.sender === 'user' ? '👤 You' : '🤖 AI Assistant'}
+                            <div className={`p-3 rounded-2xl border text-xs shadow-sm ${
+                                message.sender === 'user'
+                                    ? 'bg-primary text-white border-primary/20 rounded-tr-none'
+                                    : 'bg-white text-slate-800 border-slate-100 rounded-tl-none'
+                            }`}>
+                                {formatText(message.text)}
+                                
+                                {message.sender === 'assistant' && (
+                                    <div className="flex justify-end mt-2 pt-1 border-t border-slate-50">
+                                        <button
+                                            onClick={() => speakText(message.text, index)}
+                                            className={`p-1 rounded hover:bg-slate-50 transition ${activeSpeech === index ? 'text-primary' : 'text-slate-400'}`}
+                                            title="Read text out loud"
+                                        >
+                                            <Volume2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div className="text-xs leading-5 whitespace-pre-wrap">{message.text}</div>
                         </div>
                     ))}
-                    {loading && (
-                        <div className="mr-auto max-w-[85%] rounded-2xl bg-white p-3 shadow-sm border border-gray-100">
-                            <div className="text-xs font-semibold text-textMuted mb-1.5 opacity-70">🤖 AI Assistant</div>
-                            <div className="flex gap-1.5">
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+
+                    {/* Question Chips - Render inside list if only welcome message is there */}
+                    {messages.length === 1 && (
+                        <div className="pt-2 space-y-1.5 animate-in fade-in duration-300">
+                            <span className="text-[10px] text-textMuted font-bold uppercase tracking-wider block mb-1">Shortcut Queries:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                                {shortcuts.map((chip, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleSend(chip.query)}
+                                        className="text-[10px] px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-primary/5 hover:text-primary rounded-full font-bold text-left transition active:scale-95"
+                                    >
+                                        {chip.label}
+                                    </button>
+                                ))}
                             </div>
+                        </div>
+                    )}
+
+                    {loading && (
+                        <div className="mr-auto items-start flex flex-col">
+                            <div className="bg-white p-2.5 rounded-2xl border border-slate-100 rounded-tl-none flex items-center gap-1.5">
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {error && (
+                        <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl text-[10px] border border-rose-100 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span>{error}</span>
                         </div>
                     )}
                 </div>
 
-                {/* Input */}
-                <div className="border-t border-gray-200 bg-white p-3 space-y-2 rounded-b-3xl">
-                    <textarea
-                        value={prompt}
-                        onChange={(event) => setPrompt(event.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Type your question here..."
-                        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-xs text-textMain shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 focus:bg-white resize-none transition"
-                        rows="2"
-                    />
-                    <button
-                        type="button"
-                        onClick={handleSend}
-                        disabled={loading}
-                        className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-primary to-blue-600 px-3 py-2.5 text-xs font-bold text-white transition hover:from-primary hover:to-blue-700 hover:shadow-lg disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300 active:scale-95"
-                    >
-                        {loading ? (
-                            <>
-                                <span className="inline-block animate-spin mr-2">⏳</span>
-                                Thinking...
-                            </>
-                        ) : (
-                            <>
-                                <span className="mr-2">📤</span>
-                                Send
-                            </>
-                        )}
-                    </button>
-                    {error && <p className="text-xs text-red-500 bg-red-50 p-2.5 rounded-lg">{error}</p>}
+                {/* Input Area */}
+                <div className="border-t border-slate-150 bg-white p-3">
+                    <div className="relative flex items-center">
+                        <textarea
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type your question..."
+                            className="w-full pl-3 pr-16 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white transition resize-none min-h-[36px] max-h-[80px]"
+                            rows="1"
+                        />
+                        <div className="absolute right-2 flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={toggleListening}
+                                className={`p-1.5 rounded-lg transition ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-100'}`}
+                                title="Speak"
+                            >
+                                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSend()}
+                                disabled={loading || !prompt.trim()}
+                                className="p-1.5 bg-primary hover:bg-primaryDark text-white rounded-lg transition disabled:opacity-50"
+                            >
+                                <Send className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

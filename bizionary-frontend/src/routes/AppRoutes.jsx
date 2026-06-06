@@ -18,6 +18,7 @@ import SmartReorderEngine from '../pages/insights/SmartReorderEngine';
 import FrontendDiagnostic from '../pages/insights/FrontendDiagnostic';
 import Troubleshoot from '../pages/insights/Troubleshoot';
 import GrayPaletteSample from '../components/GrayPaletteSample';
+import Chatbot from '../pages/chatbot/Chatbot';
 
 // Placeholders for other pages
 const Placeholder = ({ title }) => (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
                 <Route path="user-management" element={<UserManagement />} />
                 <Route path="insights" element={<AIInsights />} />
                 <Route path="smart-reorder" element={<SmartReorderEngine />} />
+                <Route path="chatbot" element={<Chatbot />} />
                 <Route path="palette" element={<GrayPaletteSample />} />
             </Route>
         </Routes>

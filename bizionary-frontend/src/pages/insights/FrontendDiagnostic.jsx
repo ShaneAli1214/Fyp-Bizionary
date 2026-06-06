@@ -8,7 +8,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
  */
 export default function FrontendDiagnostic() {
     const [diagnostics, setDiagnostics] = useState({
-        apiUrl: 'http://127.0.0.1:8000/api/insights/live/',
+        apiUrl: '/api/insights/live/',
         frontendUrl: window.location.href,
         status: 'Testing...',
         response: null,

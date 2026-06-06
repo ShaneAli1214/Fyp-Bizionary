@@ -5,8 +5,10 @@ class APIConfiguration(models.Model):
     """Store API Keys and configurations"""
     
     OPENAI_PROVIDER = 'openai'
+    GROQ_PROVIDER = 'groq'
     PROVIDERS = [
         (OPENAI_PROVIDER, 'OpenAI'),
+        (GROQ_PROVIDER, 'Groq'),
     ]
     
     provider = models.CharField(max_length=50, choices=PROVIDERS, unique=True)

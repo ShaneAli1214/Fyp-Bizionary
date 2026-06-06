@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
  */
 export default function Troubleshoot() {
     const [status, setStatus] = useState({
-        apiUrl: 'http://127.0.0.1:8000/api/insights/live/',
+        apiUrl: '/api/insights/live/',
         backendConnected: false,
         backendError: null,
         backendResponse: null,

@@ -10,7 +10,8 @@ import {
     Lock, 
     LogOut, 
     Menu,
-    ClipboardList
+    ClipboardList,
+    Bot
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -28,6 +29,7 @@ const Navbar = ({ onToggleSidebar }) => {
         { label: 'Stock', path: '/inventory-managment', icon: Boxes },
         { label: 'Sales', path: '/sales', icon: ShoppingCart },
         { label: 'Create Order', path: '/ordered-slips', icon: ClipboardList },
+        { label: 'AI Chatbot', path: '/chatbot', icon: Bot },
         { label: 'Admin', path: '/user-management', icon: Lock }
     ];
 

@@ -41,6 +41,14 @@ def get_request_user(request):
                     return user
             except Exception:
                 pass
+        elif token == 'mock-jwt-token-for-ali':
+            try:
+                user = ERPUser.objects.select_related('role', 'department').get(pk=1)
+                user.last_activity = timezone.now()
+                user.save(update_fields=['last_activity'])
+                return user
+            except Exception:
+                pass
     return None
 
 

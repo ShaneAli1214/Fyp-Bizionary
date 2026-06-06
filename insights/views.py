@@ -40,7 +40,20 @@ def add_no_cache_headers(response):
 
 
 def _resolve_ai_message(payload):
-    """Return automatic daily AI recommendation based on live data."""
+    """Return automatic daily AI recommendation based on live data, or call OpenAI if configured."""
+    from .services import _get_openai_client, generate_ai_insights
+    
+    api_key = _get_openai_client()
+    if api_key:
+        try:
+            ai_insights = generate_ai_insights(payload['sales_data'], payload['product_performance'])
+            # Ensure it is not an error message before returning it
+            if ai_insights and "AI insights unavailable" not in ai_insights and "Unable to generate" not in ai_insights:
+                return ai_insights
+        except Exception as exc:
+            print(f"Failed to generate OpenAI insights: {exc}")
+            pass
+
     pricing = get_pricing_suggestions()
     demand = get_demand_alerts()
     stock = get_stock_warnings()

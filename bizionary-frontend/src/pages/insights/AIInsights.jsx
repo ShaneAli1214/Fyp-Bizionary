@@ -78,14 +78,15 @@ const AIInsights = () => {
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [reviewStatus, setReviewStatus] = useState('');
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [insightsError, setInsightsError] = useState('');
+    const [nlpReportError, setNlpReportError] = useState('');
 
     const fetchInsights = async (showLoader = false) => {
         try {
             if (showLoader) {
                 setLoading(true);
             }
-            const response = await insightsApi.getLiveInsights();
+            const response = await insightsApi.getInsights();
             const insightsData = response.data?.data;
 
             if (!insightsData) {
@@ -93,10 +94,10 @@ const AIInsights = () => {
             }
 
             setInsights(insightsData);
-            setError('');
+            setInsightsError('');
         } catch (err) {
             const errorMsg = err.response?.data?.error || err.message || 'Failed to load insights';
-            setError(errorMsg);
+            setInsightsError(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -111,9 +112,10 @@ const AIInsights = () => {
                 throw new Error('No NLP report data returned from API');
             }
             setNlpReport(reportData);
+            setNlpReportError('');
         } catch (err) {
             const errorMsg = err.response?.data?.error || err.message || 'Failed to load NLP report';
-            setError(errorMsg);
+            setNlpReportError(errorMsg);
         }
     };
 
@@ -252,19 +254,19 @@ const AIInsights = () => {
         );
     }
 
-    if (error) {
+    if (insightsError) {
         return (
             <div className="rounded-3xl bg-red-50 p-8 border border-red-200">
                 <div className="flex items-center gap-3 mb-4">
                     <AlertCircle className="w-6 h-6 text-red-600" />
                     <div>
                         <h3 className="font-semibold text-red-900">Error Loading Insights</h3>
-                        <p className="text-sm text-red-700 mt-1">{error}</p>
+                        <p className="text-sm text-red-700 mt-1">{insightsError}</p>
                     </div>
                 </div>
                 <button
                     onClick={() => {
-                        setError('');
+                        setInsightsError('');
                         fetchInsights(true);
                     }}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
@@ -345,7 +347,26 @@ const AIInsights = () => {
 
             {activeTab === 'nlp' ? (
                 <div className="space-y-6">
-                    {!nlpReport ? (
+                    {nlpReportError ? (
+                        <div className="rounded-3xl bg-red-50 p-8 border border-red-200">
+                            <div className="flex items-center gap-3 mb-4">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                                <div>
+                                    <h3 className="font-semibold text-red-900">Error Loading NLP Report</h3>
+                                    <p className="text-sm text-red-700 mt-1">{nlpReportError}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setNlpReportError('');
+                                    fetchNlpReport(selectedNlpPeriod);
+                                }}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    ) : !nlpReport ? (
                         <div className="rounded-3xl bg-yellow-50 p-8 border border-yellow-200">
                             <p className="text-yellow-800">NLP report is not available right now.</p>
                         </div>

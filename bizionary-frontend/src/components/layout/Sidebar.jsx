@@ -8,7 +8,8 @@ import {
     ShoppingCart, 
     ClipboardList, 
     Lock, 
-    X 
+    X,
+    Bot
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -23,6 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Stock', href: '/inventory-managment', icon: Boxes },
         { name: 'Sales', href: '/sales', icon: ShoppingCart },
         { name: 'Create Order', href: '/ordered-slips', icon: ClipboardList },
+        { name: 'AI Chatbot', href: '/chatbot', icon: Bot },
         { name: 'Admin', href: '/user-management', icon: Lock, adminOnly: true }
     ];
 

@@ -29,10 +29,17 @@ class APIConfigurationSerializer(serializers.ModelSerializer):
     
     def validate_api_key(self, value):
         """Validate API key format"""
-        if not value or len(value) < 10:
-            raise serializers.ValidationError("API key is too short. Please check your OpenAI API key.")
-        if not value.startswith('sk-'):
-            raise serializers.ValidationError("Invalid OpenAI API key format. Should start with 'sk-'")
+        provider = self.initial_data.get('provider') if hasattr(self, 'initial_data') else None
+        if not provider and self.instance:
+            provider = self.instance.provider
+            
+        if not provider:
+            provider = 'openai'
+            
+        from .api_config_utils import validate_api_key_format
+        is_valid, message = validate_api_key_format(value, provider)
+        if not is_valid:
+            raise serializers.ValidationError(message)
         return value
 
 
@@ -58,8 +65,15 @@ class APIConfigurationUpdateSerializer(serializers.ModelSerializer):
     
     def validate_api_key(self, value):
         """Validate API key format"""
-        if not value or len(value) < 10:
-            raise serializers.ValidationError("API key is too short. Please check your OpenAI API key.")
-        if not value.startswith('sk-'):
-            raise serializers.ValidationError("Invalid OpenAI API key format. Should start with 'sk-'")
+        provider = self.initial_data.get('provider') if hasattr(self, 'initial_data') else None
+        if not provider and self.instance:
+            provider = self.instance.provider
+            
+        if not provider:
+            provider = 'openai'
+            
+        from .api_config_utils import validate_api_key_format
+        is_valid, message = validate_api_key_format(value, provider)
+        if not is_valid:
+            raise serializers.ValidationError(message)
         return value

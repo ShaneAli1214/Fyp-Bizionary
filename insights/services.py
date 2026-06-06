@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from math import ceil
 from django.utils import timezone
 from django.db import connection, reset_queries
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Avg, Sum, Q
 import openai
 from django.conf import settings
 from accounts.api_config_utils import get_active_api_key
@@ -22,7 +22,7 @@ def _get_openai_client():
     1. Database configuration (if active)
     2. Django settings
     """
-    api_key = get_active_api_key('openai') or settings.OPENAI_API_KEY or ''
+    api_key = get_active_api_key('openai') or getattr(settings, 'OPENAI_API_KEY', '') or ''
     return api_key if api_key else None
 
 
@@ -94,16 +94,33 @@ def get_product_performance():
         }
     
     reset_queries()
-    products = list(Product.objects.all())
-    product_stats = []
     
+    # Fetch all products to ensure we cover ones with zero sales
+    products = list(Product.objects.all())
+    
+    # Aggregate sales quantity and total revenue grouped by product in a single query
+    sales_stats = Sale.objects.values('product_id').annotate(
+        total_sales=Sum('quantity_sold'),
+        total_revenue=Sum('total_price')
+    )
+    
+    # Map stats by product_id for fast lookup
+    stats_by_product = {
+        item['product_id']: {
+            'total_sales': item['total_sales'],
+            'total_revenue': float(item['total_revenue'] or 0.0),
+        }
+        for item in sales_stats
+    }
+    
+    product_stats = []
     for product in products:
-        sales_count = Sale.objects.filter(product=product).count()
-        sales_list = list(Sale.objects.filter(product=product).values('total_price'))
-        total_revenue = sum(float(s.get('total_price') or 0) for s in sales_list)
+        stats = stats_by_product.get(product.id, {'total_sales': 0, 'total_revenue': 0.0})
+        sales_count = stats['total_sales']
+        total_revenue = stats['total_revenue']
         
         stock_level = getattr(product, 'stock_quantity', 0)
-        reorder_level = getattr(product, 'reorder_level', 10)
+        reorder_level = getattr(product, 'min_stock', 10)
         
         # Stock status based on 100-unit threshold
         status = 'adequate'
@@ -147,10 +164,11 @@ def generate_ai_insights(sales_data, product_performance):
         if not api_key:
             return "AI insights unavailable: OpenAI API key not configured. Please set it in the Admin Panel under Settings > API Configuration."
         
-        openai.api_key = api_key
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
         
         total_sales = len(sales_data)
-        total_revenue = sum(float(s.get('sale_price', 0) or 0) * s.get('quantity', 1) for s in sales_data)
+        total_revenue = sum(float(s.get('total_price', 0) or 0) for s in sales_data)
         
         hot_products_summary = '\n'.join([
             f"- {p['product_name']}: {p['total_sales']} sales, ₨{p['total_revenue']:,.2f} revenue"
@@ -177,7 +195,7 @@ PRODUCTS NEEDING RESTOCKING:
 
 Please provide 3-4 concise, actionable insights and recommendations for improving sales and inventory management. Focus on what actions should be taken immediately."""
         
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model='gpt-3.5-turbo',
             messages=[
                 {
@@ -227,7 +245,7 @@ def get_insights_payload():
         for s in sales_data
     )
     total_sales = len(sales_data)
-    average_order_value = total_revenue / max(total_sales, 1)
+    average_order_value = total_revenue / max(len(sales_data), 1)
 
     return {
         'sales_data': sales_data,
@@ -251,7 +269,7 @@ def build_live_insights_message(insights_payload):
     restock_count = len(insights_payload['restocking_needed'])
 
     return (
-        f"Live update: {insights_payload['total_sales']} sales generated "
+        f"Live update: {insights_payload['total_sales']} sales recorded, generating "
         f"₨{insights_payload['total_revenue']:.0f} revenue in the last 30 days. "
         f"Top products: {top_hot or 'N/A'}. "
         f"{restock_count} product(s) need restocking right now."
@@ -267,20 +285,27 @@ def get_pricing_suggestions():
     suggestions = []
     thirty_days_ago = timezone.now() - timedelta(days=30)
     
-    products = list(Product.objects.all())
-    for product in products:
-        # Get sales in last 30 days
-        recent_sales = list(Sale.objects.filter(
-            product=product,
-            sale_date__gte=thirty_days_ago
-        ).values('unit_price', 'quantity_sold', 'total_price'))
-        
-        if not recent_sales:
+    # Fetch all products
+    products = {p.id: p for p in Product.objects.all()}
+    
+    # Aggregate sales in last 30 days grouped by product
+    recent_sales_stats = Sale.objects.filter(
+        sale_date__gte=thirty_days_ago
+    ).values('product_id').annotate(
+        sales_count=Count('id'),
+        total_units=Sum('quantity_sold'),
+        avg_unit_price=Avg('unit_price')
+    )
+    
+    for item in recent_sales_stats:
+        p_id = item['product_id']
+        product = products.get(p_id)
+        if not product:
             continue
             
-        sales_count = len(recent_sales)
-        total_units = sum(int(s.get('quantity_sold') or 0) for s in recent_sales)
-        avg_price = sum(float(s['unit_price']) for s in recent_sales) / len(recent_sales) if recent_sales else 0
+        sales_count = item['sales_count']
+        total_units = int(item['total_units'] or 0)
+        avg_price = float(item['avg_unit_price'] or 0.0)
 
         # Surface a pricing signal after every sale.
         if sales_count >= 1:
@@ -327,16 +352,25 @@ def get_demand_alerts():
     thirty_days_ago = timezone.now() - timedelta(days=30)
     seven_days_ago = timezone.now() - timedelta(days=7)
     
-    products = list(Product.objects.all())
-    for product in products:
-        sales_30d = Sale.objects.filter(
-            product=product,
-            sale_date__gte=thirty_days_ago
-        ).count()
-        sales_7d = Sale.objects.filter(
-            product=product,
-            sale_date__gte=seven_days_ago
-        ).count()
+    # Fetch all products
+    products = {p.id: p for p in Product.objects.all()}
+    
+    # Aggregate counts in 30d and 7d in a single query
+    sales_stats = Sale.objects.filter(
+        sale_date__gte=thirty_days_ago
+    ).values('product_id').annotate(
+        sales_30d=Count('id'),
+        sales_7d=Count('id', filter=Q(sale_date__gte=seven_days_ago))
+    )
+    
+    for item in sales_stats:
+        p_id = item['product_id']
+        product = products.get(p_id)
+        if not product:
+            continue
+            
+        sales_30d = item['sales_30d']
+        sales_7d = item['sales_7d']
         
         # Create a demand signal as soon as sales start.
         if sales_30d >= 1:
@@ -375,7 +409,7 @@ def get_stock_warnings():
     
     for product in products:
         stock_level = getattr(product, 'stock_quantity', 0)
-        reorder_level = getattr(product, 'reorder_level', 10)
+        reorder_level = getattr(product, 'min_stock', 10)
         
         # Keep stock alerts dynamic by comparing against each product's reorder level.
         caution_level = max(reorder_level * 2, 20)
@@ -564,7 +598,7 @@ def build_live_nlp_report(period_days=30):
     avg_order_value = round(payload.get('average_order_value', 0.0), 2)
 
     key_findings.append(
-        f"Live sales snapshot: {total_sales} sale(s), revenue Rs {total_revenue}, average order value Rs {avg_order_value}."
+        f"Live sales snapshot: {total_sales} sales recorded, revenue Rs {total_revenue}, average order value Rs {avg_order_value}."
     )
 
     if review_summary['total_reviews']:
@@ -659,7 +693,7 @@ def get_smart_reorder_recommendations(period_days=30, lead_time_days=7, coverage
     for product in products:
         product_id = product.id
         current_stock = int(getattr(product, 'stock_quantity', 0) or 0)
-        reorder_level = int(getattr(product, 'reorder_level', 0) or 0)
+        reorder_level = int(getattr(product, 'min_stock', 0) or 0)
         unit_price = float(getattr(product, 'unit_price', 0) or 0)
 
         units_sold_period = int(sales_units.get(product_id, 0))

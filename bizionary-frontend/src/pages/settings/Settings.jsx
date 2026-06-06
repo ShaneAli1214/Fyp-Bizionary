@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Moon, Sun, Monitor, User, Bell, Shield, KeyRound, MonitorSmartphone, Globe, Puzzle, Eye, EyeOff } from 'lucide-react';
+import { 
+    Moon, Sun, Monitor, User, Bell, Shield, 
+    MonitorSmartphone, Globe, Puzzle
+} from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import api from '../../services/api';
 
 const SETTINGS_STORAGE_KEY = 'app-settings-preferences';
 
@@ -47,6 +51,8 @@ const Settings = () => {
         },
     });
     const [preferencesStatus, setPreferencesStatus] = useState({ type: '', message: '' });
+
+
 
     useEffect(() => {
         const fullName = (user?.name || '').trim();
@@ -198,6 +204,7 @@ const Settings = () => {
         { name: 'Integrations', icon: Puzzle },
         { name: 'Privacy & Security', icon: Shield },
     ];
+
 
     const renderLeftSidebar = () => (
         <div className="md:col-span-1 space-y-1">

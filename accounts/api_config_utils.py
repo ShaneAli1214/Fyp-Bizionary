@@ -35,7 +35,8 @@ def get_active_api_key(provider='openai'):
     
     # Fallback to environment variable
     import os
-    env_key = os.getenv('OPENAI_API_KEY')
+    env_var = 'OPENAI_API_KEY' if provider == 'openai' else 'GROQ_API_KEY'
+    env_key = os.getenv(env_var)
     if env_key:
         # Cache the environment variable too
         cache.set(cache_key, env_key, 3600)
@@ -57,6 +58,13 @@ def validate_api_key_format(api_key, provider='openai'):
         if len(api_key) < 20:
             return False, "API key seems too short"
         return True, "Valid OpenAI API key format"
+    
+    if provider == 'groq':
+        if not api_key.startswith('gsk_'):
+            return False, "Invalid Groq API key format. Should start with 'gsk_'"
+        if len(api_key) < 20:
+            return False, "API key seems too short"
+        return True, "Valid Groq API key format"
     
     return False, f"Unknown provider: {provider}"
 
