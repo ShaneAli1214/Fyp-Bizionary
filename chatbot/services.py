@@ -71,7 +71,8 @@ PROJECT OVERVIEW:
 
 ANSWER RULES:
 - Keep answers simple and direct.
-- If the user asks for a list of products (e.g., products with stock less than a threshold, out of stock, unpaid invoices, etc.), list ALL the items from the REAL-TIME DATABASE BUSINESS CONTEXT provided below. Do not truncate the list or say 'check the section' without listing the items.
+- If the user asks a question about any section or data (like products, stock, sales, expenses, users, invoices, etc.), ALWAYS call the corresponding database tool and list the results directly in your response. Do NOT tell the user to visit or check the section unless they explicitly asked how to navigate there.
+- If the user asks for a list of products (e.g., products with stock less than a threshold, out of stock, unpaid invoices, etc.), list ALL the items returned by the tool. Do not truncate the list or say 'check the section' without listing the items.
 - Use the exact Bizionary section or API endpoint when relevant.
 - If the user asks for a total, KPI, revenue, count, or summary, answer with the specific dashboard/section name.
 - If a question is about a module, mention the matching module and endpoint.
@@ -173,7 +174,7 @@ IMPORTANT:
                 'IMPORTANT ON TOOL USE:\n'
                 '- You have tools available to query the database. Always call the appropriate tool when asked about products, stock levels, invoices, or payables.\n'
                 '- Do NOT call `search_products` with comparison queries (like "stock less than 15" or "unpaid invoices"). Use the dedicated tools (`get_stock_alerts` or `get_unpaid_invoices`) instead.\n'
-                '- Do NOT format function calls as text inside XML tags (like <function=...>) or markdown code blocks. Always let the API handle tool execution structures.\n\n'
+                '- Always call tools natively using the API. Never generate simulated tool requests as text (such as XML tags or markdown JSON blocks) in your response.\n\n'
                 'Provide clear, helpful, and accurate answers. Keep responses simple and direct.'
             ),
         }
@@ -270,6 +271,103 @@ CHATBOT_TOOLS = [
         "function": {
             "name": "get_hot_selling_products",
             "description": "Get a list of hot-selling top products, including units sold and total generated revenue.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_cold_selling_products",
+            "description": "Get a list of cold-selling (least sold) products, including units sold, total revenue, and stock levels. Use this when the user asks about cold products, least selling products, or items with very few or no sales.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_recent_sales",
+            "description": "Get a list of recent sales transactions. Use this when the user asks about recent sales, order logs, transaction history, or specific sale records.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of recent sales to return. Defaults to 10."
+                    }
+                }
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_erp_users",
+            "description": "Get a list of ERP users, their designations, departments, roles, and status. Use this for user management queries (e.g. registered users, active/inactive staff).",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_user_invites",
+            "description": "Get a list of user invitations, their statuses (e.g., PENDING, ACCEPTED), roles, and departments. Use this for queries about invitations or pending invites.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_activity_logs",
+            "description": "Get recent security and activity audit logs showing user actions like login, logout, create, update, or delete. Use this when the user asks about activity logs or action history.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of audit logs to retrieve. Defaults to 15."
+                    }
+                }
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_expenses",
+            "description": "Get a list of recorded expenses. Filter by category if the query is about specific spend categories.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "Optional category filter. Allowed values: PAYROLL, MARKETING, RENT_UTILITIES, SUPPLIES, TECHNOLOGY, TRAVEL, OTHER."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of expenses to retrieve. Defaults to 20."
+                    }
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_expense_breakdown",
+            "description": "Get a breakdown of expenses by category (total amounts, percentages, and transaction counts). Use this for summary expense queries.",
             "parameters": {
                 "type": "object",
                 "properties": {}
@@ -420,10 +518,167 @@ def execute_tool(name, arguments):
                 } for p in hot_list
             ])
             
+        elif name == "get_cold_selling_products":
+            from insights.services import get_product_performance
+            perf = get_product_performance()
+            cold_list = perf.get('cold_products', [])
+            if not cold_list:
+                return "No cold selling products data available."
+            return json.dumps([
+                {
+                    "product_name": p['product_name'],
+                    "total_sales": p['total_sales'],
+                    "total_revenue": float(p['total_revenue']),
+                    "stock_level": p['stock_level']
+                } for p in cold_list
+            ])
+
+        elif name == "get_recent_sales":
+            from sales.models import Sale
+            limit = arguments.get("limit", 10)
+            sales = Sale.objects.all().order_by('-sale_date', '-created_at')[:limit]
+            if not sales.exists():
+                return "No sales transactions found."
+            return json.dumps([
+                {
+                    "id": s.id,
+                    "customer_name": s.customer_name,
+                    "quantity_sold": s.quantity_sold,
+                    "total_price": float(s.total_price),
+                    "discount": float(s.discount),
+                    "payment_status": s.payment_status,
+                    "payment_method": s.payment_method,
+                    "sale_date": str(s.sale_date),
+                    "product_name": s.product.name if s.product else "Unknown Product"
+                } for s in sales
+            ])
+
+        elif name == "get_erp_users":
+            from user_management.models import ERPUser
+            users = ERPUser.objects.all().select_related('department', 'role')
+            if not users.exists():
+                return "No ERP users registered."
+            return json.dumps([
+                {
+                    "username": u.username,
+                    "email": u.email,
+                    "first_name": u.first_name,
+                    "last_name": u.last_name,
+                    "designation": u.designation,
+                    "status": u.status,
+                    "is_active": u.is_active,
+                    "department": u.department.name if u.department else "None",
+                    "role": u.role.name if u.role else "None"
+                } for u in users
+            ])
+
+        elif name == "get_user_invites":
+            from user_management.models import UserInvite
+            invites = UserInvite.objects.all().select_related('department', 'role')
+            if not invites.exists():
+                return "No user invites found."
+            return json.dumps([
+                {
+                    "email": i.email,
+                    "first_name": i.first_name,
+                    "last_name": i.last_name,
+                    "status": i.status,
+                    "department": i.department.name if i.department else "None",
+                    "role": i.role.name if i.role else "None",
+                    "created_at": str(i.created_at)
+                } for i in invites
+            ])
+
+        elif name == "get_activity_logs":
+            from user_management.models import ActivityLog
+            limit = arguments.get("limit", 15)
+            logs = ActivityLog.objects.all().select_related('user').order_by('-timestamp')[:limit]
+            if not logs.exists():
+                return "No activity logs found."
+            return json.dumps([
+                {
+                    "username": l.user.username if l.user else "Unknown",
+                    "action": l.action,
+                    "module": l.module,
+                    "description": l.description,
+                    "status": l.status,
+                    "timestamp": str(l.timestamp)
+                } for l in logs
+            ])
+
+        elif name == "get_expenses":
+            from accounts.models import Expense
+            category = arguments.get("category")
+            limit = arguments.get("limit", 20)
+            
+            expenses = Expense.objects.all()
+            if category:
+                expenses = expenses.filter(category=category.upper())
+            
+            expenses = expenses.order_by('-date', '-created_at')[:limit]
+            if not expenses.exists():
+                return "No expenses found."
+            return json.dumps([
+                {
+                    "id": e.id,
+                    "category": e.category,
+                    "amount": float(e.amount),
+                    "date": str(e.date),
+                    "description": e.description,
+                    "vendor": e.vendor
+                } for e in expenses
+            ])
+
+        elif name == "get_expense_breakdown":
+            from accounts.services import AccountsService
+            breakdown = AccountsService.expense_categories_breakdown()
+            if not breakdown:
+                return "No expense breakdown data available."
+            return json.dumps(breakdown)
+            
         else:
             return f"Error: Tool '{name}' is not supported."
     except Exception as e:
         return f"Error executing tool '{name}': {str(e)}"
+
+
+def parse_text_tool_call(text):
+    if not text:
+        return None, None
+    import re
+    import json
+    
+    normalized = text.strip()
+    
+    # Try pattern: <function=name>{"arg": "val"} or <function=name{"arg": "val"}
+    match = re.search(r'<function=(\w+)>\s*(\{.*?\})', normalized)
+    if not match:
+        match = re.search(r'<function=(\w+)\s*(\{.*?\})', normalized)
+    
+    if match:
+        name = match.group(1)
+        args_str = match.group(2).strip()
+        try:
+            args_str = re.sub(r'</?\w+.*?>', '', args_str).strip()
+            arguments = json.loads(args_str)
+            return name, arguments
+        except Exception:
+            pass
+            
+    # Try pattern: <function=name> or <function=name> ... with possible JSON later
+    match = re.search(r'<function=(\w+)(?:>)?', normalized)
+    if match:
+        name = match.group(1)
+        args_match = re.search(r'\{.*?\}', normalized)
+        arguments = {}
+        if args_match:
+            try:
+                arguments = json.loads(args_match.group(0))
+            except Exception:
+                pass
+        return name, arguments
+        
+    return None, None
 
 
 def generate_chatbot_response(message, history=None):
@@ -445,7 +700,11 @@ def generate_chatbot_response(message, history=None):
         model = _get_groq_model()
         print(f'[Chatbot] Using model: {model} with function calling support')
         
-        # Call Groq with rate-limit fallback handling
+        response_message = None
+        tool_calls = None
+        content = ""
+        
+        # Call Groq with rate-limit and bad-request fallback handling
         try:
             response = client.chat.completions.create(
                 model=model,
@@ -455,38 +714,112 @@ def generate_chatbot_response(message, history=None):
                 temperature=0.7,
                 max_tokens=1000,
             )
+            response_message = response.choices[0].message
+            tool_calls = getattr(response_message, 'tool_calls', None)
+            content = response_message.content or ""
         except Exception as exc:
             err_msg = str(exc)
-            if '429' in err_msg or 'rate_limit' in err_msg or 'limit reached' in err_msg.lower():
+            failed_gen = None
+            
+            # Check for bad request / tool use failure (such as Llama-3 returning XML tag text)
+            if 'tool_use_failed' in err_msg or 'failed_generation' in err_msg:
+                try:
+                    if hasattr(exc, 'body') and isinstance(exc.body, dict):
+                        failed_gen = exc.body.get('error', {}).get('failed_generation')
+                    else:
+                        import re
+                        m = re.search(r"'failed_generation':\s*'([^']+)'", err_msg)
+                        if m:
+                            failed_gen = m.group(1)
+                except Exception:
+                    pass
+            
+            if failed_gen:
+                print(f"[Chatbot] Groq tool use failed. Intercepted failed_generation: {failed_gen}")
+                content = failed_gen
+                tool_calls = None
+            elif '429' in err_msg or 'rate_limit' in err_msg or 'limit reached' in err_msg.lower():
                 print(f"[Chatbot] Model '{model}' rate limited. Falling back to 'llama-3.1-8b-instant'...")
                 model = 'llama-3.1-8b-instant'
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    tools=CHATBOT_TOOLS,
-                    tool_choice="auto",
-                    temperature=0.7,
-                    max_tokens=1000,
-                )
+                try:
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        tools=CHATBOT_TOOLS,
+                        tool_choice="auto",
+                        temperature=0.7,
+                        max_tokens=1000,
+                    )
+                    response_message = response.choices[0].message
+                    tool_calls = getattr(response_message, 'tool_calls', None)
+                    content = response_message.content or ""
+                except Exception as exc2:
+                    err_msg2 = str(exc2)
+                    failed_gen2 = None
+                    if 'tool_use_failed' in err_msg2 or 'failed_generation' in err_msg2:
+                        try:
+                            if hasattr(exc2, 'body') and isinstance(exc2.body, dict):
+                                failed_gen2 = exc2.body.get('error', {}).get('failed_generation')
+                            else:
+                                import re
+                                m = re.search(r"'failed_generation':\s*'([^']+)'", err_msg2)
+                                if m:
+                                    failed_gen2 = m.group(1)
+                        except Exception:
+                            pass
+                    if failed_gen2:
+                        print(f"[Chatbot] Fallback tool use failed. Intercepted failed_generation: {failed_gen2}")
+                        content = failed_gen2
+                        tool_calls = None
+                    else:
+                        raise
             else:
                 raise
                 
         print('[Chatbot] Got response from Groq API')
         
-        response_message = response.choices[0].message
-        tool_calls = getattr(response_message, 'tool_calls', None)
-        
-        if tool_calls:
-            print(f'[Chatbot] LLM requested {len(tool_calls)} tool calls')
-            # 1. Append assistant message with tool calls to history
-            messages.append(response_message)
+        # Detect simulated/text-formatted function calls in content (e.g. from 8B model or as a fallback)
+        text_tool_name, text_tool_args = None, None
+        if not tool_calls:
+            text_tool_name, text_tool_args = parse_text_tool_call(content)
             
-            # 2. Execute each tool and append the result
+        if tool_calls or text_tool_name:
+            import json
+            print(f'[Chatbot] LLM requested tool execution (native={bool(tool_calls)}, text={bool(text_tool_name)})')
+            
+            # If it was a text tool call, build mock tool calls list
+            if text_tool_name:
+                class MockFunction:
+                    def __init__(self, name, arguments):
+                        self.name = name
+                        self.arguments = json.dumps(arguments)
+                class MockToolCall:
+                    def __init__(self, name, arguments):
+                        self.id = "call_mock_" + name
+                        self.type = "function"
+                        self.function = MockFunction(name, arguments)
+                tool_calls = [MockToolCall(text_tool_name, text_tool_args)]
+                
+                messages.append({
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [{
+                        "id": tool_calls[0].id,
+                        "type": "function",
+                        "function": {
+                            "name": text_tool_name,
+                            "arguments": tool_calls[0].function.arguments
+                        }
+                    }]
+                })
+            else:
+                messages.append(response_message)
+            
+            # Execute each tool and append the result
             for tool_call in tool_calls:
                 tool_name = tool_call.function.name
                 try:
-                    import json
-                    tool_args = json.loads(tool_call.function.arguments)
+                    tool_args = json.loads(tool_call.function.arguments) if isinstance(tool_call.function.arguments, str) else tool_call.function.arguments
                 except Exception:
                     tool_args = {}
                 
@@ -501,7 +834,7 @@ def generate_chatbot_response(message, history=None):
                     "content": tool_result
                 })
             
-            # 3. Call Groq again to synthesize final response
+            # Call Groq again to synthesize final response
             print('[Chatbot] Sending tool results back to Groq for synthesis...')
             try:
                 response = client.chat.completions.create(
@@ -525,7 +858,7 @@ def generate_chatbot_response(message, history=None):
                     raise
             content = response.choices[0].message.content.strip()
         else:
-            content = response_message.content.strip()
+            content = content.strip()
             
         if not content:
             raise RuntimeError('Groq returned an empty response.')

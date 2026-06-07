@@ -29,14 +29,17 @@ urlpatterns = [
     # ==================== Revenue CRUD ====================
     path('revenues/', views.revenue_list_create, name='revenue-list-create'),
     path('revenues/<int:pk>/', views.revenue_detail, name='revenue-detail'),
+    path('revenues/<int:pk>/void/', views.revenue_void, name='revenue-void'),
     
     # ==================== Expense CRUD ====================
     path('expenses/', views.expense_list_create, name='expense-list-create'),
     path('expenses/<int:pk>/', views.expense_detail, name='expense-detail'),
+    path('expenses/<int:pk>/void/', views.expense_void, name='expense-void'),
     
     # ==================== Invoice CRUD ====================
     path('invoices/', views.invoice_list_create, name='invoice-list-create'),
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice-detail'),
+    path('invoices/<int:pk>/void/', views.invoice_void, name='invoice-void'),
 ]
 
 """

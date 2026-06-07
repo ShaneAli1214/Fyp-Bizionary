@@ -15,14 +15,19 @@ class RevenueSerializer(serializers.ModelSerializer):
         model = Revenue
         fields = [
             'id',
-            'source',
+            'customer',
+            'invoice_number',
+            'payment_status',
+            'category',
             'amount',
             'date',
             'description',
+            'voided',
+            'void_reason',
             'created_at',
             'updated_at'
         ]
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'voided', 'void_reason', 'created_at', 'updated_at')
 
     def validate_amount(self, value):
         """Ensure amount is positive"""
@@ -39,6 +44,10 @@ class ExpenseSerializer(serializers.ModelSerializer):
         source='get_category_display',
         read_only=True
     )
+    payment_method_display = serializers.CharField(
+        source='get_payment_method_display',
+        read_only=True
+    )
 
     class Meta:
         model = Expense
@@ -47,19 +56,33 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'category',
             'category_display',
             'amount',
+            'tax_amount',
+            'payment_method',
+            'payment_method_display',
+            'receipt',
             'date',
             'description',
             'vendor',
+            'voided',
+            'void_reason',
             'created_at',
             'updated_at'
         ]
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'voided', 'void_reason', 'created_at', 'updated_at')
 
     def validate_amount(self, value):
         """Ensure amount is positive"""
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than zero")
         return value
+
+    def validate(self, data):
+        """Validate tax amount is not greater than total amount"""
+        amount = data.get('amount', 0)
+        tax_amount = data.get('tax_amount', 0)
+        if tax_amount > amount:
+            raise serializers.ValidationError({"tax_amount": "Tax amount cannot be greater than the total amount"})
+        return data
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -70,6 +93,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         source='get_status_display',
         read_only=True
     )
+    aging = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Invoice
@@ -78,14 +102,18 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'invoice_number',
             'client_name',
             'amount',
+            'balance_due',
             'status',
             'status_display',
             'due_date',
             'description',
+            'voided',
+            'void_reason',
+            'aging',
             'created_at',
             'updated_at'
         ]
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'voided', 'void_reason', 'aging', 'created_at', 'updated_at')
 
     def validate_amount(self, value):
         """Ensure amount is positive"""
@@ -101,3 +129,4 @@ class InvoiceSerializer(serializers.ModelSerializer):
                     "Invoice with this number already exists"
                 )
         return value
+

@@ -259,7 +259,7 @@ const Chatbot = () => {
         
         // Revenue questions
         if (text.includes('revenue') || text.includes('sales amount') || text.includes('sales total')) {
-            const rev = kpis?.total_sales_amount || 'Rs 1,245,630.00';
+            const rev = kpis?.total_revenue ? `Rs ${Number(kpis.total_revenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Rs 1,245,630.00';
             return `### Revenue Analytics 📊\n\nAccording to the local database, your **current total sales revenue** is **${rev}**.\n\nYou can review full details and monthly breakdowns in the **Sales & Items Management** section under the *Sales Analytics* tab.`;
         }
 
@@ -601,7 +601,7 @@ const Chatbot = () => {
                         <div className="p-3 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-textMuted uppercase">Revenue</span>
                             <span className="text-xs font-black text-slate-900 dark:text-white">
-                                {kpis?.total_sales_amount || 'Rs 1,245,630'}
+                                {kpis?.total_revenue ? `Rs ${Number(kpis.total_revenue).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : 'Rs 1,245,630'}
                             </span>
                         </div>
                         
