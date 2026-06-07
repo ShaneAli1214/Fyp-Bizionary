@@ -236,30 +236,30 @@ const ChatbotModal = ({ isOpen, onClose }) => {
             <div className="absolute inset-0 bg-slate-900/10 pointer-events-auto" onClick={onClose} />
 
             {/* Modal Drawer Layout */}
-            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-white shadow-2xl border border-slate-200/80 flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
+            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-white shadow-2xl border border-slate-200/85 flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
                 
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-primary via-blue-500 to-primary text-white">
+                <div className="flex items-center justify-between px-4 py-3.5 bg-[#1C3A5A] text-white border-b border-[#0f1f33] shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                            <Bot className="w-4.5 h-4.5" />
+                        <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+                            <Bot className="w-4.5 h-4.5 text-emerald-300" />
                         </div>
                         <div>
                             <h2 className="text-xs font-bold uppercase tracking-wide">Bizionary AI Support</h2>
-                            <p className="text-[9px] text-blue-100">{(demoMode || !isKeyConfigured) ? 'Local Demo Mode' : 'Online • Powered by Groq'}</p>
+                            <p className="text-[9px] text-emerald-400 font-semibold">{(demoMode || !isKeyConfigured) ? 'Local Demo Mode' : 'Online • Powered by Groq'}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleClearHistory}
-                            className="text-white/80 hover:text-white p-1 transition rounded-lg hover:bg-white/10"
+                            className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Clear History"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                         <button
                             onClick={onClose}
-                            className="text-white/80 hover:text-white p-1 transition rounded-lg hover:bg-white/10"
+                            className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Close"
                         >
                             <X className="w-4.5 h-4.5" />
@@ -276,7 +276,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                         </span>
                         <button
                             onClick={() => setDemoMode(true)}
-                            className="bg-orange-100 hover:bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[9px] font-bold transition"
+                            className="bg-orange-100 hover:bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[9px] font-bold transition-all duration-300 ease-in-out"
                         >
                             Confirm Demo
                         </button>
@@ -295,16 +295,16 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                         >
                             <div className={`p-3 rounded-2xl border text-xs shadow-sm ${
                                 message.sender === 'user'
-                                    ? 'bg-primary text-white border-primary/20 rounded-tr-none'
-                                    : 'bg-white text-slate-800 border-slate-100 rounded-tl-none'
+                                    ? 'bg-[#1C3A5A] text-white border-[#1C3A5A]/20 rounded-tr-none'
+                                    : 'bg-slate-100 text-slate-800 border-slate-200/60 rounded-tl-none'
                             }`}>
                                 {formatText(message.text)}
                                 
                                 {message.sender === 'assistant' && (
-                                    <div className="flex justify-end mt-2 pt-1 border-t border-slate-50">
+                                    <div className="flex justify-end mt-2 pt-1 border-t border-slate-200/50">
                                         <button
                                             onClick={() => speakText(message.text, index)}
-                                            className={`p-1 rounded hover:bg-slate-50 transition ${activeSpeech === index ? 'text-primary' : 'text-slate-400'}`}
+                                            className={`p-1 rounded hover:bg-slate-200/40 transition-all duration-300 ease-in-out ${activeSpeech === index ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}
                                             title="Read text out loud"
                                         >
                                             <Volume2 className="w-3.5 h-3.5" />
@@ -324,7 +324,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                     <button
                                         key={idx}
                                         onClick={() => handleSend(chip.query)}
-                                        className="text-[10px] px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-primary/5 hover:text-primary rounded-full font-bold text-left transition active:scale-95"
+                                        className="text-[10px] px-2.5 py-1.5 bg-white border border-slate-250 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 rounded-full font-bold text-left transition-all duration-300 ease-in-out active:scale-95 shadow-sm"
                                     >
                                         {chip.label}
                                     </button>
@@ -335,10 +335,10 @@ const ChatbotModal = ({ isOpen, onClose }) => {
 
                     {loading && (
                         <div className="mr-auto items-start flex flex-col">
-                            <div className="bg-white p-2.5 rounded-2xl border border-slate-100 rounded-tl-none flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            <div className="bg-slate-100 p-2.5 rounded-2xl border border-slate-200/60 rounded-tl-none flex items-center gap-1.5 shadow-sm">
+                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                             </div>
                         </div>
                     )}
@@ -359,14 +359,14 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Type your question..."
-                            className="w-full pl-3 pr-16 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white transition resize-none min-h-[36px] max-h-[80px]"
+                            className="w-full pl-3 pr-16 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-xs outline-none shadow-sm focus:shadow-md focus:border-[#1C3A5A] focus:bg-white transition-all duration-300 ease-in-out resize-none min-h-[36px] max-h-[80px]"
                             rows="1"
                         />
                         <div className="absolute right-2 flex items-center gap-1">
                             <button
                                 type="button"
                                 onClick={toggleListening}
-                                className={`p-1.5 rounded-lg transition ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-100'}`}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ease-in-out ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-100 hover:scale-105'}`}
                                 title="Speak"
                             >
                                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -375,7 +375,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-1.5 bg-primary hover:bg-primaryDark text-white rounded-lg transition disabled:opacity-50"
+                                className="p-1.5 bg-gradient-to-br from-[#1C3A5A] to-[#2B527E] hover:from-[#13283E] hover:to-[#1C3A5A] text-white rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>

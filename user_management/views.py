@@ -1008,3 +1008,123 @@ def audit_log_list_view(request):
             'count': logs.count(),
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def change_password_view(request):
+    """
+    POST: Authenticated user changing their own password.
+    Request body: current_password, new_password
+    """
+    user = get_request_user(request)
+    if not user:
+        return Response({
+            'success': False,
+            'error': 'Authentication credentials were not provided.'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+        
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    
+    if not current_password or not new_password:
+        return Response({
+            'success': False,
+            'error': 'Please provide both current_password and new_password.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    if not check_password(current_password, user.password_hash):
+        return Response({
+            'success': False,
+            'error': 'Incorrect current password.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    if len(new_password) < 8:
+        return Response({
+            'success': False,
+            'error': 'New password must be at least 8 characters long.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    # Alphanumeric check
+    import re
+    if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$', new_password):
+        return Response({
+            'success': False,
+            'error': 'Password must be alphanumeric (contain at least one letter and one number).'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    user.password_hash = make_password(new_password)
+    user.password_changed_at = timezone.now()
+    user.save()
+    
+    # Log password change
+    ActivityLog.objects.create(
+        user=user,
+        action='UPDATE',
+        module='Account Settings',
+        description=f"User {user.username} changed their own password."
+    )
+    
+    return Response({
+        'success': True,
+        'message': 'Password changed successfully.'
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+def update_profile_view(request):
+    """
+    PUT: Authenticated user updating their own profile.
+    Request body: first_name, last_name, email
+    """
+    user = get_request_user(request)
+    if not user:
+        return Response({
+            'success': False,
+            'error': 'Authentication credentials were not provided.'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+        
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
+    
+    if not first_name or not email:
+        return Response({
+            'success': False,
+            'error': 'First name and email are required fields.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    # Check email uniqueness for other users
+    if ERPUser.objects.filter(email=email).exclude(pk=user.pk).exists():
+        return Response({
+            'success': False,
+            'error': 'A user with this email already exists.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    user.first_name = first_name.strip()
+    if last_name is not None:
+        user.last_name = last_name.strip()
+    user.email = email.strip()
+    user.save()
+    
+    # Log update activity
+    ActivityLog.objects.create(
+        user=user,
+        action='UPDATE',
+        module='Account Settings',
+        description=f"User {user.username} updated their own profile information."
+    )
+    
+    return Response({
+        'success': True,
+        'message': 'Profile updated successfully.',
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role_name': user.role.name if user.role else 'No Role',
+            'role_level': user.role.level if user.role else 'STAFF',
+            'department_name': user.department.name if user.department else 'No Department',
+        }
+    }, status=status.HTTP_200_OK)

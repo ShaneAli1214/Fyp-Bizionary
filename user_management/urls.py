@@ -301,6 +301,8 @@ urlpatterns = [
     path('users/<int:pk>/reset-password/', views.reset_password_view, name='user-reset-password'),
     path('users/<int:user_id>/permissions/', views.user_permissions_view, name='user-permissions'),
     path('users/<int:user_id>/activity/', views.user_activity_view, name='user-activity'),
+    path('users/change-password/', views.change_password_view, name='user-change-password'),
+    path('users/update-profile/', views.update_profile_view, name='user-update-profile'),
     path('auth/login/', views.login_view, name='login'),
     path('audit-logs/', views.audit_log_list_view, name='audit-log-list'),
 

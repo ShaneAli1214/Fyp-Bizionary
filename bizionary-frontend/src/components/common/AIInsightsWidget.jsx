@@ -95,11 +95,11 @@ const AIInsightsWidget = () => {
         return (
             <button
                 onClick={() => setIsVisible(true)}
-                className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4.5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20 hover:from-amber-600 hover:to-orange-700 font-bold text-xs tracking-wider uppercase"
+                className="fixed bottom-[84px] right-6 z-40 flex items-center justify-center sm:justify-start gap-2 w-12 h-12 sm:w-auto px-0 sm:px-4.5 py-0 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out border border-white/20 hover:from-emerald-600 hover:to-teal-700 font-bold text-xs tracking-wider uppercase"
                 title="Show AI Insights"
             >
-                <Zap className="w-4 h-4 fill-yellow-300/40 text-yellow-300 animate-pulse pointer-events-none" />
-                <span>AI Insights</span>
+                <Zap className="w-4 h-4 fill-emerald-300/40 text-emerald-300 animate-pulse pointer-events-none" />
+                <span className="hidden sm:inline">AI Insights</span>
             </button>
         );
     }

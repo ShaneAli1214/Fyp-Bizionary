@@ -168,3 +168,126 @@
 @media (min-width: 1280px) {
   .apps-cards-grid { gap: 1.25rem; }
 }
+
+/* ==========================================================================
+   ENTERPRISE UI/UX REFACTOR: HOVER ANIMATIONS & INTERACTIVE STATES
+   ========================================================================== */
+
+/* 1. Global Premium Transition Config */
+:root {
+  --transition-premium: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Apply premium transition to all interactive elements globally */
+button,
+input,
+select,
+textarea,
+a,
+tr,
+[role="button"] {
+  transition: var(--transition-premium) !important;
+}
+
+/* 2. Product Data Rows & Table Element Animations (Dark Mode Overhaul & Light Mode Contrast) */
+table tbody tr {
+  position: relative;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important;
+}
+
+/* Global resets for inline cell padding and borders to allow clean borders */
+table {
+  border-collapse: collapse !important;
+}
+
+/* Light Mode Overrides for Table Row Hovers */
+table tbody tr:hover,
+table tbody tr.hover\:bg-slate-50:hover,
+table tbody tr.hover\:bg-gray-50\/40:hover,
+table tbody tr.hover\:bg-slate-50\/50:hover {
+  background-color: rgba(30, 41, 59, 0.04) !important; /* premium gray-blue tier background */
+  border-bottom-color: rgba(30, 41, 59, 0.15) !important;
+}
+
+table tbody tr:hover td {
+  color: #0f172a !important; /* solid text-slate-900 contrast */
+}
+
+/* Dark Mode Overrides for Table Row Hovers */
+.dark table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark table tbody tr:hover,
+.dark table tbody tr.hover\:bg-slate-50:hover,
+.dark table tbody tr.hover\:bg-gray-50\/40:hover,
+.dark table tbody tr.hover\:bg-slate-50\/50:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important; /* subtle transparent slate alpha */
+  border-bottom-color: rgba(148, 163, 184, 0.25) !important; /* crisp thin slate-700/50 counterpart border highlight */
+}
+
+.dark table tbody tr:hover td {
+  color: #e2e8f0 !important; /* clean silver-white text-slate-200 */
+}
+
+/* 3. Form Inputs & Select States (Glow Ring & Focus Offset Transitions) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+  transition: var(--transition-premium) !important;
+}
+
+/* Input hover transitions */
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="number"]:hover,
+input[type="tel"]:hover,
+input[type="date"]:hover,
+select:hover,
+textarea:hover {
+  border-color: rgba(28, 58, 90, 0.4) !important;
+}
+
+.dark input[type="text"]:hover,
+.dark input[type="email"]:hover,
+.dark input[type="password"]:hover,
+.dark input[type="number"]:hover,
+.dark input[type="tel"]:hover,
+.dark input[type="date"]:hover,
+.dark select:hover,
+.dark textarea:hover {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Input focus ring offset animations */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #1C3A5A !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(28, 58, 90, 0.2) !important; /* subtle focus ring offset */
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="tel"]:focus,
+.dark input[type="date"]:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #10B981 !important; /* emerald focus border color */
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important; /* subtle emerald focus ring */
+}

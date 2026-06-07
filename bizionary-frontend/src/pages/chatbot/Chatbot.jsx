@@ -551,7 +551,7 @@ const Chatbot = () => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primaryDark hover:to-blue-700 text-white rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 bg-gradient-to-br from-[#1C3A5A] to-[#2B527E] hover:from-[#13283E] hover:to-[#1C3A5A] text-white rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>

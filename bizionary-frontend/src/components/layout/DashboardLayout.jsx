@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import ChatbotButton from '../chatbot/ChatbotButton';
@@ -9,6 +9,9 @@ import AIInsightsWidget from '../common/AIInsightsWidget';
 const DashboardLayout = () => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+    const location = useLocation();
+
+    const isChatbotRoute = location.pathname.startsWith('/chatbot');
 
     return (
         <div className="relative flex h-screen bg-background dark:bg-[#0b1120] overflow-hidden transition-colors duration-300 flex-col md:flex-col lg:flex-col">
@@ -24,7 +27,10 @@ const DashboardLayout = () => {
             </div>
 
             {/* Chatbot Button and Modal */}
-            <ChatbotButton onClick={() => setIsChatbotOpen(true)} />
+            <ChatbotButton 
+                onClick={() => setIsChatbotOpen(true)} 
+                className={isChatbotRoute ? 'hidden lg:flex' : 'flex'}
+            />
             <ChatbotModal isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
 
             {/* AI Insights Widget */}

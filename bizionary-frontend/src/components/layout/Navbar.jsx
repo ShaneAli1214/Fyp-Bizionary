@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     LayoutDashboard, 
     Users, 
@@ -11,16 +11,26 @@ import {
     LogOut, 
     Menu,
     ClipboardList,
-    Bot
+    Bot,
+    ChevronDown,
+    User,
+    Settings,
+    History,
+    Sliders
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../common/Logo';
+import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = ({ onToggleSidebar }) => {
     const { user, logout } = useAuth();
+    const { theme, setTheme } = useTheme();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const initials = (user?.name || 'Ali').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -88,20 +98,129 @@ const Navbar = ({ onToggleSidebar }) => {
                 })}
             </nav>
 
-            {/* Right Logout Block */}
-            <div className="flex items-center gap-4 text-xs">
-                {/* User email & Logout button */}
-                <div className="hidden sm:flex items-center gap-2">
-                    <span className="text-white/70">Welcome, <strong>{user?.name || 'Admin'}</strong></span>
-                    <div className="h-4 w-px bg-white/20"></div>
-                </div>
+            {/* Right Profile Dropdown Block */}
+            <div className="relative">
+                {/* Backdrop to close dropdown on click outside */}
+                {isDropdownOpen && (
+                    <div 
+                        className="fixed inset-0 z-40 bg-transparent" 
+                        onClick={() => setIsDropdownOpen(false)} 
+                    />
+                )}
+
+                {/* Profile row trigger */}
                 <button
-                    onClick={logout}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-sm shadow-red-600/20"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/10 transition-all duration-300 ease-in-out cursor-pointer select-none text-xs font-semibold focus:outline-none z-50 relative"
                 >
-                    <LogOut className="h-3.5 w-3.5" />
-                    <span>Logout ({user?.email || 'admin@bizionary.com'})</span>
+                    <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-white/10">
+                        {initials}
+                    </div>
+                    <span className="hidden sm:inline text-white/90">Welcome, <strong>{user?.name || 'Ali'}</strong></span>
+                    <ChevronDown className={`h-4 w-4 text-white/80 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Dropdown Menu Card */}
+                <div 
+                    className={`absolute right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#0b1220] rounded-2xl shadow-2xl border border-slate-200/85 dark:border-slate-800/80 p-4 text-slate-800 dark:text-slate-200 z-50 flex flex-col gap-3.5 transition-all duration-200 origin-top-right ${
+                        isDropdownOpen 
+                            ? 'scale-100 opacity-100 visible' 
+                            : 'scale-95 opacity-0 invisible pointer-events-none'
+                    }`}
+                >
+                    {/* Section 1: User Profile Summary */}
+                    <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800/80 pb-3 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#1C3A5A]/10 text-[#1C3A5A] dark:bg-sky-500/10 dark:text-sky-450 flex items-center justify-center font-bold text-sm uppercase">
+                            {initials}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-sm text-slate-900 dark:text-white truncate">{user?.name || 'Ali'}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || 'admin@bizionary.com'}</span>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Quick Actions */}
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-1">Quick Actions</span>
+                        <button
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                navigate('/settings');
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                        >
+                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <span>My Profile</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                navigate('/settings');
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                        >
+                            <Settings className="h-3.5 w-3.5 text-slate-400" />
+                            <span>Account Settings</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                navigate('/user-management');
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                        >
+                            <History className="h-3.5 w-3.5 text-slate-400" />
+                            <span>Activity Log</span>
+                        </button>
+                    </div>
+
+                    {/* Section 3: Preferences / AI Toggles */}
+                    <div className="flex flex-col gap-1.5 border-t border-slate-100 dark:border-slate-800/80 pt-3">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-0.5">Preferences</span>
+                        
+                        {/* Dark Mode toggle */}
+                        <div className="flex items-center justify-between px-2 py-1">
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Dark Mode</span>
+                            <button 
+                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                    theme === 'dark' ? 'bg-[#1D4ED8]' : 'bg-slate-200 dark:bg-slate-700'
+                                }`}
+                                aria-label="Toggle theme mode"
+                            >
+                                <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    theme === 'dark' ? 'translate-x-4' : 'translate-x-0'
+                                }`} />
+                            </button>
+                        </div>
+
+                        {/* API Config button */}
+                        <button
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                navigate('/settings');
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                        >
+                            <Sliders className="h-3.5 w-3.5 text-slate-400" />
+                            <span>API Configuration</span>
+                        </button>
+                    </div>
+
+                    {/* Section 4: Danger Zone */}
+                    <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3">
+                        <button
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                logout();
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/35 hover:pl-4 transition-all duration-200 ease-in-out"
+                        >
+                            <LogOut className="h-3.5 w-3.5 text-rose-500" />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </header>
     );
