@@ -269,16 +269,30 @@ class AccountsService:
         start_date, end_date = AccountsService.get_date_filter(date_range_str)
 
         def get_total_revenue(s_date, e_date):
-            qs = Revenue.objects.filter(voided=False)
+            # Sum of credits - debits for all active REVENUE accounts in the given period
+            qs = JournalItem.objects.filter(
+                account__account_type='REVENUE',
+                journal_entry__voided=False
+            )
             if s_date and e_date:
-                qs = qs.filter(date__range=(s_date, e_date))
-            return qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+                qs = qs.filter(journal_entry__date__range=(s_date, e_date))
+            
+            debit_sum = qs.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
+            credit_sum = qs.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
+            return credit_sum - debit_sum
 
         def get_total_expense(s_date, e_date):
-            qs = Expense.objects.filter(voided=False)
+            # Sum of debits - credits for all active EXPENSE accounts in the given period
+            qs = JournalItem.objects.filter(
+                account__account_type='EXPENSE',
+                journal_entry__voided=False
+            )
             if s_date and e_date:
-                qs = qs.filter(date__range=(s_date, e_date))
-            return qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+                qs = qs.filter(journal_entry__date__range=(s_date, e_date))
+            
+            debit_sum = qs.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
+            credit_sum = qs.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
+            return debit_sum - credit_sum
 
         def get_cash_flow(s_date, e_date):
             # Calculate actual cash flow from double-entry items impacting the Cash account (1010)
@@ -426,4 +440,242 @@ class AccountsService:
         Wrapper to return dynamic, growth-based summary KPIs
         """
         return AccountsService.get_kpis_with_growth(date_range_str)
+
+    @staticmethod
+    def get_chart_of_accounts_tree(start_date=None, end_date=None):
+        """
+        Builds a hierarchical tree of Chart of Accounts with aggregated balances.
+        """
+        AccountsService.ensure_coa()
+        
+        # 1. Fetch all active accounts
+        accounts = Account.objects.filter(is_active=True).order_by('code')
+        
+        # 2. Get debits/credits per account in the given period (excluding voided journal entries)
+        items_qs = JournalItem.objects.filter(journal_entry__voided=False)
+        if start_date and end_date:
+            items_qs = items_qs.filter(journal_entry__date__range=(start_date, end_date))
+        elif end_date:
+            items_qs = items_qs.filter(journal_entry__date__lte=end_date)
+            
+        balances_qs = items_qs.values('account_id').annotate(
+            total_debit=Sum('debit'),
+            total_credit=Sum('credit')
+        )
+        
+        balances_map = {
+            item['account_id']: {
+                'debit': item['total_debit'] or Decimal('0.00'),
+                'credit': item['total_credit'] or Decimal('0.00')
+            }
+            for item in balances_qs
+        }
+        
+        # 3. Create nodes for each account
+        nodes = {}
+        for acct in accounts:
+            # Calculate raw balance for this specific account
+            bal_data = balances_map.get(acct.id, {'debit': Decimal('0.00'), 'credit': Decimal('0.00')})
+            dr = bal_data['debit']
+            cr = bal_data['credit']
+            
+            # Determine balance based on account type
+            if acct.account_type in ['ASSET', 'EXPENSE']:
+                raw_bal = dr - cr
+            else: # LIABILITY, EQUITY, REVENUE
+                raw_bal = cr - dr
+                
+            nodes[acct.id] = {
+                'id': acct.id,
+                'code': acct.code,
+                'name': acct.name,
+                'account_type': acct.account_type,
+                'raw_balance': raw_bal,
+                'balance': Decimal('0.00'), # Will be aggregated
+                'parent_id': acct.parent_id,
+                'children': []
+            }
+            
+        # 4. Connect children to parents
+        roots = []
+        for node in nodes.values():
+            parent_id = node['parent_id']
+            if parent_id and parent_id in nodes:
+                nodes[parent_id]['children'].append(node)
+            else:
+                roots.append(node)
+                
+        # 5. Recursive function to aggregate balances and format response
+        def aggregate_balance(node):
+            node_balance = node['raw_balance']
+            for child in node['children']:
+                node_balance += aggregate_balance(child)
+            node['balance'] = float(node_balance)
+            if 'raw_balance' in node:
+                del node['raw_balance']
+            if 'parent_id' in node:
+                del node['parent_id']
+            return node_balance
+
+        for root in roots:
+            aggregate_balance(root)
+            
+        return roots
+
+    @staticmethod
+    def get_profit_loss(start_date=None, end_date=None):
+        """
+        Calculates Net Profit & Loss statement within a date range
+        """
+        AccountsService.ensure_coa()
+        
+        items_qs = JournalItem.objects.filter(journal_entry__voided=False)
+        if start_date and end_date:
+            items_qs = items_qs.filter(journal_entry__date__range=(start_date, end_date))
+            
+        balances = items_qs.values('account_id', 'account__code', 'account__name', 'account__account_type').annotate(
+            total_debit=Sum('debit'),
+            total_credit=Sum('credit')
+        )
+        
+        revenue_items = []
+        expense_items = []
+        total_revenue = Decimal('0.00')
+        total_expense = Decimal('0.00')
+        
+        all_rev_exp = Account.objects.filter(is_active=True, account_type__in=['REVENUE', 'EXPENSE'])
+        balances_map = {item['account_id']: item for item in balances}
+        
+        for acct in all_rev_exp:
+            bal_data = balances_map.get(acct.id, {
+                'total_debit': Decimal('0.00'),
+                'total_credit': Decimal('0.00')
+            })
+            dr = bal_data['total_debit'] or Decimal('0.00')
+            cr = bal_data['total_credit'] or Decimal('0.00')
+            
+            if acct.account_type == 'REVENUE':
+                bal = cr - dr
+                if bal != 0 or not acct.parent:
+                    revenue_items.append({
+                        'code': acct.code,
+                        'name': acct.name,
+                        'balance': float(bal)
+                    })
+                    total_revenue += bal
+            elif acct.account_type == 'EXPENSE':
+                bal = dr - cr
+                if bal != 0 or not acct.parent:
+                    expense_items.append({
+                        'code': acct.code,
+                        'name': acct.name,
+                        'balance': float(bal)
+                    })
+                    total_expense += bal
+                    
+        revenue_items.sort(key=lambda x: x['code'])
+        expense_items.sort(key=lambda x: x['code'])
+        
+        net_profit = total_revenue - total_expense
+        
+        return {
+            'revenue': revenue_items,
+            'total_revenue': float(total_revenue),
+            'expense': expense_items,
+            'total_expense': float(total_expense),
+            'net_profit': float(net_profit),
+            'start_date': start_date.isoformat() if start_date else None,
+            'end_date': end_date.isoformat() if end_date else None,
+        }
+
+    @staticmethod
+    def get_balance_sheet(as_of_date=None):
+        """
+        Calculates Balance Sheet statement as of a specific date
+        """
+        AccountsService.ensure_coa()
+        
+        items_qs = JournalItem.objects.filter(journal_entry__voided=False)
+        if as_of_date:
+            items_qs = items_qs.filter(journal_entry__date__lte=as_of_date)
+            
+        balances = items_qs.values('account_id', 'account__code', 'account__name', 'account__account_type').annotate(
+            total_debit=Sum('debit'),
+            total_credit=Sum('credit')
+        )
+        
+        balances_map = {item['account_id']: item for item in balances}
+        
+        assets = []
+        liabilities = []
+        equity = []
+        
+        total_assets = Decimal('0.00')
+        total_liabilities = Decimal('0.00')
+        total_equity = Decimal('0.00')
+        
+        net_profit_from_inception = Decimal('0.00')
+        
+        all_accounts = Account.objects.filter(is_active=True)
+        for acct in all_accounts:
+            bal_data = balances_map.get(acct.id, {
+                'total_debit': Decimal('0.00'),
+                'total_credit': Decimal('0.00')
+            })
+            dr = bal_data['total_debit'] or Decimal('0.00')
+            cr = bal_data['total_credit'] or Decimal('0.00')
+            
+            if acct.account_type == 'ASSET':
+                bal = dr - cr
+                if bal != 0 or not acct.parent:
+                    assets.append({
+                        'code': acct.code,
+                        'name': acct.name,
+                        'balance': float(bal)
+                    })
+                    total_assets += bal
+            elif acct.account_type == 'LIABILITY':
+                bal = cr - dr
+                if bal != 0 or not acct.parent:
+                    liabilities.append({
+                        'code': acct.code,
+                        'name': acct.name,
+                        'balance': float(bal)
+                    })
+                    total_liabilities += bal
+            elif acct.account_type == 'EQUITY':
+                bal = cr - dr
+                if bal != 0 or not acct.parent:
+                    equity.append({
+                        'code': acct.code,
+                        'name': acct.name,
+                        'balance': float(bal)
+                    })
+                    total_equity += bal
+            elif acct.account_type == 'REVENUE':
+                net_profit_from_inception += (cr - dr)
+            elif acct.account_type == 'EXPENSE':
+                net_profit_from_inception -= (dr - cr)
+                
+        equity.append({
+            'code': '3100-NP',
+            'name': 'Retained Earnings (Net Income)',
+            'balance': float(net_profit_from_inception)
+        })
+        total_equity += net_profit_from_inception
+        
+        assets.sort(key=lambda x: x['code'])
+        liabilities.sort(key=lambda x: x['code'])
+        equity.sort(key=lambda x: x['code'])
+        
+        return {
+            'assets': assets,
+            'total_assets': float(total_assets),
+            'liabilities': liabilities,
+            'total_liabilities': float(total_liabilities),
+            'equity': equity,
+            'total_equity': float(total_equity),
+            'total_liabilities_and_equity': float(total_liabilities + total_equity),
+            'as_of_date': as_of_date.isoformat() if as_of_date else None,
+        }
 

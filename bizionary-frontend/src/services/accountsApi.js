@@ -32,5 +32,10 @@ export const accountsApi = {
     updateInvoice: (id, data) => api.put(`accounts/invoices/${id}/`, data),
     deleteInvoice: (id) => api.delete(`accounts/invoices/${id}/`),
     voidInvoice: (id, reason) => api.post(`accounts/invoices/${id}/void/`, { reason }),
+
+    // Advanced & Reports
+    getCOATree: (dateRange) => api.get(`accounts/chart-tree/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getProfitLoss: (dateRange) => api.get(`accounts/reports/profit-loss/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getBalanceSheet: (dateRange) => api.get(`accounts/reports/balance-sheet/${dateRange ? `?date_range=${dateRange}` : ''}`),
 };
 

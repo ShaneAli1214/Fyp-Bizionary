@@ -5,6 +5,8 @@ import { formatPKR } from '../../utils/currency';
 import RevenuesTab from './components/RevenuesTab';
 import ExpensesTab from './components/ExpensesTab';
 import InvoicesTab from './components/InvoicesTab';
+import COATreeTab from './components/COATreeTab';
+import FinancialReportsTab from './components/FinancialReportsTab';
 import RecordModal from './components/RecordModal';
 
 const AccountsManager = () => {
@@ -244,48 +246,52 @@ const AccountsManager = () => {
                         </button>
                     </div>
 
-                    <button 
-                        onClick={handleAddRecord}
-                        className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg shadow-sm hover:bg-primaryDark cursor-pointer"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Record
-                    </button>
+                    {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
+                        <button 
+                            onClick={handleAddRecord}
+                            className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg shadow-sm hover:bg-primaryDark cursor-pointer"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Record
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Quick Actions Panel */}
-            <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide px-2">Quick Actions:</span>
-                <button 
-                    onClick={handleReconcile}
-                    className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Reconcile Ledger
-                </button>
-                <button 
-                    onClick={handleExportCSV}
-                    className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                    <Download className="w-4 h-4 text-blue-600" />
-                    Export CSV
-                </button>
-                <button 
-                    onClick={handleUploadReceiptClick}
-                    className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                    <Upload className="w-4 h-4 text-purple-600" />
-                    Upload Receipt
-                </button>
-                <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
-                    accept="image/*,.pdf" 
-                    className="hidden" 
-                />
-            </div>
+            {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
+                <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide px-2">Quick Actions:</span>
+                    <button 
+                        onClick={handleReconcile}
+                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        Reconcile Ledger
+                    </button>
+                    <button 
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                        <Download className="w-4 h-4 text-blue-600" />
+                        Export CSV
+                    </button>
+                    <button 
+                        onClick={handleUploadReceiptClick}
+                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                        <Upload className="w-4 h-4 text-purple-600" />
+                        Upload Receipt
+                    </button>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/*,.pdf" 
+                        className="hidden" 
+                    />
+                </div>
+            )}
 
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -371,6 +377,20 @@ const AccountsManager = () => {
                             Invoices (Receivables)
                             {activeTab === 'invoices' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('chart-tree')}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'chart-tree' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Chart of Accounts
+                            {activeTab === 'chart-tree' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('financial-reports')}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'financial-reports' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Financial Statements
+                            {activeTab === 'financial-reports' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+                        </button>
                     </div>
 
                     <div className="pb-4 flex items-center gap-1.5 text-xs font-semibold text-textMuted">
@@ -401,6 +421,18 @@ const AccountsManager = () => {
                             refreshTrigger={refreshTrigger} 
                             onEdit={handleEditRecord} 
                             triggerRefresh={triggerRefresh}
+                            dateRange={dateRange}
+                        />
+                    )}
+                    {activeTab === 'chart-tree' && (
+                        <COATreeTab 
+                            refreshTrigger={refreshTrigger}
+                            dateRange={dateRange}
+                        />
+                    )}
+                    {activeTab === 'financial-reports' && (
+                        <FinancialReportsTab 
+                            refreshTrigger={refreshTrigger}
                             dateRange={dateRange}
                         />
                     )}

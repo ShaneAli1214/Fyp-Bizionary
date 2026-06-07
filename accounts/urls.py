@@ -40,6 +40,11 @@ urlpatterns = [
     path('invoices/', views.invoice_list_create, name='invoice-list-create'),
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice-detail'),
     path('invoices/<int:pk>/void/', views.invoice_void, name='invoice-void'),
+    
+    # ==================== Advanced Accounting & Reports ====================
+    path('chart-tree/', views.chart_of_accounts_tree_view, name='chart-tree'),
+    path('reports/profit-loss/', views.profit_loss_report_view, name='report-profit-loss'),
+    path('reports/balance-sheet/', views.balance_sheet_report_view, name='report-balance-sheet'),
 ]
 
 """

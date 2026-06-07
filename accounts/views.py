@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
+from datetime import date
 
 from .models import Revenue, Expense, Invoice
 from .serializers import RevenueSerializer, ExpenseSerializer, InvoiceSerializer
@@ -426,4 +427,70 @@ def invoice_void(request, pk):
         'success': True,
         'message': 'Invoice voided successfully'
     }, status=status.HTTP_200_OK)
+
+
+# ==================== REPORT ENDPOINTS ====================
+
+@api_view(['GET'])
+def chart_of_accounts_tree_view(request):
+    """
+    GET /api/accounts/chart-tree/
+    Returns collapsible tree structure of accounts with live balances
+    """
+    try:
+        date_range = request.GET.get('date_range')
+        start_date, end_date = AccountsService.get_date_filter(date_range)
+        tree = AccountsService.get_chart_of_accounts_tree(start_date, end_date)
+        return Response({
+            'success': True,
+            'data': tree
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def profit_loss_report_view(request):
+    """
+    GET /api/accounts/reports/profit-loss/
+    Returns Profit & Loss statement for the chosen date range
+    """
+    try:
+        date_range = request.GET.get('date_range')
+        start_date, end_date = AccountsService.get_date_filter(date_range)
+        report = AccountsService.get_profit_loss(start_date, end_date)
+        return Response({
+            'success': True,
+            'data': report
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def balance_sheet_report_view(request):
+    """
+    GET /api/accounts/reports/balance-sheet/
+    Returns Balance Sheet as of the end of the chosen date range
+    """
+    try:
+        date_range = request.GET.get('date_range')
+        start_date, end_date = AccountsService.get_date_filter(date_range)
+        as_of_date = end_date or date.today()
+        report = AccountsService.get_balance_sheet(as_of_date)
+        return Response({
+            'success': True,
+            'data': report
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

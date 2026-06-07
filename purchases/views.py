@@ -7,38 +7,10 @@ from django.db import transaction
 
 from .models import Purchase, OrderedSlip, SupplierCompany
 from .serializers import PurchaseSerializer, OrderedSlipSerializer, SupplierCompanySerializer
-from accounts.models import Expense
 
 
 def _serialize_validation_errors(errors):
     return errors
-
-
-def _sync_order_slip_expense(ordered_slip):
-    expense_key = f'Ordered Slip #{ordered_slip.id}'
-    description = f'{expense_key} - {ordered_slip.product.name}'
-    amount = ordered_slip.total_cost
-    defaults = {
-        'category': 'SUPPLIES',
-        'amount': amount,
-        'date': timezone.now().date(),
-        'description': description,
-        'vendor': ordered_slip.company_name,
-    }
-
-    expense = Expense.objects.filter(description__startswith=expense_key).first()
-    if expense:
-        update_fields = []
-        for field_name, value in defaults.items():
-            if getattr(expense, field_name) != value:
-                setattr(expense, field_name, value)
-                update_fields.append(field_name)
-
-        if update_fields:
-            expense.save(update_fields=update_fields + ['updated_at'])
-        return expense
-
-    return Expense.objects.create(**defaults)
 
 
 @api_view(['GET', 'POST'])
@@ -92,9 +64,7 @@ def ordered_slip_list(request):
 
     serializer = OrderedSlipSerializer(data=request.data)
     if serializer.is_valid():
-        with transaction.atomic():
-            ordered_slip = serializer.save()
-            _sync_order_slip_expense(ordered_slip)
+        ordered_slip = serializer.save()
         return Response(OrderedSlipSerializer(ordered_slip).data, status=status.HTTP_201_CREATED)
     return Response(_serialize_validation_errors(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
@@ -159,7 +129,6 @@ def ordered_slip_mark_complete(request, pk):
         ordered_slip.status = OrderedSlip.STATUS_COMPLETED
         ordered_slip.received_at = timezone.now()
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
-        _sync_order_slip_expense(ordered_slip)
 
     return Response(OrderedSlipSerializer(ordered_slip).data)
 
