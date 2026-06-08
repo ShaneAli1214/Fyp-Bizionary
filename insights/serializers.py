@@ -32,6 +32,8 @@ class InsightsSerializer(serializers.Serializer):
     restocking_needed = ProductPerformanceSerializer(many=True)
     sales_trend = SalesTrendSerializer(many=True)
     ai_insights = serializers.CharField()
+    daily_top_by_quantity = serializers.ListField(child=serializers.DictField(), required=False)
+    daily_top_by_revenue = serializers.ListField(child=serializers.DictField(), required=False)
 
 
 class InsightRecommendationSerializer(serializers.ModelSerializer):

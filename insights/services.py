@@ -234,6 +234,249 @@ def get_sales_trend():
     ]
 
 
+def _aggregate_daily_product_stats(days=2):
+    """Aggregate per-product daily units and revenue for the last `days` days.
+
+    Returns an ordered list of day dicts (oldest -> newest) each containing
+    {'date': 'YYYY-MM-DD', 'stats': {product_id: {'units': int, 'revenue': float, 'product_name': str}}}
+    """
+    if not Sale or not Product:
+        return []
+
+    reset_queries()
+    today = timezone.now().date()
+    start_date = today - timedelta(days=days - 1)
+
+    # Query sales in the period. Use range comparisons compatible with both
+    # DateField and DateTimeField (avoid __date lookup which fails on DateField).
+    sales = Sale.objects.filter(sale_date__gte=start_date, sale_date__lte=today).values(
+        'product_id', 'quantity_sold', 'total_price', 'sale_date'
+    )
+
+    # Build map of date -> product -> aggregates
+    daily_map = {}
+    products = {p.id: p for p in Product.objects.all()}
+
+    for s in sales:
+        sale_date = s.get('sale_date')
+        date_key = sale_date.strftime('%Y-%m-%d') if hasattr(sale_date, 'strftime') else str(sale_date)
+        pid = s.get('product_id')
+        if date_key not in daily_map:
+            daily_map[date_key] = {}
+        prod_map = daily_map[date_key]
+        if pid not in prod_map:
+            prod_map[pid] = {
+                'units': 0,
+                'revenue': 0.0,
+                'product_name': products.get(pid).name if products.get(pid) else f'Product {pid}',
+                'current_stock': getattr(products.get(pid), 'stock_quantity', 0) if products.get(pid) else 0,
+            }
+        prod_map[pid]['units'] += int(s.get('quantity_sold') or 0)
+        prod_map[pid]['revenue'] += float(s.get('total_price') or 0.0)
+
+    # Build ordered list for the requested days
+    results = []
+    for i in range(days):
+        d = start_date + timedelta(days=i)
+        key = d.strftime('%Y-%m-%d')
+        stats = daily_map.get(key, {})
+        results.append({'date': key, 'stats': stats})
+
+    return results
+
+
+def _aggregate_period_stats(period_days=1):
+    """Aggregate stats over a rolling period of `period_days` days (inclusive).
+
+    Returns a dict mapping product_id -> {'units': int, 'revenue': float, 'product_name': str, 'current_stock': int}
+    """
+    # Directly aggregate over the requested period from sales table to avoid
+    # ambiguity about which day is considered "today". This makes it explicit
+    # and precise: we'll accept an optional keyword `end_date` via kwargs.
+    # If not provided, default end_date is today.
+    if period_days < 1:
+        period_days = 1
+    # accept optional end_date from caller via function attribute (set by view)
+    end_date = getattr(_aggregate_period_stats, '_end_date_override', None)
+    from datetime import date, timedelta
+    today = timezone.now().date()
+    if end_date is None:
+        end = today
+    else:
+        end = end_date
+
+    start = end - timedelta(days=period_days - 1)
+
+    # Query sales in the period directly
+    reset_queries()
+    sales_qs = Sale.objects.filter(sale_date__gte=start, sale_date__lte=end).values(
+        'product_id', 'quantity_sold', 'total_price'
+    )
+
+    combined = {}
+    products = {p.id: p for p in Product.objects.all()}
+    for s in sales_qs:
+        pid = s.get('product_id')
+        if pid not in combined:
+            combined[pid] = {
+                'units': 0,
+                'revenue': 0.0,
+                'product_name': products.get(pid).name if products.get(pid) else f'Product {pid}',
+                'current_stock': getattr(products.get(pid), 'stock_quantity', 0) if products.get(pid) else 0,
+            }
+        combined[pid]['units'] += int(s.get('quantity_sold') or 0)
+        combined[pid]['revenue'] += float(s.get('total_price') or 0.0)
+
+    return combined
+
+
+def get_top_products_by_quantity_period(period_days=1, top_n=3, min_units=2):
+    """Return top products by units sold aggregated over `period_days`.
+
+    Products with total units < `min_units` are filtered out to avoid noisy single-sale results.
+    """
+    if not Sale or not Product:
+        return {'period_days': int(period_days), 'top': []}
+
+    combined = _aggregate_period_stats(period_days=period_days)
+    items = [
+        {
+            'product_id': pid,
+            'product_name': info.get('product_name'),
+            'units': info.get('units', 0),
+            'current_stock': info.get('current_stock', 0),
+        }
+        for pid, info in combined.items()
+        if (info.get('units', 0) or 0) >= int(min_units)
+    ]
+    items_sorted = sorted(items, key=lambda x: x['units'], reverse=True)[:top_n]
+    return {'period_days': int(period_days), 'top': items_sorted}
+
+
+def get_top_products_by_revenue_period(period_days=1, top_n=3):
+    """Return top products by revenue aggregated over `period_days`."""
+    if not Sale or not Product:
+        return {'period_days': int(period_days), 'top': []}
+
+    combined = _aggregate_period_stats(period_days=period_days)
+    items = [
+        {
+            'product_id': pid,
+            'product_name': info.get('product_name'),
+            'revenue': round(info.get('revenue', 0.0), 2),
+            'units': int(info.get('units', 0) or 0),
+            'current_stock': int(info.get('current_stock', 0) or 0),
+        }
+        for pid, info in combined.items()
+    ]
+    items_sorted = sorted(items, key=lambda x: x['revenue'], reverse=True)[:top_n]
+    return {'period_days': int(period_days), 'top': items_sorted}
+
+
+def get_daily_top_products_by_quantity(days=2, top_n=3):
+    """Return daily top products by units sold for the last `days` days.
+
+    Each day entry contains 'date' and 'top' which is a list of top products with change vs previous day.
+    """
+    agg = _aggregate_daily_product_stats(days=days)
+    if not agg:
+        return []
+
+    results = []
+    prev_stats = None
+    for day in agg:
+        stats = day['stats']
+        # Build sortable list
+        items = [
+            {
+                'product_id': pid,
+                'product_name': info['product_name'],
+                'units': info['units'],
+                'current_stock': info.get('current_stock', 0),
+            }
+            for pid, info in stats.items()
+        ]
+        items_sorted = sorted(items, key=lambda x: x['units'], reverse=True)[:top_n]
+
+        # attach change vs previous day
+        for item in items_sorted:
+            change = None
+            if prev_stats is not None:
+                prev = prev_stats.get(item['product_id'], {}).get('units', 0)
+                # avoid division by zero - if prev is 0 and today >0, mark as None or 100%
+                if prev == 0:
+                    change = None
+                else:
+                    change = round(((item['units'] - prev) / prev) * 100.0, 1)
+            item['change_vs_prev_day_percent'] = change
+
+        results.append({'date': day['date'], 'top': items_sorted})
+        prev_stats = {pid: info for pid, info in stats.items()}
+
+    return results
+
+
+def get_daily_top_products_by_revenue(days=2, top_n=3):
+    """Return daily top products by revenue for the last `days` days."""
+    agg = _aggregate_daily_product_stats(days=days)
+    if not agg:
+        return []
+
+    results = []
+    prev_stats = None
+    for day in agg:
+        stats = day['stats']
+        items = [
+            {
+                'product_id': pid,
+                'product_name': info['product_name'],
+                'revenue': round(info.get('revenue', 0.0), 2),
+                'units': int(info.get('units', 0) or 0),
+                'current_stock': int(info.get('current_stock', 0) or 0),
+            }
+            for pid, info in stats.items()
+        ]
+        items_sorted = sorted(items, key=lambda x: x['revenue'], reverse=True)[:top_n]
+
+        for item in items_sorted:
+            change = None
+            if prev_stats is not None:
+                prev = prev_stats.get(item['product_id'], {}).get('revenue', 0.0)
+                if prev == 0:
+                    change = None
+                else:
+                    change = round(((item['revenue'] - prev) / prev) * 100.0, 1)
+            item['change_vs_prev_day_percent'] = change
+        # If fewer than top_n revenue-generating products today, pad using product list (revenue=0)
+        if len(items_sorted) < top_n and Product:
+            existing_ids = {it['product_id'] for it in items_sorted}
+            for p in Product.objects.all():
+                if len(items_sorted) >= top_n:
+                    break
+                if p.id in existing_ids:
+                    continue
+                items_sorted.append({
+                    'product_id': p.id,
+                    'product_name': getattr(p, 'name', f'Product {p.id}'),
+                    'revenue': 0.0,
+                    'units': 0,
+                    'change_vs_prev_day_percent': None,
+                    'current_stock': getattr(p, 'stock_quantity', 0),
+                })
+
+        # Ensure current_stock is present for items (if available in stats)
+        for it in items_sorted:
+            if 'current_stock' not in it:
+                it['current_stock'] = stats.get(it['product_id'], {}).get('current_stock', 0)
+            if 'units' not in it:
+                it['units'] = int(stats.get(it['product_id'], {}).get('units', 0) or 0)
+
+        results.append({'date': day['date'], 'top': items_sorted})
+        prev_stats = {pid: {'revenue': info['revenue']} for pid, info in stats.items()}
+
+    return results
+
+
 def get_insights_payload():
     """Build the base insights payload from database data."""
     sales_data = get_sales_data()
@@ -257,6 +500,8 @@ def get_insights_payload():
         'hot_products': product_performance.get('hot_products', []),
         'cold_products': product_performance.get('cold_products', []),
         'restocking_needed': product_performance.get('restocking_needed', []),
+        'daily_top_by_quantity': get_daily_top_products_by_quantity(days=2, top_n=3),
+        'daily_top_by_revenue': get_daily_top_products_by_revenue(days=2, top_n=3),
     }
 
 

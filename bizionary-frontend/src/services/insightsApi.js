@@ -15,4 +15,8 @@ export const insightsApi = {
     getLiveNlpReport: (days = 30) => api.get(`insights/nlp-report/live/?days=${days}`),
     getCustomerReviews: (limit = 20) => api.get(`insights/customer-reviews/?limit=${limit}`),
     createCustomerReview: (payload) => api.post('insights/customer-reviews/', payload),
+    getTop: (period = 'daily', params = {}) => {
+        const qs = new URLSearchParams({ period, ...params }).toString();
+        return api.get(`insights/top/?${qs}`);
+    },
 };

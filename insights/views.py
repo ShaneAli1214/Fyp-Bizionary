@@ -27,6 +27,8 @@ from .services import (
     build_daily_ai_recommendation,
     build_live_nlp_report,
     get_smart_reorder_recommendations,
+    get_top_products_by_quantity_period,
+    get_top_products_by_revenue_period,
 )
 
 
@@ -67,7 +69,19 @@ def get_insights(request):
         payload = get_insights_payload()
         # Main tab recommendation is consent-driven and live.
         ai_insights = _resolve_ai_message(payload)
-        
+        # Ensure Top-3 lists are authoritative by computing them directly from the sales table.
+        # Use previous full day for 'daily' so the main tab shows completed-day metrics.
+        from datetime import timedelta
+        from . import services as svc
+        yesterday = timezone.now().date() - timedelta(days=1)
+        setattr(svc._aggregate_period_stats, '_end_date_override', yesterday)
+        daily_qty = get_top_products_by_quantity_period(period_days=1, top_n=3, min_units=int(request.query_params.get('min_units', 2)))
+        daily_rev = get_top_products_by_revenue_period(period_days=1, top_n=3)
+        try:
+            delattr(svc._aggregate_period_stats, '_end_date_override')
+        except Exception:
+            pass
+
         insights_data = {
             'total_revenue': payload['total_revenue'],
             'total_sales': payload['total_sales'],
@@ -77,6 +91,8 @@ def get_insights(request):
             'restocking_needed': payload['restocking_needed'],
             'sales_trend': payload['sales_trend'],
             'ai_insights': ai_insights,
+            'daily_top_by_quantity': [ {'date': str(timezone.localdate() - timedelta(days=1)), 'top': daily_qty.get('top', [])} ],
+            'daily_top_by_revenue': [ {'date': str(timezone.localdate() - timedelta(days=1)), 'top': daily_rev.get('top', [])} ],
         }
 
         serializer = InsightsSerializer(insights_data)
@@ -100,6 +116,18 @@ def get_live_insights(request):
     """Get live database insights without calling OpenAI."""
     try:
         payload = get_insights_payload()
+        # For live insights, also provide authoritative daily top lists based on sales.
+        from datetime import timedelta
+        from . import services as svc
+        yesterday = timezone.now().date() - timedelta(days=1)
+        setattr(svc._aggregate_period_stats, '_end_date_override', yesterday)
+        daily_qty = get_top_products_by_quantity_period(period_days=1, top_n=3, min_units=int(request.query_params.get('min_units', 2)))
+        daily_rev = get_top_products_by_revenue_period(period_days=1, top_n=3)
+        try:
+            delattr(svc._aggregate_period_stats, '_end_date_override')
+        except Exception:
+            pass
+
         insights_data = {
             'total_revenue': payload['total_revenue'],
             'total_sales': payload['total_sales'],
@@ -109,6 +137,8 @@ def get_live_insights(request):
             'restocking_needed': payload['restocking_needed'],
             'sales_trend': payload['sales_trend'],
             'ai_insights': _resolve_ai_message(payload),
+            'daily_top_by_quantity': [ {'date': str(timezone.localdate() - timedelta(days=1)), 'top': daily_qty.get('top', [])} ],
+            'daily_top_by_revenue': [ {'date': str(timezone.localdate() - timedelta(days=1)), 'top': daily_rev.get('top', [])} ],
         }
 
         serializer = InsightsSerializer(insights_data)
@@ -124,6 +154,71 @@ def get_live_insights(request):
             'success': False,
             'error': str(exc),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return add_no_cache_headers(response)
+
+
+
+@api_view(['GET'])
+def get_top_insights(request):
+    """Return top products by quantity and revenue for a requested period.
+
+    Query params:
+    - period: 'daily'|'weekly'|'monthly' (defaults to 'daily')
+    - min_units: minimum units filter for quantity (optional, defaults to 2)
+    """
+    try:
+        period = str(request.query_params.get('period', 'daily')).lower()
+        if period == 'weekly':
+            days = 7
+        elif period == 'monthly':
+            days = 30
+        else:
+            days = 1
+
+        # Interpret 'daily' as the previous full day (yesterday) so daily
+        # reports reflect completed sales. Callers can override by passing
+        # an explicit `date=` query param in YYYY-MM-DD format.
+        date_override = request.query_params.get('date', None)
+        from datetime import datetime, timedelta
+        if date_override:
+            try:
+                end_date = datetime.strptime(date_override, '%Y-%m-%d').date()
+            except Exception:
+                end_date = timezone.now().date() - timedelta(days=1)
+        else:
+            if period == 'daily':
+                end_date = timezone.now().date() - timedelta(days=1)
+            else:
+                end_date = timezone.now().date()
+
+        # Set an override on the aggregation helper so it uses this end_date.
+        from . import services as svc
+        setattr(svc._aggregate_period_stats, '_end_date_override', end_date)
+
+        min_units = int(request.query_params.get('min_units', 2))
+
+        qty = get_top_products_by_quantity_period(period_days=days, top_n=3, min_units=min_units)
+        rev = get_top_products_by_revenue_period(period_days=days, top_n=3)
+
+        # Clear the override
+        try:
+            delattr(svc._aggregate_period_stats, '_end_date_override')
+        except Exception:
+            pass
+
+        response = Response({
+            'success': True,
+            'data': {
+                'period': period,
+                'days': days,
+                'top_by_quantity': qty,
+                'top_by_revenue': rev,
+            },
+            'timestamp': timezone.localtime().isoformat(),
+        }, status=status.HTTP_200_OK)
+        return add_no_cache_headers(response)
+    except Exception as exc:
+        response = Response({'success': False, 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return add_no_cache_headers(response)
 
 

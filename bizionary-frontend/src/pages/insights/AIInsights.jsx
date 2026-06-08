@@ -254,56 +254,56 @@ const AIInsights = () => {
         );
     }
 
-    if (insightsError) {
-        return (
-            <div className="rounded-3xl bg-red-50 p-8 border border-red-200">
-                <div className="flex items-center gap-3 mb-4">
-                    <AlertCircle className="w-6 h-6 text-red-600" />
-                    <div>
-                        <h3 className="font-semibold text-red-900">Error Loading Insights</h3>
-                        <p className="text-sm text-red-700 mt-1">{insightsError}</p>
-                    </div>
+    const errorBanner = insightsError ? (
+        <div className="rounded-3xl bg-red-50 p-4 border border-red-200 mb-4">
+            <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <div>
+                    <div className="font-semibold text-red-900">Error Loading Insights</div>
+                    <div className="text-sm text-red-700">{insightsError}</div>
                 </div>
-                <button
-                    onClick={() => {
-                        setInsightsError('');
-                        fetchInsights(true);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                >
-                    Retry
-                </button>
             </div>
-        );
-    }
+        </div>
+    ) : null;
 
-    if (!insights) {
-        return (
-            <div className="rounded-3xl bg-yellow-50 p-8 border border-yellow-200">
-                <p className="text-yellow-800">No insights data available yet.</p>
-            </div>
-        );
-    }
+    const displayedInsights = insights || {
+        total_revenue: 0,
+        total_sales: 0,
+        average_order_value: 0,
+        hot_products: [],
+        cold_products: [],
+        restocking_needed: [],
+        sales_trend: [],
+        ai_insights: 'AI insights unavailable',
+        daily_top_by_quantity: [],
+        daily_top_by_revenue: [],
+    };
 
-    const hotProductsChartData = insights.hot_products?.map(p => ({
+    const hotProductsChartData = displayedInsights.hot_products?.map(p => ({
         name: p.product_name?.substring(0, 12),
         sales: p.total_sales,
         revenue: p.total_revenue,
     })) || [];
 
-    const coldProductsChartData = insights.cold_products?.map(p => ({
+    const coldProductsChartData = displayedInsights.cold_products?.map(p => ({
         name: p.product_name?.substring(0, 12),
         sales: p.total_sales,
         revenue: p.total_revenue,
     })) || [];
 
-    const restockingChartData = insights.restocking_needed?.map(p => ({
+    const restockingChartData = displayedInsights.restocking_needed?.map(p => ({
         name: p.product_name?.substring(0, 12),
         current: p.stock_level,
         recommended: p.reorder_level,
     })) || [];
 
-    const salesTrendData = insights.sales_trend || [];
+    const salesTrendData = displayedInsights.sales_trend || [];
+
+    const dailyTopByQuantity = displayedInsights.daily_top_by_quantity || [];
+    const latestQuantity = dailyTopByQuantity.length ? dailyTopByQuantity[dailyTopByQuantity.length - 1] : null;
+
+    const dailyTopByRevenue = displayedInsights.daily_top_by_revenue || [];
+    const latestRevenue = dailyTopByRevenue.length ? dailyTopByRevenue[dailyTopByRevenue.length - 1] : null;
 
     return (
         <div className="space-y-6">
@@ -534,7 +534,7 @@ const AIInsights = () => {
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Revenue (30d)</p>
                             <p className="text-3xl font-bold text-primary mt-2">
-                                ₨{(insights.total_revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                                ₨{(displayedInsights.total_revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </p>
                         </div>
                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -547,7 +547,7 @@ const AIInsights = () => {
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Sales</p>
-                            <p className="text-3xl font-bold text-green-600 mt-2">{insights.total_sales || 0}</p>
+                            <p className="text-3xl font-bold text-green-600 mt-2">{displayedInsights.total_sales || 0}</p>
                         </div>
                         <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                             <Zap className="w-6 h-6 text-green-600" />
@@ -560,7 +560,7 @@ const AIInsights = () => {
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Avg Order Value</p>
                             <p className="text-3xl font-bold text-orange-600 mt-2">
-                                ₨{(insights.average_order_value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                                ₨{(displayedInsights.average_order_value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </p>
                         </div>
                         <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
@@ -634,15 +634,56 @@ const AIInsights = () => {
             </div>
 
             {/* AI Analysis */}
-            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 p-8 border border-primary/20">
+                <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 p-8 border border-primary/20">
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                         <Brain className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1">
                         <h3 className="text-lg font-bold text-textMain mb-3">🤖 AI Recommendations</h3>
-                        <p className="text-textMain leading-7 whitespace-pre-wrap">{insights.ai_insights}</p>
+                        <p className="text-textMain leading-7 whitespace-pre-wrap">{displayedInsights.ai_insights}</p>
                     </div>
+                </div>
+            </div>
+
+                {errorBanner}
+
+            {/* Daily Top Products (Quantity & Revenue) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Quantity)</h3>
+                    <p className="text-sm text-textMuted mb-3">Date: {latestQuantity?.date || 'N/A'}</p>
+                    <ul className="space-y-2">
+                        {(latestQuantity?.top || []).map((item, idx) => (
+                            <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <div>
+                                    <div className="font-medium text-textMain">{item.product_name}</div>
+                                    <div className="text-sm text-textMuted">Units: {item.units}</div>
+                                </div>
+                                <div className="text-sm font-semibold">
+                                    {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Revenue)</h3>
+                    <p className="text-sm text-textMuted mb-3">Date: {latestRevenue?.date || 'N/A'}</p>
+                    <ul className="space-y-2">
+                        {(latestRevenue?.top || []).map((item, idx) => (
+                            <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <div>
+                                    <div className="font-medium text-textMain">{item.product_name}</div>
+                                    <div className="text-sm text-textMuted">Revenue: ₨{Number(item.revenue || 0).toLocaleString()}</div>
+                                </div>
+                                <div className="text-sm font-semibold">
+                                    {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
 
@@ -661,7 +702,7 @@ const AIInsights = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {insights.hot_products?.map((product, idx) => (
+                                {displayedInsights.hot_products?.map((product, idx) => (
                                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-3 text-textMain font-medium">{product.product_name}</td>
                                         <td className="text-right py-3 text-textMain">{product.total_sales}</td>
@@ -688,7 +729,7 @@ const AIInsights = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {insights.restocking_needed?.map((product, idx) => (
+                                {displayedInsights.restocking_needed?.map((product, idx) => (
                                     <tr key={idx} className="border-b border-gray-100 hover:bg-red-50">
                                         <td className="py-3 text-textMain font-medium">{product.product_name}</td>
                                         <td className="text-center py-3 text-red-600 font-bold">{product.stock_level}</td>

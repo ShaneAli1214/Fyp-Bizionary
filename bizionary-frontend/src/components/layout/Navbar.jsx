@@ -16,7 +16,8 @@ import {
     User,
     Settings,
     History,
-    Sliders
+    Sliders,
+    TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ const Navbar = ({ onToggleSidebar }) => {
         { label: 'Products', path: '/products', icon: Package },
         { label: 'Stock', path: '/inventory-managment', icon: Boxes },
         { label: 'Sales', path: '/sales', icon: ShoppingCart },
+            { label: 'AI Insights', path: '/insights', icon: TrendingUp },
         { label: 'Create Order', path: '/ordered-slips', icon: ClipboardList },
         { label: 'AI Chatbot', path: '/chatbot', icon: Bot },
         { label: 'Admin', path: '/user-management', icon: Lock }

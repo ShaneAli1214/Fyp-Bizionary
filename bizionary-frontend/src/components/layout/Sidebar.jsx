@@ -9,7 +9,8 @@ import {
     ClipboardList, 
     Lock, 
     X,
-    Bot
+    Bot,
+    TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -23,6 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Products', href: '/products', icon: Package },
         { name: 'Stock', href: '/inventory-managment', icon: Boxes },
         { name: 'Sales', href: '/sales', icon: ShoppingCart },
+            { name: 'AI Insights', href: '/insights', icon: TrendingUp },
         { name: 'Create Order', href: '/ordered-slips', icon: ClipboardList },
         { name: 'AI Chatbot', href: '/chatbot', icon: Bot },
         { name: 'Admin', href: '/user-management', icon: Lock, adminOnly: true }
