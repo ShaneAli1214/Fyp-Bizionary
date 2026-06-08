@@ -4,6 +4,42 @@ import api from '../../services/api';
 import { formatPKR } from '../../utils/currency';
 import { formatDayLabel } from '../../utils/chartDates';
 
+const formatCompactPKR = (value) => {
+  const amount = Number(value) || 0;
+  const absValue = Math.abs(amount);
+
+  if (absValue >= 1_000_000) {
+    return `Rs ${Number(amount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+
+  if (absValue >= 1_000) {
+    return `Rs ${Number(amount / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  }
+
+  return `Rs ${amount}`;
+};
+
+const SalesTooltip = ({ active, payload, label }) => {
+  if (!active || !payload || payload.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+      <div className="mb-3 text-sm font-semibold text-slate-900">{label}</div>
+      <div className="space-y-2">
+        {payload.map((item) => (
+          <div key={item.name} className="flex items-center justify-between gap-3 text-slate-700">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color || '#0A6ED1' }} />
+              <span>{item.name}</span>
+            </div>
+            <span className="font-semibold text-slate-900">{formatPKR(item.value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SalesCharts = ({ className }) => {
   const [dailyPerformance, setDailyPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,13 +85,13 @@ const SalesCharts = ({ className }) => {
       period: row.period,
       label: formatDayLabel(row.period),
       revenue: Number(row.revenue || 0),
-      prev_revenue: Number(dailyPerformance[idx - 1]?.revenue || 0)
+      previousRevenue: Number(dailyPerformance[idx - 1]?.revenue || 0),
     };
   });
 
   return (
     <div className={className}>
-      <div className="mb-3 text-sm font-semibold text-textMain">Last 30 Days Sales Data</div>
+      <div className="mb-3 text-sm font-semibold text-textMain">Sales Performance — Last 30 Days</div>
       <ResponsiveContainer width="100%" height={360}>
         <ComposedChart data={compData} margin={{ top: 10, right: 12, left: 0, bottom: 28 }}>
           <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e6eef8" />
@@ -71,11 +107,10 @@ const SalesCharts = ({ className }) => {
             height={58}
             dy={10}
           />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => `Rs ${v / 1000}k`} />
-          <Tooltip formatter={(val) => formatPKR(val)} />
-          <Bar dataKey="revenue" barSize={18} radius={[8,8,0,0]} fill="#0A6ED1" />
-          <Line type="monotone" dataKey="prev_revenue" stroke="#7e63ff" strokeWidth={3} dot={false} />
-          <Area type="monotone" dataKey="prev_revenue" strokeWidth={0} fill="rgba(126,99,255,0.12)" />
+          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={formatCompactPKR} />
+          <Tooltip content={<SalesTooltip />} />
+          <Bar dataKey="revenue" name="Revenue" barSize={18} radius={[8,8,0,0]} fill="#0A6ED1" />
+          <Line type="monotone" dataKey="previousRevenue" name="Previous Day Revenue" stroke="#7e63ff" strokeWidth={3} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

@@ -18,7 +18,7 @@ Performance Strategy:
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Sum, Count, Max, F, Q, ExpressionWrapper, DecimalField
+from django.db.models import Sum, Count, Max, Min, F, Q, ExpressionWrapper, DecimalField
 from django.db.models.functions import TruncMonth, TruncDay, ExtractMonth, ExtractYear
 from django.utils.dateparse import parse_date
 from django.utils import timezone
@@ -919,7 +919,25 @@ def sales_by_period(request):
             period_label = 'Last 10 Days'
             x_axis_type = 'day'
             x_axis_label = 'Days'
-            
+        elif period == 'all':
+            earliest_date = Sale.objects.aggregate(earliest=Min('sale_date'))['earliest']
+            if not earliest_date:
+                earliest_date = latest_date
+            start_date = earliest_date.replace(day=1)
+            current = start_date
+            while current <= latest_date:
+                label = current.strftime('%b %Y')
+                key = current.strftime('%Y-%m')
+                chart_points.append({'period': label})
+                date_to_label[key] = label
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1, day=1)
+                else:
+                    current = current.replace(month=current.month + 1, day=1)
+            date_context = f"{start_date.strftime('%b %Y')} - {latest_date.strftime('%b %Y')}"
+            period_label = 'All Sales History'
+            x_axis_type = 'month'
+            x_axis_label = 'Months'
         else:  # monthly
             # Group sales for the month containing the latest sale
             start_date = latest_date.replace(day=1)
@@ -1054,6 +1072,9 @@ def sales_by_period(request):
                 else: label = '11 PM'
             elif period in ('weekly', 'last10Days'):
                 date_str = sale.sale_date.isoformat()
+                label = date_to_label.get(date_str, 'N/A')
+            elif period == 'all':
+                date_str = sale.sale_date.strftime('%Y-%m')
                 label = date_to_label.get(date_str, 'N/A')
             else:  # monthly
                 day = sale.sale_date.day

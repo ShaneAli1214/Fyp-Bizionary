@@ -1,4 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+    ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend 
+} from 'recharts';
 import { 
     X, Bot, Send, Mic, MicOff, AlertCircle, RefreshCw, 
     Trash2, HelpCircle, Volume2
@@ -7,6 +12,7 @@ import { chatbotApi } from '../../services/chatbotApi';
 import api from '../../services/api';
 
 const ChatbotModal = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
     const [prompt, setPrompt] = useState('');
     const [messages, setMessages] = useState(() => {
         const saved = localStorage.getItem('bizionary_chatbot_modal_history');
@@ -158,14 +164,25 @@ const ChatbotModal = ({ isOpen, onClose }) => {
         }
     };
 
+    // Offline Response Mock Generator
     const getOfflineMockResponse = (userText) => {
         const text = userText.toLowerCase();
-        if (text.includes('revenue') || text.includes('sales total')) {
-            return '### Revenue Analytics 📊\n\nTotal Sales revenue parsed from DB is Rs 1,245,630.00.\n\nOpen full Sales Analytics inside the ERP to see metrics.';
+        
+        // Revenue questions
+        if (text.includes('revenue') || text.includes('sales amount') || text.includes('sales total') || text.includes('trend')) {
+            return `### Revenue Analytics 📊\n\nAccording to the local database, your total sales revenue is calculated from recorded invoices.\n\nHere is your monthly net trend:\n\n\`\`\`chart-data\n{\n  "chart_type": "line",\n  "title": "Income vs Expense Trend (Last 6 Months)",\n  "x_key": "month",\n  "series": [\n    {"key": "income", "color": "#3B82F6", "name": "Income"},\n    {"key": "expense", "color": "#EF4444", "name": "Expense"}\n  ],\n  "data": [\n    {"month": "2026-01", "income": 450000, "expense": 320000},\n    {"month": "2026-02", "income": 520000, "expense": 380000},\n    {"month": "2026-03", "income": 490000, "expense": 310000},\n    {"month": "2026-04", "income": 590000, "expense": 420000},\n    {"month": "2026-05", "income": 610000, "expense": 400000},\n    {"month": "2026-06", "income": 700000, "expense": 450000}\n  ]\n}\n\`\`\`\n\nYou can review full details in the [Manage Accounts](route:/accounts) section.`;
         }
-        if (text.includes('stock') || text.includes('low stock') || text.includes('inventory')) {
-            return '### Inventory Summary 📦\n\nThere are 12 items running low on stock.\n\nCheck the Products or Stock list to trigger restocks.';
+
+        // Low stock / inventory questions
+        if (text.includes('stock') || text.includes('low stock') || text.includes('inventory') || text.includes('product')) {
+            return `### Inventory Status 📦\n\nThere are currently several products running low on stock (under 15 units).\n\nHere is the stock levels comparison chart:\n\n\`\`\`chart-data\n{\n  "chart_type": "bar",\n  "title": "Low Stock Inventory (Under 15)",\n  "x_key": "name",\n  "series": [\n    {"key": "stock", "color": "#EF4444", "name": "Current Stock"},\n    {"key": "min", "color": "#8B5CF6", "name": "Min Stock"}\n  ],\n  "data": [\n    {"name": "Basmati Rice", "stock": 3, "min": 15},\n    {"name": "Wheat Flour", "stock": 5, "min": 15},\n    {"name": "Cooking Oil", "stock": 2, "min": 15},\n    {"name": "White Sugar", "stock": 7, "min": 15}\n  ]\n}\n\`\`\`\n\nYou can restock or view products inside the [Check Stock/Inventory](route:/inventory-managment) section.`;
         }
+
+        // Module explanation
+        if (text.includes('module') || text.includes('section') || text.includes('help') || text.includes('how to')) {
+            return `### Bizionary Modules Guide ⚙️\n\nHere's a list of available sections in Bizionary ERP with direct route buttons:\n\n- **Dashboard:** High-level KPIs, payables, and low stock summaries. [Go to Dashboard](route:/)\n- **Accounts:** Financial ledger, revenues vs expenses, and transactions. [Manage Accounts](route:/accounts)\n- **Products:** Product catalog list. [View Products](route:/products)\n- **Stock/Inventory:** View and restock items. [Check Stock/Inventory](route:/inventory-managment)\n- **AI Insights:** Business trends and demand predictions. [AI Insights](route:/insights)`;
+        }
+
         return `### Local Mode response 🤖\n\nI received: "${userText}"\n\n*Running in local Demo mode. Configure a Groq key in Settings for full capabilities.*`;
     };
 
@@ -173,7 +190,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
         if (!text) return '';
         return text.split('\n').map((line, idx) => {
             if (line.startsWith('### ')) {
-                return <h5 key={idx} className="font-bold text-slate-800 mt-1.5 mb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider">{line.replace('### ', '')}</h5>;
+                return <h5 key={idx} className="font-bold text-slate-800 dark:text-slate-200 mt-1.5 mb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider">{line.replace('### ', '')}</h5>;
             }
             if (line.startsWith('- ') || line.startsWith('* ')) {
                 return <li key={idx} className="ml-4 list-disc text-[10.5px] my-0.5">{parseBoldAndCode(line.slice(2))}</li>;
@@ -185,12 +202,12 @@ const ChatbotModal = ({ isOpen, onClose }) => {
     const parseBoldAndCode = (text) => {
         const parts = [];
         let index = 0;
-        const formatRegex = /(\*\*.*?\*\*|`.*?`)/g;
+        const formatRegex = /(\*\*.*?\*\*|`.*?`|\[[^\]]+\]\([^)]+\))/g;
         const matches = text.match(formatRegex);
         if (!matches) return text;
 
         let match;
-        const regex = /(\*\*.*?\*\*|`.*?`)/g;
+        const regex = /(\*\*.*?\*\*|`.*?`|\[[^\]]+\]\([^)]+\))/g;
         while ((match = regex.exec(text)) !== null) {
             const matchIndex = match.index;
             const matchText = match[0];
@@ -198,14 +215,189 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                 parts.push(text.slice(index, matchIndex));
             }
             if (matchText.startsWith('**')) {
-                parts.push(<strong key={matchIndex} className="font-bold text-slate-900">{matchText.slice(2, -2)}</strong>);
+                parts.push(<strong key={matchIndex} className="font-bold text-slate-900 dark:text-white">{matchText.slice(2, -2)}</strong>);
             } else if (matchText.startsWith('`')) {
-                parts.push(<code key={matchIndex} className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px] text-primary">{matchText.slice(1, -1)}</code>);
+                parts.push(<code key={matchIndex} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono text-[9.5px] text-primary dark:text-sky-300 border border-slate-200/40 dark:border-slate-700/50">{matchText.slice(1, -1)}</code>);
+            } else if (matchText.startsWith('[') && matchText.includes('](')) {
+                const linkMatch = matchText.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                if (linkMatch) {
+                    const label = linkMatch[1];
+                    let url = linkMatch[2];
+                    
+                    if (url.startsWith('route:')) {
+                        url = url.replace('route:', '');
+                    }
+                    
+                    // Route fallback mappings
+                    if (url === '/stock' || url === '/inventory') {
+                        url = '/inventory-managment';
+                    } else if (url === '/users' || url === '/roles' || url === '/admin') {
+                        url = '/user-management';
+                    }
+                    
+                    const isInternal = url.startsWith('/');
+                    if (isInternal) {
+                        parts.push(
+                            <button
+                                key={matchIndex}
+                                onClick={() => navigate(url)}
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary dark:text-sky-300 rounded-lg text-[10px] font-bold border border-primary/20 transition active:scale-95 cursor-pointer align-middle"
+                            >
+                                {label}
+                            </button>
+                        );
+                    } else {
+                        parts.push(
+                            <a
+                                key={matchIndex}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary dark:text-sky-400 hover:underline inline-flex items-center gap-0.5 font-semibold"
+                            >
+                                {label}
+                            </a>
+                        );
+                    }
+                }
             }
             index = regex.lastIndex;
         }
         if (index < text.length) parts.push(text.slice(index));
         return parts;
+    };
+
+    // Render interactive charts inside message bubbles
+    const renderChart = (config, index) => {
+        if (!config || !config.data || !config.data.length) {
+            return (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-250/30 rounded-2xl text-[10px] text-textMuted text-center mt-3">
+                    No data available for chart.
+                </div>
+            );
+        }
+
+        const { chart_type, title, x_key, series, data } = config;
+        const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+        const tooltipStyle = {
+            backgroundColor: '#1E293B',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#F8FAFC',
+            fontSize: '10px',
+            padding: '6px 10px',
+        };
+
+        const renderChartComponent = () => {
+            if (chart_type === 'line') {
+                return (
+                    <LineChart data={data}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
+                        <XAxis dataKey={x_key} tick={{ fontSize: 9, fill: '#64748B' }} stroke="#cbd5e1" />
+                        <YAxis tick={{ fontSize: 9, fill: '#64748B' }} stroke="#cbd5e1" width={25} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Legend wrapperStyle={{ fontSize: 9, marginTop: 5 }} />
+                        {series.map((s, idx) => (
+                            <Line
+                                key={s.key}
+                                type="monotone"
+                                dataKey={s.key}
+                                name={s.name || s.key}
+                                stroke={s.color || COLORS[idx % COLORS.length]}
+                                strokeWidth={2.5}
+                                activeDot={{ r: 5 }}
+                                dot={{ r: 3 }}
+                            />
+                        ))}
+                    </LineChart>
+                );
+            }
+
+            if (chart_type === 'pie') {
+                return (
+                    <PieChart>
+                        <Pie
+                            data={data}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={25}
+                            outerRadius={45}
+                            paddingAngle={3}
+                            dataKey={series[0]?.key || 'total'}
+                            nameKey={x_key}
+                            label={({ name, percent }) => `${name.substring(0, 8)} (${(percent * 100).toFixed(0)}%)`}
+                            labelLine={false}
+                            style={{ fontSize: 7, fill: '#64748B' }}
+                        >
+                            {data.map((entry, idx) => (
+                                <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} />
+                    </PieChart>
+                );
+            }
+
+            // Fallback / Bar Chart
+            return (
+                <BarChart data={data}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
+                    <XAxis dataKey={x_key} tick={{ fontSize: 9, fill: '#64748B' }} stroke="#cbd5e1" />
+                    <YAxis tick={{ fontSize: 9, fill: '#64748B' }} stroke="#cbd5e1" width={25} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: 9, marginTop: 5 }} />
+                    {series.map((s, idx) => (
+                        <Bar
+                            key={s.key}
+                            dataKey={s.key}
+                            name={s.name || s.key}
+                            fill={s.color || COLORS[idx % COLORS.length]}
+                            radius={[4, 4, 0, 0]}
+                        />
+                    ))}
+                </BarChart>
+            );
+        };
+
+        return (
+            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-inner w-full min-w-[240px] animate-in fade-in zoom-in-95 duration-300">
+                {title && <h5 className="text-[9px] font-bold text-slate-700 dark:text-slate-300 mb-2.5 text-center uppercase tracking-wide">{title}</h5>}
+                <div className="w-full h-[130px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        {renderChartComponent()}
+                    </ResponsiveContainer>
+                </div>
+            </div>
+        );
+    };
+
+    // Parse chart-data blocks from message text and delegate rendering
+    const renderMessageContent = (msg, index) => {
+        const text = msg.text || '';
+        const chartBlockRegex = /```chart-data\s*([\s\S]*?)\s*```/;
+        const match = text.match(chartBlockRegex);
+        
+        let plainText = text;
+        let chartData = null;
+        
+        if (match) {
+            plainText = text.replace(chartBlockRegex, '').trim();
+            try {
+                chartData = JSON.parse(match[1]);
+            } catch (err) {
+                console.error('Failed to parse chart-data JSON from message', err);
+            }
+        }
+        
+        return (
+            <div>
+                <div className="space-y-1">
+                    {formatText(plainText)}
+                </div>
+                {chartData && renderChart(chartData, index)}
+            </div>
+        );
     };
 
     const handleClearHistory = () => {
@@ -298,7 +490,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                     ? 'bg-[#1C3A5A] text-white border-[#1C3A5A]/20 rounded-tr-none'
                                     : 'bg-slate-100 text-slate-800 border-slate-200/60 rounded-tl-none'
                             }`}>
-                                {formatText(message.text)}
+                                {renderMessageContent(message, index)}
                                 
                                 {message.sender === 'assistant' && (
                                     <div className="flex justify-end mt-2 pt-1 border-t border-slate-200/50">

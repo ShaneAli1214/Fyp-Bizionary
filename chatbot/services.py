@@ -20,6 +20,9 @@ def _get_groq_model():
 
 def _is_revenue_question(message):
     text = (message or '').lower()
+    # Do not bypass the LLM if the user is asking for a visual chart/graph/trend of revenue
+    if any(k in text for k in ['chart', 'graph', 'trend', 'comparison', 'visual']):
+        return False
     return any(keyword in text for keyword in [
         'revenue',
         'total revenue',
@@ -171,6 +174,28 @@ IMPORTANT:
                 'You know the full project structure and can answer about every Bizionary section, module, and API endpoint. '
                 'If the user asks for revenue, totals, counts, dashboards, or module help, answer with the exact section name and the correct endpoint when useful.\n\n'
                 f'{project_context}\n\n'
+                'ANSWER RULES FOR CHARTS AND VISUALS:\n'
+                '- If the user asks for a chart, graph, visual comparison, or trend (such as sales trend, low stock inventory, income vs expense comparison, or expense category breakdown), ALWAYS call `get_analytics_chart_data` with the correct metric parameter.\n'
+                '- In your response, include the raw JSON output of the tool wrapped EXACTLY in a ```chart-data block like this:\n'
+                '```chart-data\n'
+                '<json_content>\n'
+                '```\n'
+                '- Do NOT summarize or repeat the raw numbers inside the chart data unless the user asks you to explain the data.\n\n'
+                'ANSWER RULES FOR ROUTE NAVIGATION LINKS:\n'
+                '- If the user asks how to navigate to any section, or you want to direct them to a page, provide route link buttons in standard markdown syntax:\n'
+                '  `[Go to Dashboard](route:/)`\n'
+                '  `[View Products](route:/products)`\n'
+                '  `[View Sales](route:/sales)`\n'
+                '  `[View Purchases](route:/purchases)`\n'
+                '  `[View Invoices](route:/invoices)`\n'
+                '  `[Check Stock/Inventory](route:/inventory-managment)`\n'
+                '  `[Create Order](route:/ordered-slips)`\n'
+                '  `[Manage Accounts](route:/accounts)`\n'
+                '  `[Open Settings](route:/settings)`\n'
+                '  `[Manage Users](route:/user-management)`\n'
+                '  `[AI Insights](route:/insights)`\n'
+                '  `[Smart Reorder](route:/smart-reorder)`\n'
+                '- NEVER output generic hyperlinks. Always use the `route:` prefix inside standard markdown links for ERP pages.\n\n'
                 'IMPORTANT ON TOOL USE:\n'
                 '- You have tools available to query the database. Always call the appropriate tool when asked about products, stock levels, invoices, or payables.\n'
                 '- Do NOT call `search_products` with comparison queries (like "stock less than 15" or "unpaid invoices"). Use the dedicated tools (`get_stock_alerts` or `get_unpaid_invoices`) instead.\n'
@@ -371,6 +396,24 @@ CHATBOT_TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_analytics_chart_data",
+            "description": "Retrieve dynamic visual chart data configs (Bar, Line, Pie) for analytical questions, comparisons, revenue vs expense trends, expense category breakdowns, or recent sales trend.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "metric": {
+                        "type": "string",
+                        "enum": ["revenue_vs_expense", "expense_category", "low_stock", "recent_sales_trend"],
+                        "description": "The specific metric type of visual chart to generate."
+                    }
+                },
+                "required": ["metric"]
             }
         }
     }
@@ -637,6 +680,68 @@ def execute_tool(name, arguments):
             if not breakdown:
                 return "No expense breakdown data available."
             return json.dumps(breakdown)
+            
+        elif name == "get_analytics_chart_data":
+            metric = arguments.get("metric")
+            if metric == "revenue_vs_expense":
+                from accounts.services import AccountsService
+                trend = AccountsService.income_vs_expense_trend()
+                # Limit to latest 6 data points to prevent token bloat
+                trend = trend[-6:] if len(trend) > 6 else trend
+                return json.dumps({
+                    "chart_type": "line",
+                    "title": "Income vs Expense Trend (Last 6 Months)",
+                    "x_key": "month",
+                    "series": [
+                        {"key": "income", "color": "#3B82F6", "name": "Income"},
+                        {"key": "expense", "color": "#EF4444", "name": "Expense"}
+                    ],
+                    "data": trend
+                })
+            elif metric == "expense_category":
+                from accounts.services import AccountsService
+                breakdown = AccountsService.expense_categories_breakdown()
+                # Format to simple pie chart dataset
+                pie_data = [{"category": item["category"], "total": item["total"]} for item in breakdown]
+                return json.dumps({
+                    "chart_type": "pie",
+                    "title": "Expense Categories Breakdown",
+                    "x_key": "category",
+                    "series": [
+                        {"key": "total", "color": "#F59E0B", "name": "Total"}
+                    ],
+                    "data": pie_data
+                })
+            elif metric == "low_stock":
+                from products.models import Product
+                products = Product.objects.filter(stock_quantity__lte=15).order_by('stock_quantity')[:8]
+                data = [{"name": p.name[:12], "stock": p.stock_quantity, "min": p.min_stock} for p in products]
+                return json.dumps({
+                    "chart_type": "bar",
+                    "title": "Low Stock Inventory (Under 15)",
+                    "x_key": "name",
+                    "series": [
+                        {"key": "stock", "color": "#EF4444", "name": "Current Stock"},
+                        {"key": "min", "color": "#8B5CF6", "name": "Min Stock"}
+                    ],
+                    "data": data
+                })
+            elif metric == "recent_sales_trend":
+                from insights.services import get_sales_trend
+                trend = get_sales_trend()
+                # Grab latest 7 days
+                trend = trend[-7:] if len(trend) > 7 else trend
+                return json.dumps({
+                    "chart_type": "bar",
+                    "title": "Sales Volume Trend (Last 7 Days)",
+                    "x_key": "date",
+                    "series": [
+                        {"key": "sales", "color": "#10B981", "name": "Sales Volume"}
+                    ],
+                    "data": trend
+                })
+            else:
+                return f"Error: Unsupported metric '{metric}' for charts."
             
         else:
             return f"Error: Tool '{name}' is not supported."
