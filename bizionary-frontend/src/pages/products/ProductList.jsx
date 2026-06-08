@@ -3,7 +3,7 @@ import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import ProductForm from './ProductForm';
-import { PRODUCT_CATEGORIES, getCategoryPrefix, normalizeProductCategory } from '../../utils/productCategories';
+import { PRODUCT_CATEGORIES, getCategoryPrefix, normalizeProductCategory, getCategoryLabel } from '../../utils/productCategories';
 import { normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
 
 const ProductList = () => {
@@ -16,6 +16,7 @@ const ProductList = () => {
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedSection, setSelectedSection] = useState('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState(null);
 
@@ -168,7 +169,7 @@ const ProductList = () => {
     const productsByCategory = PRODUCT_CATEGORIES.map((categoryItem) => ({
         ...categoryItem,
         items: filteredProducts.filter((p) => normalizeProductCategory(p.category) === categoryItem.value),
-    }));
+    })).filter((section) => selectedSection === 'ALL' || section.value === selectedSection);
 
     const noResults = filteredProducts.length === 0;
 
@@ -200,6 +201,33 @@ const ProductList = () => {
                     </button>
                 </div>
 
+            </div>
+
+            {/* Section Filter */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                <button
+                    onClick={() => setSelectedSection('ALL')}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                        selectedSection === 'ALL'
+                            ? 'bg-primary text-white shadow-md shadow-primary/20'
+                            : 'bg-gray-100 text-textMuted hover:bg-gray-200'
+                    }`}
+                >
+                    All Sections
+                </button>
+                {PRODUCT_CATEGORIES.map((category) => (
+                    <button
+                        key={category.value}
+                        onClick={() => setSelectedSection(category.value)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                            selectedSection === category.value
+                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                : 'bg-gray-100 text-textMuted hover:bg-gray-200'
+                        }`}
+                    >
+                        {category.label}
+                    </button>
+                ))}
             </div>
 
             {formSuccess && (
@@ -259,7 +287,7 @@ const ProductList = () => {
                                                     <td className="px-6 py-4 font-bold text-textMain">
                                                         <div>{p.name}</div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(p.category) || section.label}</td>
+                                                    <td className="px-6 py-4 text-textMuted">{getCategoryLabel(p.category) || section.label}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.cost_price)}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
                                                     <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatPKR(profitMargin)}</td>

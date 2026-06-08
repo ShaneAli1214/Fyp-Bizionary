@@ -188,6 +188,12 @@ export const getCategoryPrefix = (category) => {
     return match?.prefix || '';
 };
 
+export const getCategoryLabel = (category) => {
+    const normalized = normalizeProductCategory(category);
+    const match = PRODUCT_CATEGORIES.find((item) => item.value === normalized);
+    return match?.label || category || '';
+};
+
 export const getCompanyForCategory = (category) => {
     const normalized = normalizeProductCategory(category);
     return CATEGORY_COMPANIES[normalized]?.[0]?.name || '';

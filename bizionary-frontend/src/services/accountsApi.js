@@ -26,7 +26,7 @@ export const accountsApi = {
     voidExpense: (id, reason) => api.post(`accounts/expenses/${id}/void/`, { reason }),
 
     // Invoices
-    getInvoices: (dateRange, page = 1) => api.get(`accounts/invoices/?page=${page}${dateRange ? `&date_range=${dateRange}` : ''}`),
+    getInvoices: (dateRange, page = 1, pageSize = 10) => api.get(`accounts/invoices/?page=${page}&page_size=${pageSize}${dateRange ? `&date_range=${dateRange}` : ''}`),
     getInvoice: (id) => api.get(`accounts/invoices/${id}/`),
     createInvoice: (data) => api.post('accounts/invoices/', data),
     updateInvoice: (id, data) => api.put(`accounts/invoices/${id}/`, data),

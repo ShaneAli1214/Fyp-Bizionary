@@ -10,7 +10,7 @@ const InvoicesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState(null);
     const prevDateRangeRef = useRef(dateRange);
-    
+
     // Void Modal State
     const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
     const [voidTargetId, setVoidTargetId] = useState(null);

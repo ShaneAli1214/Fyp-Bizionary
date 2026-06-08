@@ -249,7 +249,8 @@ class AccountsService:
             earliest_dates = [d for d in [earliest_sale, earliest_je] if d]
             earliest_transaction = min(earliest_dates) if earliest_dates else ref_date
             
-            start_date = min(earliest_transaction, ref_date - timedelta(days=29))
+            # Ensure the 30-day range starts no earlier than 29 days before ref_date.
+            start_date = max(earliest_transaction, ref_date - timedelta(days=29))
             return start_date, ref_date
         elif date_range_str == 'this_quarter':
             quarter = (ref_date.month - 1) // 3 + 1
