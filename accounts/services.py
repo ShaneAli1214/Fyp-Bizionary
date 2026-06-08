@@ -233,7 +233,7 @@ class AccountsService:
         Parse date range string and return (start_date, end_date)
         """
         # Align base date logic dynamically with the latest transaction in the DB to avoid demo decay.
-        from django.db.models import Max
+        from django.db.models import Max, Min
         from sales.models import Sale
         from accounts.models import JournalEntry
         
@@ -244,7 +244,13 @@ class AccountsService:
         ref_date = max(dates) if dates else date.today()
 
         if date_range_str == 'last_30_days':
-            return ref_date - timedelta(days=29), ref_date
+            earliest_sale = Sale.objects.aggregate(earliest=Min('sale_date'))['earliest']
+            earliest_je = JournalEntry.objects.aggregate(earliest=Min('date'))['earliest']
+            earliest_dates = [d for d in [earliest_sale, earliest_je] if d]
+            earliest_transaction = min(earliest_dates) if earliest_dates else ref_date
+            
+            start_date = min(earliest_transaction, ref_date - timedelta(days=29))
+            return start_date, ref_date
         elif date_range_str == 'this_quarter':
             quarter = (ref_date.month - 1) // 3 + 1
             start_date = date(ref_date.year, 3 * quarter - 2, 1)

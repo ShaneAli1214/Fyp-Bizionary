@@ -45,6 +45,13 @@ const AccountsManager = () => {
     };
 
     useEffect(() => {
+        document.title = "Accounts & Finance | Bizionary";
+        return () => {
+            document.title = "Bizionary ERP";
+        };
+    }, []);
+
+    useEffect(() => {
         const fetchKpis = async () => {
             try {
                 setLoadingKpis(true);
@@ -335,16 +342,18 @@ const AccountsManager = () => {
                     </div>
                 </div>
 
-                {/* Net Profit - Color-coded: Teal/Primary */}
-                <div className="bg-white p-5 rounded-2xl border-l-4 border-primary border-y border-r border-gray-100 shadow-sm flex items-center justify-between">
+                {/* Net Profit - Color-coded: Teal/Primary or Rose/Red for Loss */}
+                <div className={`bg-white p-5 rounded-2xl border-l-4 ${(!loadingKpis && kpis?.net_profit < 0) ? 'border-rose-500' : 'border-primary'} border-y border-r border-gray-100 shadow-sm flex items-center justify-between`}>
                     <div className="space-y-1">
-                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Net Profit</p>
+                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">
+                            {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
+                        </p>
                         <h4 className="text-xl font-bold text-slate-900">
                             {loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}
                         </h4>
                         {!loadingKpis && getGrowthBadge(kpis?.profit_growth)}
                     </div>
-                    <div className="p-3 bg-sky-50 text-primary rounded-xl">
+                    <div className={`p-3 ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-primary'} rounded-xl`}>
                         <Wallet className="w-6 h-6" />
                     </div>
                 </div>

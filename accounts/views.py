@@ -296,7 +296,7 @@ def invoice_list_create(request):
         if date_range:
             start, end = AccountsService.get_date_filter(date_range)
             if start and end:
-                queryset = queryset.filter(created_at__date__range=(start, end))
+                queryset = queryset.filter(date__range=(start, end))
                 
         return paginate_queryset(request, queryset, InvoiceSerializer)
     

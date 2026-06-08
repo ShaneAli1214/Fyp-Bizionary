@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Edit2, Calendar, FileText, User, Ban } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
@@ -9,12 +9,21 @@ const InvoicesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState(null);
+    const prevDateRangeRef = useRef(dateRange);
     
     // Void Modal State
     const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
     const [voidTargetId, setVoidTargetId] = useState(null);
 
     useEffect(() => {
+        if (prevDateRangeRef.current !== dateRange) {
+            prevDateRangeRef.current = dateRange;
+            if (page !== 1) {
+                setPage(1);
+                return;
+            }
+        }
+
         const fetchInvoices = async () => {
             try {
                 setLoading(true);

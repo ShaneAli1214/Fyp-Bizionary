@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, Printer, RefreshCw, FileText, BarChart2 } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
+import Logo from '../../../components/common/Logo';
 
 const formatDateLabel = (dateStr) => {
     if (!dateStr) return '';
@@ -170,9 +171,12 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
                             <span>Bizionary ERP Financial Reporting</span>
                             <span>Confidential - For Internal Use Only</span>
                         </div>
-                        <h1 className="text-3xl font-extrabold text-slate-950 tracking-tight uppercase">
-                            [ Bizionary Company ]
-                        </h1>
+                        <div className="flex items-center justify-center gap-2.5 py-1">
+                            <Logo className="h-9 w-auto text-slate-800 dark:text-slate-200 print:text-slate-900" />
+                            <span className="text-3xl font-black text-slate-950 dark:text-slate-50 tracking-tight uppercase print:text-slate-950">
+                                Bizionary
+                            </span>
+                        </div>
                         <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide">
                             {reportType === 'profit-loss' ? 'Profit & Loss Statement' : 'Balance Sheet'}
                         </h2>
@@ -257,7 +261,9 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
                                 <table className="w-full border-collapse text-xs">
                                     <tbody>
                                         <tr className="font-bold bg-slate-100/80 text-slate-950">
-                                            <td className="py-3.5 pl-4 uppercase tracking-wider text-sm">Net Profit / (Loss)</td>
+                                            <td className="py-3.5 pl-4 uppercase tracking-wider text-sm">
+                                                {reportData.net_profit >= 0 ? 'Net Profit' : 'Net Loss'}
+                                            </td>
                                             <td className="py-3.5 pr-4 text-right font-mono text-lg border-double-bottom">
                                                 <span className={reportData.net_profit >= 0 ? 'text-emerald-700 print:text-emerald-800' : 'text-rose-700 print:text-rose-800'}>
                                                     {formatPKR(reportData.net_profit)}

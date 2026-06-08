@@ -9,4 +9,4 @@ django.setup()
 from accounts.models import Invoice
 
 for inv in Invoice.objects.all():
-    print(f"Invoice {inv.invoice_number}: Created At {inv.created_at}, Date portion {inv.created_at.date() if inv.created_at else None}")
+    print(f"Invoice {inv.invoice_number}: Date {inv.date}, Created At {inv.created_at}")
