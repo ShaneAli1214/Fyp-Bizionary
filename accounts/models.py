@@ -317,6 +317,10 @@ class Invoice(models.Model):
         null=True,
         blank=True
     )
+    date = models.DateField(
+        default=date.today,
+        help_text="Invoice date"
+    )
     description = models.TextField(blank=True, null=True)
     voided = models.BooleanField(default=False)
     void_reason = models.TextField(blank=True, null=True)

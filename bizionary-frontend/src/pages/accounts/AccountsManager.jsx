@@ -9,6 +9,18 @@ import COATreeTab from './components/COATreeTab';
 import FinancialReportsTab from './components/FinancialReportsTab';
 import RecordModal from './components/RecordModal';
 
+const formatDateLabel = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    
+    const date = new Date(year, monthIndex, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 const AccountsManager = () => {
     const [activeTab, setActiveTab] = useState('revenues');
     const [dateRange, setDateRange] = useState('last_30_days');
@@ -395,7 +407,14 @@ const AccountsManager = () => {
 
                     <div className="pb-4 flex items-center gap-1.5 text-xs font-semibold text-textMuted">
                         <Calendar className="w-3.5 h-3.5" />
-                        <span>Filter: {getDateRangeLabel()}</span>
+                        <span>
+                            Filter: {getDateRangeLabel()}
+                            {kpis?.start_date && kpis?.end_date && (
+                                <span className="text-primary ml-1.5 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 font-bold">
+                                    {formatDateLabel(kpis.start_date)} - {formatDateLabel(kpis.end_date)}
+                                </span>
+                            )}
+                        </span>
                     </div>
                 </div>
 

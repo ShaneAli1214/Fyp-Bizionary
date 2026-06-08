@@ -3,6 +3,18 @@ import { Download, Printer, RefreshCw, FileText, BarChart2 } from 'lucide-react'
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
 
+const formatDateLabel = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    
+    const date = new Date(year, monthIndex, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
     const [reportType, setReportType] = useState('profit-loss'); // 'profit-loss' | 'balance-sheet'
     const [reportData, setReportData] = useState(null);
@@ -158,7 +170,11 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
                             {reportType === 'profit-loss' ? 'Profit & Loss Statement' : 'Balance Sheet'}
                         </h2>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            {reportType === 'profit-loss' ? `Period: ${dateRange.replace(/_/g, ' ')}` : `As of: ${reportData.as_of_date || 'Current'}`}
+                            {reportType === 'profit-loss' 
+                                ? (reportData.start_date && reportData.end_date 
+                                    ? `Period: ${formatDateLabel(reportData.start_date)} - ${formatDateLabel(reportData.end_date)}`
+                                    : `Period: ${dateRange.replace(/_/g, ' ')}`) 
+                                : `As of: ${reportData.as_of_date ? formatDateLabel(reportData.as_of_date) : 'Current'}`}
                         </p>
                     </div>
 

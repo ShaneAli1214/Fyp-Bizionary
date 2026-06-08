@@ -90,19 +90,17 @@ def sync_data():
         for idx, inv in enumerate(GlobalInvoice.objects.all()):
             mapped_status = status_map.get(inv.status, 'PENDING')
             
-            # Create AccountsInvoice
+            # Create AccountsInvoice (triggers signals to post to ledger and create Revenue record)
             acc_invoice = AccountsInvoice.objects.create(
                 invoice_number=inv.invoice_number,
                 client_name=inv.customer_name,
                 amount=inv.total_amount,
                 balance_due=inv.balance_due,
                 status=mapped_status,
+                date=inv.invoice_date,
                 due_date=inv.due_date,
                 description=inv.notes or ''
             )
-            
-            # Post ledger
-            AccountsService.post_invoice_ledger(acc_invoice)
             print(f"  Synced Invoice: {inv.invoice_number}")
 
         # Sync Completed Ordered Slips

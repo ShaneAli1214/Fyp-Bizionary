@@ -226,7 +226,7 @@ CHATBOT_TOOLS = [
         "type": "function",
         "function": {
             "name": "get_financial_kpis",
-            "description": "Get overall dashboard and financial KPI metrics, including total revenue, product counts, and customer invoice counts.",
+            "description": "Get overall dashboard and financial KPI metrics, including total revenue, total sales count, product counts, and customer invoice counts.",
             "parameters": {
                 "type": "object",
                 "properties": {}
@@ -431,6 +431,7 @@ def execute_tool(name, arguments):
             from django.db.models import Sum
             from decimal import Decimal
             total_rev = Sale.objects.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+            total_sales = Sale.objects.count()
             
             from products.models import Product
             from accounts.models import Invoice as FinanceInvoice
@@ -442,6 +443,7 @@ def execute_tool(name, arguments):
             
             return json.dumps({
                 "total_revenue": float(total_rev),
+                "total_sales_count": total_sales,
                 "total_products_count": total_products,
                 "pending_customer_invoices_count": pending_invoices,
                 "outstanding_supplier_payables_count": unpaid_purchases,

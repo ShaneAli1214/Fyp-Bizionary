@@ -8,6 +8,7 @@ from accounts.models import Invoice as AccountsInvoice
 from accounts.services import AccountsService
 from decimal import Decimal
 from django.utils import timezone
+from datetime import date
 
 
 @receiver(post_save, sender=Sale)
@@ -145,6 +146,7 @@ def auto_sync_invoice_ledger(sender, instance, created, **kwargs):
             'amount': instance.total_amount,
             'balance_due': instance.balance_due,
             'status': mapped_status,
+            'date': instance.invoice_date,
             'due_date': instance.due_date,
             'description': instance.notes or ''
         }
@@ -154,6 +156,7 @@ def auto_sync_invoice_ledger(sender, instance, created, **kwargs):
         acc_invoice.amount = instance.total_amount
         acc_invoice.balance_due = instance.balance_due
         acc_invoice.status = mapped_status
+        acc_invoice.date = instance.invoice_date
         acc_invoice.due_date = instance.due_date
         acc_invoice.description = instance.notes or ''
         acc_invoice.save()
@@ -175,8 +178,8 @@ def auto_delete_invoice_ledger(sender, instance, **kwargs):
 def auto_post_revenue_ledger_signal(sender, instance, created, **kwargs):
     if kwargs.get('update_fields') and 'journal_entry' in kwargs.get('update_fields'):
         return
-    # Skip if it is a synced Sale to prevent overwriting
-    if instance.source and instance.source.startswith("SALE-"):
+    # Skip if it is a synced Sale or Invoice to prevent overwriting
+    if instance.source and (instance.source.startswith("SALE-") or instance.source.startswith("INV-")):
         return
     AccountsService.post_revenue_ledger(instance)
 
@@ -205,12 +208,36 @@ def auto_post_invoice_ledger_signal(sender, instance, created, **kwargs):
     if kwargs.get('update_fields') and 'journal_entry' in kwargs.get('update_fields'):
         return
     AccountsService.post_invoice_ledger(instance)
+    
+    # Sync invoice to Revenue table to ensure consistency across Revenues tab, trend charts, and ledger KPIs
+    inv = AccountsInvoice.objects.get(pk=instance.pk)
+    pay_status = 'PAID' if inv.status == 'PAID' else 'PENDING'
+    source_ref = inv.invoice_number if inv.invoice_number.startswith("INV-") else f"INV-{inv.invoice_number}"
+    
+    Revenue.objects.update_or_create(
+        source=source_ref,
+        defaults={
+            'customer': inv.client_name,
+            'invoice_number': inv.invoice_number,
+            'payment_status': pay_status,
+            'category': 'SALES_REVENUE',
+            'amount': inv.amount,
+            'date': inv.date or date.today(),
+            'description': inv.description or f"Invoice {inv.invoice_number}",
+            'voided': inv.voided,
+            'void_reason': inv.void_reason,
+            'journal_entry': inv.journal_entry
+        }
+    )
 
 
 @receiver(post_delete, sender=AccountsInvoice)
 def auto_delete_invoice_ledger_signal(sender, instance, **kwargs):
     if instance.journal_entry:
         instance.journal_entry.delete()
+    # Delete synced Revenue record
+    source_ref = instance.invoice_number if instance.invoice_number.startswith("INV-") else f"INV-{instance.invoice_number}"
+    Revenue.objects.filter(source=source_ref).delete()
 
 
 @receiver(post_save, sender=OrderedSlip)

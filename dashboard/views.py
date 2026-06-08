@@ -608,11 +608,8 @@ def sales_performance(request):
         parsed_end_date = None
 
         if (timeframe in ('30days', 'last30', '30d') or range_filter == 'last30') and not start_date and not end_date:
-            latest_date = Sale.objects.aggregate(latest=Max('sale_date'))['latest']
-            if not latest_date:
-                latest_date = timezone.localdate()
-            parsed_end_date = latest_date
-            parsed_start_date = parsed_end_date - timedelta(days=29)
+            from accounts.services import AccountsService
+            parsed_start_date, parsed_end_date = AccountsService.get_date_filter('last_30_days')
             start_date = parsed_start_date.isoformat()
             end_date = parsed_end_date.isoformat()
 

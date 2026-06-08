@@ -191,7 +191,7 @@ class AccountsService:
             return
 
         desc = f"Invoice: {invoice.invoice_number} to {invoice.client_name}"
-        inv_date = invoice.created_at.date() if invoice.created_at else date.today()
+        inv_date = invoice.date or (invoice.created_at.date() if invoice.created_at else date.today())
 
         if invoice.journal_entry:
             je = invoice.journal_entry
@@ -232,19 +232,29 @@ class AccountsService:
         """
         Parse date range string and return (start_date, end_date)
         """
-        today = date.today()
+        # Align base date logic dynamically with the latest transaction in the DB to avoid demo decay.
+        from django.db.models import Max
+        from sales.models import Sale
+        from accounts.models import JournalEntry
+        
+        latest_sale = Sale.objects.aggregate(latest=Max('sale_date'))['latest']
+        latest_je = JournalEntry.objects.aggregate(latest=Max('date'))['latest']
+        
+        dates = [d for d in [latest_sale, latest_je] if d]
+        ref_date = max(dates) if dates else date.today()
+
         if date_range_str == 'last_30_days':
-            return today - timedelta(days=30), today
+            return ref_date - timedelta(days=29), ref_date
         elif date_range_str == 'this_quarter':
-            quarter = (today.month - 1) // 3 + 1
-            start_date = date(today.year, 3 * quarter - 2, 1)
+            quarter = (ref_date.month - 1) // 3 + 1
+            start_date = date(ref_date.year, 3 * quarter - 2, 1)
             if quarter == 4:
-                end_date = date(today.year, 12, 31)
+                end_date = date(ref_date.year, 12, 31)
             else:
-                end_date = date(today.year, 3 * quarter + 1, 1) - timedelta(days=1)
+                end_date = date(ref_date.year, 3 * quarter + 1, 1) - timedelta(days=1)
             return start_date, end_date
         elif date_range_str == 'this_year':
-            return date(today.year, 1, 1), date(today.year, 12, 31)
+            return date(ref_date.year, 1, 1), date(ref_date.year, 12, 31)
         return None, None
 
     @staticmethod
@@ -334,6 +344,8 @@ class AccountsService:
             'profit_growth': calc_growth(curr_profit, prev_profit),
             'cash_flow': float(curr_cf),
             'cash_flow_growth': calc_growth(curr_cf, prev_cf),
+            'start_date': start_date.isoformat() if start_date else None,
+            'end_date': end_date.isoformat() if end_date else None,
         }
 
     @staticmethod

@@ -105,6 +105,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'balance_due',
             'status',
             'status_display',
+            'date',
             'due_date',
             'description',
             'voided',
