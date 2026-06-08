@@ -6,7 +6,7 @@ const PERIOD_OPTIONS = [
     { key: 'weekly', label: 'Weekly' },
     { key: 'last10Days', label: 'Last 10 Days' },
     { key: 'monthly', label: 'Monthly' },
-    { key: 'all', label: 'All Sales History' },
+    { key: 'all', label: 'All Data' },
 ];
 
 const DEFAULT_PERIOD = 'last10Days';
@@ -32,7 +32,7 @@ const useSalesInsights = () => {
                 if (active) {
                     setSelectedData({
                         period: selectedPeriod,
-                        periodLabel: selectedPeriod === 'daily' ? 'Daily' : selectedPeriod === 'weekly' ? 'Weekly' : selectedPeriod === 'last10Days' ? 'Last 10 Days' : selectedPeriod === 'monthly' ? 'Monthly' : 'All Sales History',
+                        periodLabel: selectedPeriod === 'daily' ? 'Daily' : selectedPeriod === 'weekly' ? 'Weekly' : selectedPeriod === 'last10Days' ? 'Last 10 Days' : selectedPeriod === 'monthly' ? 'Monthly' : 'All Data',
                         dateContext: '',
                         xAxisType: selectedPeriod === 'daily' ? 'hour' : selectedPeriod === 'monthly' ? 'week' : selectedPeriod === 'all' ? 'month' : 'day',
                         xAxisLabel: '',

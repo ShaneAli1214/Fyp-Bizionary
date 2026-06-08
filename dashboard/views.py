@@ -924,6 +924,7 @@ def sales_by_period(request):
             if not earliest_date:
                 earliest_date = latest_date
             start_date = earliest_date.replace(day=1)
+            end_date = latest_date
             current = start_date
             while current <= latest_date:
                 label = current.strftime('%b %Y')
@@ -935,7 +936,7 @@ def sales_by_period(request):
                 else:
                     current = current.replace(month=current.month + 1, day=1)
             date_context = f"{start_date.strftime('%b %Y')} - {latest_date.strftime('%b %Y')}"
-            period_label = 'All Sales History'
+            period_label = 'All Data'
             x_axis_type = 'month'
             x_axis_label = 'Months'
         else:  # monthly

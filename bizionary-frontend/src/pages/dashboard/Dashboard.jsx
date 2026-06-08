@@ -339,17 +339,20 @@ const Dashboard = () => {
                         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Sales Performance Insights</h3>
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Visual representation of real-time sales & category statistics.</p>
                     </div>
-                    <select
-                        value={selectedPeriod}
-                        onChange={(e) => setSelectedPeriod(e.target.value)}
-                        className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-                    >
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <span>Show:</span>
+                        <select
+                            value={selectedPeriod}
+                            onChange={(e) => setSelectedPeriod(e.target.value)}
+                            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                        >
                         {periodOptions?.map((opt) => (
                             <option key={opt.key} value={opt.key}>
                                 {opt.label}
                             </option>
                         ))}
                     </select>
+                </div>
                 </div>
                 {insightsLoading || !selectedData ? (
                     <div className="h-[340px] flex flex-col items-center justify-center space-y-3">
