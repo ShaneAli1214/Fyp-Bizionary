@@ -291,3 +291,65 @@ textarea:focus {
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important; /* subtle emerald focus ring */
 }
+
+/* ==========================================================================
+   PRINT LAYOUT STYLES & OVERRIDES
+   ========================================================================== */
+@media print {
+  /* Hide all interactive headers, sidebars, buttons, widgets, chatbot elements */
+  header,
+  nav,
+  aside,
+  button,
+  .print-hidden,
+  [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  /* Reset body and container heights/overflow for continuous print flow without scrollbars */
+  html, body, #root,
+  .h-screen, .h-full,
+  .overflow-hidden, .overflow-y-auto {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* Ensure main takes full width and height auto */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Remove backgrounds and shadows for crisp print */
+  .print-bg-transparent {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .print-border-none {
+    border: none !important;
+  }
+
+  .print-shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print-p-0 {
+    padding: 0 !important;
+  }
+
+  /* Traditional double underline for accounting final totals */
+  .border-double-bottom {
+    border-bottom: 3px double #0f172a !important;
+  }
+
+  /* Force page breaks cleanly if necessary */
+  .page-break {
+    page-break-before: always;
+  }
+}

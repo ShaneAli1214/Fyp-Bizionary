@@ -165,151 +165,222 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
             ) : (
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-8 print:border-none print:shadow-none print:p-0">
                     {/* Report Header */}
-                    <div className="text-center space-y-1.5 border-b border-slate-100 pb-6">
-                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                    <div className="text-center space-y-2 border-b-2 border-slate-900 pb-6 print:border-b-2 print:border-slate-900">
+                        <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 uppercase tracking-widest print:text-slate-500">
+                            <span>Bizionary ERP Financial Reporting</span>
+                            <span>Confidential - For Internal Use Only</span>
+                        </div>
+                        <h1 className="text-3xl font-extrabold text-slate-950 tracking-tight uppercase">
+                            [ Bizionary Company ]
+                        </h1>
+                        <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide">
                             {reportType === 'profit-loss' ? 'Profit & Loss Statement' : 'Balance Sheet'}
                         </h2>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                             {reportType === 'profit-loss' 
                                 ? (reportData.start_date && reportData.end_date 
-                                    ? `Period: ${formatDateLabel(reportData.start_date)} - ${formatDateLabel(reportData.end_date)}`
-                                    : `Period: ${dateRange.replace(/_/g, ' ')}`) 
-                                : `As of: ${reportData.as_of_date ? formatDateLabel(reportData.as_of_date) : 'Current'}`}
+                                    ? `For the Period: ${formatDateLabel(reportData.start_date)} - ${formatDateLabel(reportData.end_date)}`
+                                    : `For the Period: ${dateRange.replace(/_/g, ' ')}`) 
+                                : `As of Date: ${reportData.as_of_date ? formatDateLabel(reportData.as_of_date) : 'Current'}`}
                         </p>
                     </div>
 
                     {reportType === 'profit-loss' ? (
                         /* PROFIT & LOSS VIEW */
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {/* Revenues Section */}
                             <div className="space-y-3">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">1. Revenue / Income</h3>
-                                <div className="space-y-1">
-                                    {(reportData.revenue || []).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                                            <span className="text-slate-600 font-semibold flex items-center gap-2">
-                                                <span className="text-[10px] font-mono bg-slate-50 text-slate-400 px-1 py-0.5 rounded border border-slate-100">{item.code}</span>
-                                                {item.name}
-                                            </span>
-                                            <span className="font-mono text-slate-800 font-bold">{formatPKR(item.balance)}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-2.5 mt-2">
-                                        <span className="text-slate-900 uppercase">Total Income</span>
-                                        <span className="font-mono text-slate-900">{formatPKR(reportData.total_revenue)}</span>
-                                    </div>
+                                <div className="bg-slate-100 text-slate-800 px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
+                                    1. Revenue / Income
+                                </div>
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
+                                                <th className="py-2 pl-4 w-24">Account Code</th>
+                                                <th className="py-2">Account Name</th>
+                                                <th className="py-2 pr-4 text-right">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {(reportData.revenue || []).map((item, idx) => (
+                                                <tr key={idx} className="hover:bg-slate-50/50">
+                                                    <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
+                                                    <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                    <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                                <td className="py-3 pl-4"></td>
+                                                <td className="py-3 text-slate-900 uppercase">Total Income / Revenue</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-slate-950 text-sm">{formatPKR(reportData.total_revenue)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
                             {/* Expenses Section */}
                             <div className="space-y-3">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">2. Operating & Cost Expenses</h3>
-                                <div className="space-y-1">
-                                    {(reportData.expense || []).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                                            <span className="text-slate-600 font-semibold flex items-center gap-2">
-                                                <span className="text-[10px] font-mono bg-slate-50 text-slate-400 px-1 py-0.5 rounded border border-slate-100">{item.code}</span>
-                                                {item.name}
-                                            </span>
-                                            <span className="font-mono text-slate-800 font-bold">{formatPKR(item.balance)}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-2.5 mt-2">
-                                        <span className="text-slate-900 uppercase">Total Expenses</span>
-                                        <span className="font-mono text-slate-900">{formatPKR(reportData.total_expense)}</span>
-                                    </div>
+                                <div className="bg-slate-100 text-slate-800 px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
+                                    2. Operating & Cost Expenses
+                                </div>
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
+                                                <th className="py-2 pl-4 w-24">Account Code</th>
+                                                <th className="py-2">Account Name</th>
+                                                <th className="py-2 pr-4 text-right">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {(reportData.expense || []).map((item, idx) => (
+                                                <tr key={idx} className="hover:bg-slate-50/50">
+                                                    <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
+                                                    <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                    <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                                <td className="py-3 pl-4"></td>
+                                                <td className="py-3 text-slate-900 uppercase">Total Expenses</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-slate-950 text-sm">{formatPKR(reportData.total_expense)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            {/* Net Profit Summary */}
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex justify-between items-center">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">Net Profit / Loss</h4>
-                                    <p className="text-xxs font-bold text-slate-400">Total Income minus Operating Expenses</p>
-                                </div>
-                                <span className={`text-xl font-black font-mono ${reportData.net_profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    {formatPKR(reportData.net_profit)}
-                                </span>
+                            {/* Net Profit Summary Row */}
+                            <div className="pt-4 border-t border-slate-200 print:pt-3">
+                                <table className="w-full border-collapse text-xs">
+                                    <tbody>
+                                        <tr className="font-bold bg-slate-100/80 text-slate-950">
+                                            <td className="py-3.5 pl-4 uppercase tracking-wider text-sm">Net Profit / (Loss)</td>
+                                            <td className="py-3.5 pr-4 text-right font-mono text-lg border-double-bottom">
+                                                <span className={reportData.net_profit >= 0 ? 'text-emerald-700 print:text-emerald-800' : 'text-rose-700 print:text-rose-800'}>
+                                                    {formatPKR(reportData.net_profit)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     ) : (
                         /* BALANCE SHEET VIEW */
-                        <div className="space-y-6">
-                            {/* Assets Section */}
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">1. Assets</h3>
-                                <div className="space-y-1">
-                                    {(reportData.assets || []).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                                            <span className="text-slate-600 font-semibold flex items-center gap-2">
-                                                <span className="text-[10px] font-mono bg-slate-50 text-slate-400 px-1 py-0.5 rounded border border-slate-100">{item.code}</span>
-                                                {item.name}
-                                            </span>
-                                            <span className="font-mono text-slate-800 font-bold">{formatPKR(item.balance)}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-2.5 mt-2">
-                                        <span className="text-slate-900 uppercase">Total Assets</span>
-                                        <span className="font-mono text-slate-900">{formatPKR(reportData.total_assets)}</span>
-                                    </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:grid-cols-2">
+                            {/* Left Column: Assets */}
+                            <div className="space-y-4">
+                                <div className="bg-[#003A6B] text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
+                                    Assets
+                                </div>
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
+                                                <th className="py-2 pl-4 w-24">Account Code</th>
+                                                <th className="py-2">Account Name</th>
+                                                <th className="py-2 pr-4 text-right">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {(reportData.assets || []).map((item, idx) => (
+                                                <tr key={idx} className="hover:bg-slate-50/50">
+                                                    <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
+                                                    <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                    <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                                <td className="py-3 pl-4"></td>
+                                                <td className="py-3 text-slate-950 uppercase tracking-wide">Total Assets</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-slate-950 text-sm border-double-bottom">{formatPKR(reportData.total_assets)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            {/* Liabilities Section */}
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">2. Liabilities</h3>
-                                <div className="space-y-1">
-                                    {(reportData.liabilities || []).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                                            <span className="text-slate-600 font-semibold flex items-center gap-2">
-                                                <span className="text-[10px] font-mono bg-slate-50 text-slate-400 px-1 py-0.5 rounded border border-slate-100">{item.code}</span>
-                                                {item.name}
-                                            </span>
-                                            <span className="font-mono text-slate-800 font-bold">{formatPKR(item.balance)}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-2.5 mt-2">
-                                        <span className="text-slate-900 uppercase">Total Liabilities</span>
-                                        <span className="font-mono text-slate-900">{formatPKR(reportData.total_liabilities)}</span>
+                            {/* Right Column: Liabilities & Equity */}
+                            <div className="space-y-6">
+                                {/* Liabilities Section */}
+                                <div className="space-y-4">
+                                    <div className="bg-[#003A6B] text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
+                                        Liabilities
+                                    </div>
+                                    <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                        <table className="w-full text-left text-xs border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
+                                                    <th className="py-2 pl-4 w-24">Account Code</th>
+                                                    <th className="py-2">Account Name</th>
+                                                    <th className="py-2 pr-4 text-right">Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {(reportData.liabilities || []).map((item, idx) => (
+                                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                                        <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
+                                                        <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                        <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                    </tr>
+                                                ))}
+                                                <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                                    <td className="py-3 pl-4"></td>
+                                                    <td className="py-3 text-slate-950 uppercase">Total Liabilities</td>
+                                                    <td className="py-3 pr-4 text-right font-mono text-slate-950">{formatPKR(reportData.total_liabilities)}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Equity Section */}
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1.5">3. Equity</h3>
-                                <div className="space-y-1">
-                                    {(reportData.equity || []).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm py-1">
-                                            <span className="text-slate-600 font-semibold flex items-center gap-2">
-                                                <span className="text-[10px] font-mono bg-slate-50 text-slate-400 px-1 py-0.5 rounded border border-slate-100">{item.code}</span>
-                                                {item.name}
-                                            </span>
-                                            <span className="font-mono text-slate-800 font-bold">{formatPKR(item.balance)}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-2.5 mt-2">
-                                        <span className="text-slate-900 uppercase">Total Equity</span>
-                                        <span className="font-mono text-slate-900">{formatPKR(reportData.total_equity)}</span>
+                                {/* Equity Section */}
+                                <div className="space-y-4">
+                                    <div className="bg-[#003A6B] text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
+                                        Owner's Equity
+                                    </div>
+                                    <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                        <table className="w-full text-left text-xs border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
+                                                    <th className="py-2 pl-4 w-24">Account Code</th>
+                                                    <th className="py-2">Account Name</th>
+                                                    <th className="py-2 pr-4 text-right">Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {(reportData.equity || []).map((item, idx) => (
+                                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                                        <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
+                                                        <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                        <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                    </tr>
+                                                ))}
+                                                <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                                    <td className="py-3 pl-4"></td>
+                                                    <td className="py-3 text-slate-950 uppercase">Total Equity</td>
+                                                    <td className="py-3 pr-4 text-right font-mono text-slate-950">{formatPKR(reportData.total_equity)}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Totals Integrity Row */}
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-stretch">
-                                <div className="flex-1 flex justify-between items-center border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0 md:pr-6">
-                                    <div className="space-y-0.5">
-                                        <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total Assets</span>
-                                        <p className="text-xxs font-bold text-slate-400">Total debit balances</p>
-                                    </div>
-                                    <span className="text-lg font-black font-mono text-slate-950">{formatPKR(reportData.total_assets)}</span>
-                                </div>
-                                <div className="flex-1 flex justify-between items-center md:pl-6">
-                                    <div className="space-y-0.5">
-                                        <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total Liabilities & Equity</span>
-                                        <p className="text-xxs font-bold text-slate-400">Balanced total credit items</p>
-                                    </div>
-                                    <span className="text-lg font-black font-mono text-slate-950">{formatPKR(reportData.total_liabilities_and_equity)}</span>
+                                {/* Total Liabilities & Equity Summary */}
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-slate-100 text-slate-950 print:border-slate-300">
+                                    <table className="w-full border-collapse text-xs font-bold">
+                                        <tbody>
+                                            <tr>
+                                                <td className="py-3.5 pl-4 uppercase tracking-wider">Total Liabilities & Owner's Equity</td>
+                                                <td className="py-3.5 pr-4 text-right font-mono text-sm border-double-bottom">
+                                                    {formatPKR(reportData.total_liabilities_and_equity)}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>

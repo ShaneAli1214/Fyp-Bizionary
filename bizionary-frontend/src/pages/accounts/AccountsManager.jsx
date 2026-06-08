@@ -227,7 +227,7 @@ const AccountsManager = () => {
                 </div>
             )}
 
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 print:hidden">
                 <div>
                     <h1 className="text-2xl font-bold text-textMain flex items-center gap-2">
                         Accounts & Finance
@@ -272,7 +272,7 @@ const AccountsManager = () => {
 
             {/* Quick Actions Panel */}
             {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
-                <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50">
+                <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50 print:hidden">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wide px-2">Quick Actions:</span>
                     <button 
                         onClick={handleReconcile}
@@ -306,7 +306,7 @@ const AccountsManager = () => {
             )}
 
             {/* KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
                 {/* Total Revenue - Color-coded: Green */}
                 <div className="bg-white p-5 rounded-2xl border-l-4 border-emerald-500 border-y border-r border-gray-100 shadow-sm flex items-center justify-between">
                     <div className="space-y-1">
@@ -365,8 +365,8 @@ const AccountsManager = () => {
             </div>
 
             {/* Tabs & Main Tables Container */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-                <div className="flex justify-between items-center border-b border-gray-100 px-6 pt-4">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
+                <div className="flex justify-between items-center border-b border-gray-100 px-6 pt-4 print:hidden">
                     <div className="flex gap-6">
                         <button
                             onClick={() => setActiveTab('revenues')}
@@ -418,7 +418,7 @@ const AccountsManager = () => {
                     </div>
                 </div>
 
-                <div className="p-6 flex-1 bg-slate-50/30">
+                <div className="p-6 flex-1 bg-slate-50/30 print:p-0 print:bg-transparent">
                     {activeTab === 'revenues' && (
                         <RevenuesTab 
                             refreshTrigger={refreshTrigger} 

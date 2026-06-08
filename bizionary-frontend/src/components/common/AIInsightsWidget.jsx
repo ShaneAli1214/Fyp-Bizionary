@@ -63,7 +63,7 @@ const AIInsightsWidget = () => {
 
     if (loading) {
         return (
-            <div className="fixed top-24 right-5 z-50 w-80">
+            <div className="fixed top-24 right-5 z-50 w-80 print:hidden">
                 <div className="ai-gradient rounded-xl p-4 text-white shadow-2xl ai-glow">
                     <div className="animate-pulse">
                         <div className="h-4 bg-white/20 rounded mb-2"></div>
@@ -80,7 +80,7 @@ const AIInsightsWidget = () => {
 
     if (error) {
         return (
-            <div className="fixed top-24 right-5 z-50 w-80">
+            <div className="fixed top-24 right-5 z-50 w-80 print:hidden">
                 <div className="bg-red-500 rounded-xl p-4 text-white shadow-2xl">
                     <div className="flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5" />
@@ -95,7 +95,7 @@ const AIInsightsWidget = () => {
         return (
             <button
                 onClick={() => setIsVisible(true)}
-                className="fixed bottom-[84px] right-6 z-40 flex items-center justify-center sm:justify-start gap-2 w-12 h-12 sm:w-auto px-0 sm:px-4.5 py-0 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out border border-white/20 hover:from-emerald-600 hover:to-teal-700 font-bold text-xs tracking-wider uppercase"
+                className="fixed bottom-[84px] right-6 z-40 flex items-center justify-center sm:justify-start gap-2 w-12 h-12 sm:w-auto px-0 sm:px-4.5 py-0 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out border border-white/20 hover:from-emerald-600 hover:to-teal-700 font-bold text-xs tracking-wider uppercase print:hidden"
                 title="Show AI Insights"
             >
                 <Zap className="w-4 h-4 fill-emerald-300/40 text-emerald-300 animate-pulse pointer-events-none" />
@@ -108,12 +108,12 @@ const AIInsightsWidget = () => {
         <>
             {/* Backdrop to dismiss on click outside */}
             <div 
-                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs transition-opacity duration-300"
+                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs transition-opacity duration-300 print:hidden"
                 onClick={() => setIsVisible(false)}
             />
             
             {/* Slide-out Sidebar Panel */}
-            <div className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-gradient-to-b from-[#1C3A5A] to-[#0D1E30] text-white shadow-2xl z-50 flex flex-col border-l border-white/10 transition-transform duration-300 ease-in-out transform translate-x-0 animate-slide-in-right">
+            <div className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-gradient-to-b from-[#1C3A5A] to-[#0D1E30] text-white shadow-2xl z-50 flex flex-col border-l border-white/10 transition-transform duration-300 ease-in-out transform translate-x-0 animate-slide-in-right print:hidden">
                 {/* Header */}
                 <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/10">
                     <div className="flex items-center gap-2.5">

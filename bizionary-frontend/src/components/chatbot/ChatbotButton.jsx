@@ -5,7 +5,7 @@ const ChatbotButton = ({ onClick, className = '' }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-        <div className={`fixed bottom-6 right-6 z-40 flex-col items-end gap-3 ${className}`}>
+        <div className={`fixed bottom-6 right-6 z-40 flex-col items-end gap-3 print:hidden ${className}`}>
             {/* Tooltip - Show dynamically on hover */}
             {isHovered && (
                 <div className="hidden sm:flex flex-col items-end animate-fade-in transition-all duration-300">
