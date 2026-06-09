@@ -1,15 +1,17 @@
 """
 Screen 4: Accounts & Finance - Service Layer
-Business logic for financial calculations and analytics
+ERP-grade financial KPI engine.
+All KPIs are computed dynamically from raw transactions. Nothing is stored.
 """
 
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField
 from django.db.models.functions import TruncMonth
 from decimal import Decimal
 from datetime import date, timedelta
-from .models import Revenue, Expense, Invoice, Account, JournalEntry, JournalItem
+from .models import Revenue, Expense, Invoice, Account, JournalEntry, JournalItem, CashTransaction
 from sales.models import Sale
 from purchases.models import Purchase
+from products.models import Product
 
 
 class AccountsService:
@@ -278,142 +280,181 @@ class AccountsService:
         prev_end = start_date - timedelta(days=1)
         return prev_start, prev_end
 
+    # =========================================================
+    # ERP KPI ENGINE — all values computed dynamically
+    # =========================================================
+
+    @staticmethod
+    def get_revenue(start_date=None, end_date=None):
+        """Revenue = SUM(Sale.total_price) for PAID sales in date range."""
+        qs = Sale.objects.filter(payment_status='PAID')
+        if start_date and end_date:
+            qs = qs.filter(sale_date__range=(start_date, end_date))
+        return qs.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+
+    @staticmethod
+    def get_cogs(start_date=None, end_date=None):
+        """COGS = SUM(quantity_sold × unit_cost_price) using immutable snapshot."""
+        qs = Sale.objects.filter(payment_status='PAID')
+        if start_date and end_date:
+            qs = qs.filter(sale_date__range=(start_date, end_date))
+        result = qs.aggregate(
+            total=Sum(
+                ExpressionWrapper(
+                    F('quantity_sold') * F('unit_cost_price'),
+                    output_field=DecimalField(max_digits=15, decimal_places=2)
+                )
+            )
+        )['total']
+        return result or Decimal('0.00')
+
+    @staticmethod
+    def get_gross_profit(start_date=None, end_date=None):
+        """Gross Profit = Revenue - COGS."""
+        rev = AccountsService.get_revenue(start_date, end_date)
+        cogs = AccountsService.get_cogs(start_date, end_date)
+        return rev - cogs
+
+    @staticmethod
+    def get_expenses(start_date=None, end_date=None):
+        """Expenses = SUM(Expense.amount) where SUPPLIES + non-voided."""
+        qs = Expense.objects.filter(voided=False, category='SUPPLIES')
+        if start_date and end_date:
+            qs = qs.filter(date__range=(start_date, end_date))
+        return qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+
+    @staticmethod
+    def get_net_profit(start_date=None, end_date=None):
+        """Net Profit = Gross Profit - Operating Expenses."""
+        return AccountsService.get_gross_profit(start_date, end_date) - AccountsService.get_expenses(start_date, end_date)
+
+    @staticmethod
+    def get_cash_flow(start_date=None, end_date=None):
+        """Cash Flow from CashTransaction ledger."""
+        qs = CashTransaction.objects.all()
+        if start_date and end_date:
+            qs = qs.filter(date__range=(start_date, end_date))
+        inflow = qs.filter(txn_type='IN').aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        outflow = qs.filter(txn_type='OUT').aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        return inflow, outflow, inflow - outflow
+
+    @staticmethod
+    def get_inventory_value():
+        """Inventory Value = SUM(stock_quantity × cost_price) across all products."""
+        result = Product.objects.aggregate(
+            total=Sum(
+                ExpressionWrapper(
+                    F('stock_quantity') * F('cost_price'),
+                    output_field=DecimalField(max_digits=15, decimal_places=2)
+                )
+            )
+        )['total']
+        return result or Decimal('0.00')
+
     @staticmethod
     def get_kpis_with_growth(date_range_str=None):
         """
-        Calculate total revenue, expense, profit, cash flow and growth % vs previous period
+        ERP KPI summary with prior-period growth comparison.
+        All values computed dynamically — nothing stored.
         """
         start_date, end_date = AccountsService.get_date_filter(date_range_str)
-
-        def get_total_revenue(s_date, e_date):
-            # Sum of credits - debits for all active REVENUE accounts in the given period
-            qs = JournalItem.objects.filter(
-                account__account_type='REVENUE',
-                journal_entry__voided=False
-            )
-            if s_date and e_date:
-                qs = qs.filter(journal_entry__date__range=(s_date, e_date))
-            
-            debit_sum = qs.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
-            credit_sum = qs.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
-            return credit_sum - debit_sum
-
-        def get_total_expense(s_date, e_date):
-            # Sum of debits - credits for all active EXPENSE accounts in the given period
-            qs = JournalItem.objects.filter(
-                account__account_type='EXPENSE',
-                journal_entry__voided=False
-            )
-            if s_date and e_date:
-                qs = qs.filter(journal_entry__date__range=(s_date, e_date))
-            
-            debit_sum = qs.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
-            credit_sum = qs.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
-            return debit_sum - credit_sum
-
-        def get_cash_flow(s_date, e_date):
-            # Calculate actual cash flow from double-entry items impacting the Cash account (1010)
-            AccountsService.ensure_coa()
-            cash_acct = Account.objects.get(code='1010')
-            qs = JournalItem.objects.filter(account=cash_acct, journal_entry__voided=False)
-            if s_date and e_date:
-                qs = qs.filter(journal_entry__date__range=(s_date, e_date))
-            
-            debit_sum = qs.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
-            credit_sum = qs.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
-            return debit_sum - credit_sum
-
-        # Current period totals
-        curr_rev = get_total_revenue(start_date, end_date)
-        curr_exp = get_total_expense(start_date, end_date)
-        curr_profit = curr_rev - curr_exp
-        curr_cf = get_cash_flow(start_date, end_date)
-
-        # Previous period totals
         prev_start, prev_end = AccountsService.get_previous_period(start_date, end_date)
-        prev_rev = get_total_revenue(prev_start, prev_end)
-        prev_exp = get_total_expense(prev_start, prev_end)
-        prev_profit = prev_rev - prev_exp
-        prev_cf = get_cash_flow(prev_start, prev_end)
 
-        # Calc growth percentage helper
         def calc_growth(curr, prev):
             if not prev or prev == Decimal('0.00'):
                 return 100.0 if curr > 0 else 0.0
             return float(round(((curr - prev) / abs(prev)) * 100, 1))
 
+        def safe_margin(numerator, denominator):
+            if not denominator or denominator == Decimal('0.00'):
+                return 0.0
+            return float(round((numerator / denominator) * 100, 2))
+
+        # Current period
+        curr_rev  = AccountsService.get_revenue(start_date, end_date)
+        curr_cogs = AccountsService.get_cogs(start_date, end_date)
+        curr_gp   = curr_rev - curr_cogs
+        curr_exp  = AccountsService.get_expenses(start_date, end_date)
+        curr_np   = curr_gp - curr_exp
+        curr_cf_in, curr_cf_out, curr_cf_net = AccountsService.get_cash_flow(start_date, end_date)
+
+        # Previous period
+        prev_rev  = AccountsService.get_revenue(prev_start, prev_end)
+        prev_cogs = AccountsService.get_cogs(prev_start, prev_end)
+        prev_gp   = prev_rev - prev_cogs
+        prev_exp  = AccountsService.get_expenses(prev_start, prev_end)
+        prev_np   = prev_gp - prev_exp
+        _, __, prev_cf_net = AccountsService.get_cash_flow(prev_start, prev_end)
+
+        # Inventory value (always all-time, no date filter)
+        inv_value = AccountsService.get_inventory_value()
+
         return {
+            # Revenue
             'total_revenue': float(curr_rev),
             'revenue_growth': calc_growth(curr_rev, prev_rev),
+            # COGS
+            'total_cogs': float(curr_cogs),
+            'cogs_growth': calc_growth(curr_cogs, prev_cogs),
+            # Gross Profit
+            'gross_profit': float(curr_gp),
+            'gross_profit_margin': safe_margin(curr_gp, curr_rev),
+            'gross_profit_growth': calc_growth(curr_gp, prev_gp),
+            # Expenses (Supplies only, non-voided)
             'total_expense': float(curr_exp),
             'expense_growth': calc_growth(curr_exp, prev_exp),
-            'net_profit': float(curr_profit),
-            'profit_growth': calc_growth(curr_profit, prev_profit),
-            'cash_flow': float(curr_cf),
-            'cash_flow_growth': calc_growth(curr_cf, prev_cf),
+            # Net Profit
+            'net_profit': float(curr_np),
+            'net_profit_margin': safe_margin(curr_np, curr_rev),
+            'profit_growth': calc_growth(curr_np, prev_np),
+            # Cash Flow
+            'cash_inflow': float(curr_cf_in),
+            'cash_outflow': float(curr_cf_out),
+            'cash_flow': float(curr_cf_net),
+            'cash_flow_growth': calc_growth(curr_cf_net, prev_cf_net),
+            # Inventory
+            'inventory_value': float(inv_value),
+            # Meta
             'start_date': start_date.isoformat() if start_date else None,
             'end_date': end_date.isoformat() if end_date else None,
         }
 
     @staticmethod
-    def total_revenue():
-        return Sale.objects.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
-
-    @staticmethod
-    def total_expense():
-        return Expense.objects.filter(voided=False).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-
-    @staticmethod
-    def net_profit():
-        return AccountsService.total_revenue() - AccountsService.total_expense()
-
-    @staticmethod
-    def cash_flow():
-        return AccountsService.net_profit()
-
-    @staticmethod
     def income_vs_expense_trend(date_range_str=None):
         """
-        Get monthly trend of income vs expenses
+        Monthly income vs expense trend.
+        Income source: Sale.total_price grouped by sale_date month.
+        Expense source: Expense.amount (SUPPLIES, non-voided) grouped by date month.
         """
         start_date, end_date = AccountsService.get_date_filter(date_range_str)
 
-        rev_qs = Revenue.objects.filter(voided=False)
-        exp_qs = Expense.objects.filter(voided=False)
+        sale_qs = Sale.objects.filter(payment_status='PAID')
+        exp_qs  = Expense.objects.filter(voided=False, category='SUPPLIES')
 
         if start_date and end_date:
-            rev_qs = rev_qs.filter(date__range=(start_date, end_date))
-            exp_qs = exp_qs.filter(date__range=(start_date, end_date))
+            sale_qs = sale_qs.filter(sale_date__range=(start_date, end_date))
+            exp_qs  = exp_qs.filter(date__range=(start_date, end_date))
 
-        # Group revenues by month
-        revenue_by_month = rev_qs.annotate(
-            month=TruncMonth('date')
-        ).values('month').annotate(
-            income=Sum('amount')
-        ).order_by('month')
+        revenue_by_month = sale_qs.annotate(
+            month=TruncMonth('sale_date')
+        ).values('month').annotate(income=Sum('total_price')).order_by('month')
 
-        # Group expenses by month
         expense_by_month = exp_qs.annotate(
             month=TruncMonth('date')
-        ).values('month').annotate(
-            expense=Sum('amount')
-        ).order_by('month')
+        ).values('month').annotate(expense=Sum('amount')).order_by('month')
 
-        # Combine the data
         expense_dict = {item['month']: item['expense'] for item in expense_by_month if item['month']}
         revenue_dict = {item['month']: item['income'] for item in revenue_by_month if item['month']}
-
         all_months = set(list(expense_dict.keys()) + list(revenue_dict.keys()))
 
-        trend_data = []
-        for month in sorted(all_months):
-            trend_data.append({
-                'month': month.strftime('%Y-%m') if month else None,
+        return [
+            {
+                'month': month.strftime('%Y-%m'),
                 'income': float(revenue_dict.get(month, Decimal('0.00'))),
                 'expense': float(expense_dict.get(month, Decimal('0.00'))),
-            })
-
-        return trend_data
+            }
+            for month in sorted(all_months)
+        ]
 
     @staticmethod
     def recent_invoices(limit=5):
@@ -421,43 +462,24 @@ class AccountsService:
 
     @staticmethod
     def expense_categories_breakdown(date_range_str=None):
-        """
-        Get breakdown of expenses by category with optional date filtering
-        """
+        """Breakdown of expenses by category with percentages."""
         start_date, end_date = AccountsService.get_date_filter(date_range_str)
-        
         qs = Expense.objects.filter(voided=False)
         if start_date and end_date:
             qs = qs.filter(date__range=(start_date, end_date))
 
-        breakdown = qs.values('category').annotate(
-            total=Sum('amount'),
-            count=Count('id')
-        ).order_by('-total')
-
-        # Calculate total for percentage
+        breakdown = qs.values('category').annotate(total=Sum('amount'), count=Count('id')).order_by('-total')
         total_expense = qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
         result = []
         for item in breakdown:
-            percentage = 0
-            if total_expense > 0:
-                percentage = (item['total'] / total_expense) * 100
-
-            result.append({
-                'category': item['category'],
-                'total': float(item['total']),
-                'count': item['count'],
-                'percentage': round(percentage, 2)
-            })
-
+            pct = float((item['total'] / total_expense) * 100) if total_expense > 0 else 0
+            result.append({'category': item['category'], 'total': float(item['total']), 'count': item['count'], 'percentage': round(pct, 2)})
         return result
 
     @staticmethod
     def kpi_summary(date_range_str=None):
-        """
-        Wrapper to return dynamic, growth-based summary KPIs
-        """
+        """Public entry point — returns full ERP KPI dict with growth rates."""
         return AccountsService.get_kpis_with_growth(date_range_str)
 
     @staticmethod

@@ -14,6 +14,10 @@ urlpatterns = [
     # ==================== Sales CRUD ====================
     path('', views.sale_list, name='sale-list'),
     path('<int:pk>/', views.sale_detail, name='sale-detail'),
+
+    # ==================== Bulk Upload ====================
+    # POST /api/sales/bulk-upload/   — JSON or CSV
+    path('bulk-upload/', views.bulk_upload_sales, name='bulk-upload'),
 ]
 
 """

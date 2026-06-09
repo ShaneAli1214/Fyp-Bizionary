@@ -68,10 +68,24 @@ class DashboardKPISerializer(serializers.Serializer):
     unpaid_invoices = serializers.IntegerField()
 
     low_stock_count = serializers.IntegerField()
-    
+
     # New dashboard KPIs
     total_customers = serializers.IntegerField(required=False)
     total_orders = serializers.IntegerField(required=False)
     total_payments_count = serializers.IntegerField(required=False)
     total_stock_batches = serializers.IntegerField(required=False)
     total_payments_value = serializers.DecimalField(max_digits=15, decimal_places=2, required=False)
+
+    # Accurate ordered slips count (OrderedSlip table)
+    total_ordered_slips = serializers.IntegerField(required=False, default=0)
+
+    # ── ERP Profitability KPIs (computed by AccountsService) ──
+    total_cogs = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    gross_profit = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    gross_profit_margin = serializers.FloatField(required=False, default=0)
+    total_expenses = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    net_profit = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    net_profit_margin = serializers.FloatField(required=False, default=0)
+    cash_inflow = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    cash_outflow = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)
+    net_cash_flow = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)

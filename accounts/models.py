@@ -360,3 +360,65 @@ class Invoice(models.Model):
     def __str__(self):
         return f"{self.invoice_number} - {self.client_name} - Rs. {self.amount}"
 
+
+class CashTransaction(models.Model):
+    """
+    ERP Cash Flow Ledger — every money movement (in or out) is recorded here.
+    Net Cash Flow is always computed from this table, never stored.
+    """
+    TYPE_IN = 'IN'
+    TYPE_OUT = 'OUT'
+    TYPE_CHOICES = [
+        ('IN', 'Cash Inflow'),
+        ('OUT', 'Cash Outflow'),
+    ]
+    SOURCE_CHOICES = [
+        ('sale', 'Sale'),
+        ('expense', 'Expense'),
+        ('purchase', 'Purchase'),
+        ('other', 'Other'),
+    ]
+
+    txn_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    source_type = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='other')
+    source_id = models.IntegerField(null=True, blank=True)
+    date = models.DateField()
+    description = models.CharField(max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'cash_transactions'
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['txn_type', 'date']),
+            models.Index(fields=['source_type', 'source_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.txn_type} Rs.{self.amount} [{self.source_type}#{self.source_id}] on {self.date}"
+
+
+class AuditLog(models.Model):
+    """
+    Immutable audit trail for all create / update / void / delete actions.
+    Never delete records from this table.
+    """
+    entity_type = models.CharField(max_length=100, help_text="Model name: Sale, Expense, Product, etc.")
+    entity_id = models.IntegerField()
+    action = models.CharField(max_length=20, help_text="CREATE, UPDATE, DELETE, VOID")
+    old_value = models.JSONField(null=True, blank=True)
+    new_value = models.JSONField(null=True, blank=True)
+    changed_by = models.CharField(max_length=255, blank=True, default='system')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'audit_log'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['entity_type', 'entity_id']),
+            models.Index(fields=['action']),
+        ]
+
+    def __str__(self):
+        return f"[{self.action}] {self.entity_type}#{self.entity_id} at {self.timestamp}"

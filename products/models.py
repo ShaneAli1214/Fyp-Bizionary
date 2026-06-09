@@ -91,3 +91,58 @@ class Product(models.Model):
     def inventory_value(self):
         """Calculate total inventory value for this product using cost price."""
         return self.stock_quantity * self.cost_price
+
+
+class InventoryTransaction(models.Model):
+    """
+    ERP Inventory Ledger — every stock movement is recorded here.
+    product.stock_quantity is a cached denormalized field updated by signals.
+    """
+    TYPE_IN = 'IN'
+    TYPE_OUT = 'OUT'
+    TYPE_ADJUSTMENT = 'ADJUSTMENT'
+    TYPE_CHOICES = [
+        ('IN', 'Stock In'),
+        ('OUT', 'Stock Out'),
+        ('ADJUSTMENT', 'Adjustment'),
+    ]
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name='inventory_transactions'
+    )
+    txn_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        help_text="Direction of stock movement"
+    )
+    quantity = models.IntegerField(
+        help_text="Always positive; txn_type determines direction"
+    )
+    reference_type = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        help_text="Source: sale, purchase, opening_stock, adjustment"
+    )
+    reference_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="FK to source record (Sale.id, Purchase.id, etc.)"
+    )
+    note = models.TextField(blank=True, default='')
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'inventory_transactions'
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['product', 'date']),
+            models.Index(fields=['txn_type']),
+            models.Index(fields=['reference_type', 'reference_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.txn_type} {self.quantity} × {self.product.name} on {self.date}"

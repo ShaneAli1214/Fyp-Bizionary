@@ -64,12 +64,21 @@ const AccountsManager = () => {
                 setKpis({
                     total_revenue: 0,
                     revenue_growth: 0,
+                    total_cogs: 0,
+                    cogs_growth: 0,
+                    gross_profit: 0,
+                    gross_profit_margin: 0,
+                    gross_profit_growth: 0,
                     total_expense: 0,
                     expense_growth: 0,
                     net_profit: 0,
+                    net_profit_margin: 0,
                     profit_growth: 0,
+                    cash_inflow: 0,
+                    cash_outflow: 0,
                     cash_flow: 0,
-                    cash_flow_growth: 0
+                    cash_flow_growth: 0,
+                    inventory_value: 0,
                 });
             } finally {
                 setLoadingKpis(false);
@@ -313,63 +322,53 @@ const AccountsManager = () => {
             )}
 
             {/* KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
-                {/* Total Revenue - Color-coded: Green */}
-                <div className="bg-white p-5 rounded-2xl border-l-4 border-emerald-500 border-y border-r border-gray-100 shadow-sm flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Total Revenue</p>
-                        <h4 className="text-xl font-bold text-slate-900">
-                            {loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}
-                        </h4>
-                        {!loadingKpis && getGrowthBadge(kpis?.revenue_growth)}
-                    </div>
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <TrendingUp className="w-6 h-6" />
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 print:hidden">
+                {/* Total Revenue */}
+                <div className="bg-white p-4 rounded-2xl border-l-4 border-emerald-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Revenue</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}</h4>
+                    {!loadingKpis && getGrowthBadge(kpis?.revenue_growth)}
+                    <div className="mt-auto pt-2 self-end p-2 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp className="w-5 h-5" /></div>
                 </div>
 
-                {/* Total Expenses - Color-coded: Red */}
-                <div className="bg-white p-5 rounded-2xl border-l-4 border-rose-500 border-y border-r border-gray-100 shadow-sm flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Total Expenses</p>
-                        <h4 className="text-xl font-bold text-slate-900">
-                            {loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}
-                        </h4>
-                        {!loadingKpis && getGrowthBadge(kpis?.expense_growth)}
-                    </div>
-                    <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-                        <TrendingDown className="w-6 h-6" />
-                    </div>
+                {/* Total COGS */}
+                <div className="bg-white p-4 rounded-2xl border-l-4 border-orange-400 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">COGS</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}</h4>
+                    {!loadingKpis && getGrowthBadge(kpis?.cogs_growth)}
+                    <div className="mt-auto pt-2 self-end p-2 bg-orange-50 text-orange-500 rounded-xl"><TrendingDown className="w-5 h-5" /></div>
                 </div>
 
-                {/* Net Profit - Color-coded: Teal/Primary or Rose/Red for Loss */}
-                <div className={`bg-white p-5 rounded-2xl border-l-4 ${(!loadingKpis && kpis?.net_profit < 0) ? 'border-rose-500' : 'border-primary'} border-y border-r border-gray-100 shadow-sm flex items-center justify-between`}>
-                    <div className="space-y-1">
-                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">
-                            {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
-                        </p>
-                        <h4 className="text-xl font-bold text-slate-900">
-                            {loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}
-                        </h4>
-                        {!loadingKpis && getGrowthBadge(kpis?.profit_growth)}
-                    </div>
-                    <div className={`p-3 ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-primary'} rounded-xl`}>
-                        <Wallet className="w-6 h-6" />
-                    </div>
+                {/* Gross Profit */}
+                <div className="bg-white p-4 rounded-2xl border-l-4 border-teal-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Gross Profit</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.gross_profit || 0)}</h4>
+                    {!loadingKpis && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border text-teal-700 bg-teal-50 border-teal-100 inline-block">{kpis?.gross_profit_margin?.toFixed(1)}% margin</span>}
+                    <div className="mt-auto pt-2 self-end p-2 bg-teal-50 text-teal-600 rounded-xl"><TrendingUp className="w-5 h-5" /></div>
                 </div>
 
-                {/* Cash Flow - Color-coded: Amber/Yellow */}
-                <div className="bg-white p-5 rounded-2xl border-l-4 border-amber-500 border-y border-r border-gray-100 shadow-sm flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Cash Flow</p>
-                        <h4 className="text-xl font-bold text-slate-900">
-                            {loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}
-                        </h4>
-                        {!loadingKpis && getGrowthBadge(kpis?.cash_flow_growth)}
-                    </div>
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                        <FileText className="w-6 h-6" />
-                    </div>
+                {/* Total Expenses */}
+                <div className="bg-white p-4 rounded-2xl border-l-4 border-rose-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Expenses</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}</h4>
+                    {!loadingKpis && getGrowthBadge(kpis?.expense_growth)}
+                    <div className="mt-auto pt-2 self-end p-2 bg-rose-50 text-rose-600 rounded-xl"><TrendingDown className="w-5 h-5" /></div>
+                </div>
+
+                {/* Net Profit */}
+                <div className={`bg-white p-4 rounded-2xl border-l-4 ${(!loadingKpis && kpis?.net_profit < 0) ? 'border-rose-500' : 'border-primary'} border-y border-r border-gray-100 shadow-sm flex flex-col gap-1`}>
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">{(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}</h4>
+                    {!loadingKpis && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border text-sky-700 bg-sky-50 border-sky-100 inline-block">{kpis?.net_profit_margin?.toFixed(1)}% margin</span>}
+                    <div className={`mt-auto pt-2 self-end p-2 ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-primary'} rounded-xl`}><Wallet className="w-5 h-5" /></div>
+                </div>
+
+                {/* Cash Flow */}
+                <div className="bg-white p-4 rounded-2xl border-l-4 border-amber-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
+                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Net Cash Flow</p>
+                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}</h4>
+                    {!loadingKpis && getGrowthBadge(kpis?.cash_flow_growth)}
+                    <div className="mt-auto pt-2 self-end p-2 bg-amber-50 text-amber-600 rounded-xl"><FileText className="w-5 h-5" /></div>
                 </div>
             </div>
 

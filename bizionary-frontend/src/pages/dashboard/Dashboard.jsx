@@ -22,6 +22,7 @@ const Dashboard = () => {
         total_revenue: 0,
         total_purchases_value: 0,
         total_purchase_orders: 0,
+        total_ordered_slips: 0,
         pending_company_payables: 0,
         pending_invoices: 0,
         total_invoices: 0,
@@ -50,6 +51,16 @@ const Dashboard = () => {
     const [orderSlipSuccess, setOrderSlipSuccess] = useState('');
 
     const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
+
+    // Revenue period filter state
+    const REVENUE_PERIODS = [
+        { key: 'daily',   label: 'Last 24h' },
+        { key: 'weekly',  label: 'Last 7 Days' },
+        { key: 'monthly', label: 'Last 30 Days' },
+    ];
+    const [revenuePeriod, setRevenuePeriod] = useState('daily');
+    const [revenueData, setRevenueData] = useState({ revenue: '0.00', transaction_count: 0, start_date: '', end_date: '', label: '' });
+    const [revenueLoading, setRevenueLoading] = useState(false);
 
     // Fetch master data for product codes / supplier dropdowns
     const fetchDropdownOptions = async () => {
@@ -83,14 +94,33 @@ const Dashboard = () => {
         }
     };
 
+    const fetchRevenue = async (period) => {
+        setRevenueLoading(true);
+        try {
+            const res = await api.get(`dashboard/revenue-by-period/?period=${period}`);
+            if (res.data) {
+                setRevenueData(res.data);
+            }
+        } catch (error) {
+            console.warn('Failed to fetch revenue by period', error);
+        } finally {
+            setRevenueLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchKPIs();
         fetchDropdownOptions();
+        fetchRevenue('daily');
 
         // Keep dashboard in sync automatically
         const interval = setInterval(fetchKPIs, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        fetchRevenue(revenuePeriod);
+    }, [revenuePeriod]);
 
     // Create Product Handler (matches ProductList.jsx logic)
     const handleCreateProduct = async (productData) => {
@@ -209,11 +239,51 @@ const Dashboard = () => {
 
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {/* 7. Total Revenue */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Total Revenue</div>
-                    <div className="text-2xl font-black text-slate-800 dark:text-slate-200">{formatPKR(kpis.total_revenue)}</div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase">From Sales</div>
+                {/* 7. Total Revenue - with Daily / Weekly / Monthly filter */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col gap-2 hover:shadow-md transition-all col-span-1 sm:col-span-2 lg:col-span-1">
+                    {/* Header row */}
+                    <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Revenue</div>
+                        {revenueLoading && (
+                            <div className="h-3 w-3 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+                        )}
+                    </div>
+
+                    {/* Filter pills */}
+                    <div className="flex gap-1">
+                        {REVENUE_PERIODS.map((p) => (
+                            <button
+                                key={p.key}
+                                onClick={() => setRevenuePeriod(p.key)}
+                                className={`flex-1 text-[10px] font-bold rounded-md py-1 transition-all ${
+                                    revenuePeriod === p.key
+                                        ? 'bg-emerald-500 text-white shadow-sm'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Revenue amount */}
+                    <div className={`text-xl font-black text-slate-800 dark:text-slate-100 transition-opacity duration-200 ${
+                        revenueLoading ? 'opacity-40' : 'opacity-100'
+                    }`}>
+                        {formatPKR(revenueData.revenue)}
+                    </div>
+
+                    {/* Meta row: transaction count + period label */}
+                    <div className="flex items-center justify-between mt-auto">
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
+                            {revenueData.transaction_count.toLocaleString()} sale{revenueData.transaction_count !== 1 ? 's' : ''}
+                        </div>
+                        {revenueData.label && (
+                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                                {revenueData.label}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 1. Accounts */}
@@ -242,8 +312,8 @@ const Dashboard = () => {
 
                 {/* 3. Purchase Orders */}
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
-                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Purchase Orders</div>
-                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_stock_batches}</div>
+                    <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Ordered Slips</div>
+                    <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_ordered_slips}</div>
                     <button 
                         onClick={() => navigate('/ordered-slips')}
                         className="px-6 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 uppercase"

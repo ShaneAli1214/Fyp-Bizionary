@@ -19,11 +19,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Sum, Count, Max, Min, F, Q, ExpressionWrapper, DecimalField
-from django.db.models.functions import TruncMonth, TruncDay, ExtractMonth, ExtractYear
+from django.db.models.functions import TruncMonth, TruncDay, TruncWeek, ExtractMonth, ExtractYear
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from decimal import Decimal
-from datetime import timedelta
+from datetime import timedelta, date as date_type
 
 from products.models import Product
 from sales.models import Sale
@@ -37,6 +37,79 @@ from .serializers import (
     LowStockProductSerializer,
     RecentSaleSerializer
 )
+
+
+@api_view(['GET'])
+def revenue_by_period(request):
+    """
+    Revenue aggregated by rolling period: daily (last 1 day), weekly (last 7 days),
+    or monthly (last 30 days) — uses actual sales data from the Sale table.
+
+    Method: GET
+    Endpoint: /api/dashboard/revenue-by-period/?period=daily|weekly|monthly
+
+    Returns:
+        {
+            "period": "daily",
+            "revenue": "12345.67",
+            "transaction_count": 42,
+            "start_date": "2026-06-08",
+            "end_date": "2026-06-09",
+            "label": "Last 24 Hours"
+        }
+    """
+    try:
+        period = request.query_params.get('period', 'daily').lower().strip()
+        if period not in ('daily', 'weekly', 'monthly'):
+            return Response(
+                {'error': "Invalid period. Use 'daily', 'weekly', or 'monthly'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        today = timezone.localdate()
+
+        # Rolling lookback windows so the card always shows meaningful real data
+        if period == 'daily':
+            # Last 1 day (yesterday + today)
+            start = today - timedelta(days=1)
+            end = today
+            label = 'Last 24 Hours'
+        elif period == 'weekly':
+            # Last 7 days
+            start = today - timedelta(days=7)
+            end = today
+            label = 'Last 7 Days'
+        else:  # monthly
+            # Last 30 days
+            start = today - timedelta(days=30)
+            end = today
+            label = 'Last 30 Days'
+
+        agg = Sale.objects.filter(
+            sale_date__gte=start,
+            sale_date__lte=end,
+        ).aggregate(
+            revenue=Sum('total_price'),
+            transaction_count=Count('id'),
+        )
+
+        revenue = (agg['revenue'] or Decimal('0.00')).quantize(Decimal('0.01'))
+        tx_count = agg['transaction_count'] or 0
+
+        return Response({
+            'period': period,
+            'revenue': str(revenue),
+            'transaction_count': tx_count,
+            'start_date': start.isoformat(),
+            'end_date': end.isoformat(),
+            'label': label,
+        }, status=status.HTTP_200_OK)
+
+    except Exception as exc:
+        return Response(
+            {'error': f'Failed to calculate revenue: {str(exc)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 def _outstanding_payables_response():
@@ -212,6 +285,9 @@ def dashboard_kpis(request):
         if total_stock_batches == 0:
             total_stock_batches = Product.objects.filter(stock_quantity__gt=0).count()
 
+        # KPI: Actual count of OrderedSlip records (purchase order slips)
+        total_ordered_slips = OrderedSlip.objects.count()
+
         paid_sales = Sale.objects.filter(payment_status='PAID').aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
         paid_invoices = BillingInvoice.objects.filter(status='PAID').aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
         total_payments_value = to_2dp(paid_sales + paid_invoices)
@@ -241,7 +317,36 @@ def dashboard_kpis(request):
             'total_payments_count': total_payments_count,
             'total_stock_batches': total_stock_batches,
             'total_payments_value': total_payments_value,
+
+            # Accurate ordered slips count (from OrderedSlip table)
+            'total_ordered_slips': total_ordered_slips,
         }
+
+        # ── ERP Profitability KPIs (single source of truth via AccountsService) ──
+        try:
+            from accounts.services import AccountsService
+            total_cogs = AccountsService.get_cogs()
+            gross_profit = AccountsService.get_gross_profit()
+            total_expenses = AccountsService.get_expenses()
+            net_profit = AccountsService.get_net_profit()
+            cf_in, cf_out, cf_net = AccountsService.get_cash_flow()
+            gross_margin = float(round((gross_profit / total_revenue * 100), 2)) if total_revenue > 0 else 0.0
+            net_margin = float(round((net_profit / total_revenue * 100), 2)) if total_revenue > 0 else 0.0
+
+            kpi_data.update({
+                'total_cogs': float(total_cogs),
+                'gross_profit': float(gross_profit),
+                'gross_profit_margin': gross_margin,
+                'total_expenses': float(total_expenses),
+                'net_profit': float(net_profit),
+                'net_profit_margin': net_margin,
+                'cash_inflow': float(cf_in),
+                'cash_outflow': float(cf_out),
+                'net_cash_flow': float(cf_net),
+            })
+        except Exception as prof_err:
+            pass  # Profitability fields remain at default 0 if service fails
+
 
         serializer = DashboardKPISerializer(data=kpi_data)
         if serializer.is_valid():
