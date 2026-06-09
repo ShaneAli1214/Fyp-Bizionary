@@ -77,7 +77,20 @@ const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
     if (loading) return <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div></div>;
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="space-y-4">
+            {/* ERP Note Banner */}
+            <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                <div className="mt-0.5 w-4 h-4 text-blue-600 shrink-0">ℹ</div>
+                <div>
+                    <p className="text-xs font-bold text-blue-900">Revenue KPIs are computed from Sales transactions</p>
+                    <p className="text-xs text-blue-700 mt-0.5">
+                        The Revenue, COGS, Gross Profit, and Net Profit cards above are calculated dynamically from the <strong>Sales</strong> module.
+                        This table shows manually recorded <strong>Revenue entries</strong> (e.g. service income, other income). Add a record here only for non-sale income sources.
+                    </p>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -200,6 +213,7 @@ const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                 onSubmit={handleVoidSubmit} 
                 recordType="revenues" 
             />
+            </div>{/* end inner white card */}
         </div>
     );
 };

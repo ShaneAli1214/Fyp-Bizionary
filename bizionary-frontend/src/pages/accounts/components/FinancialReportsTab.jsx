@@ -60,18 +60,26 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
             csvRows.push('');
             csvRows.push('Account Code,Account Name,Balance (PKR)');
             csvRows.push('REVENUE');
-            (reportData.revenue || []).forEach(item => {
+            (reportData.revenue_lines || []).forEach(item => {
                 csvRows.push(`${item.code},"${item.name}",${item.balance}`);
             });
             csvRows.push(`,Total Revenue,${reportData.total_revenue}`);
             csvRows.push('');
-            csvRows.push('EXPENSES');
-            (reportData.expense || []).forEach(item => {
+            csvRows.push('COST OF GOODS SOLD (COGS)');
+            (reportData.cogs_lines || []).forEach(item => {
                 csvRows.push(`${item.code},"${item.name}",${item.balance}`);
             });
-            csvRows.push(`,Total Expense,${reportData.total_expense}`);
+            csvRows.push(`,Total COGS,${reportData.total_cogs}`);
             csvRows.push('');
-            csvRows.push(`,NET PROFIT,${reportData.net_profit}`);
+            csvRows.push(`,GROSS PROFIT (${reportData.gross_profit_margin?.toFixed(1)}% margin),${reportData.gross_profit}`);
+            csvRows.push('');
+            csvRows.push('OPERATING EXPENSES');
+            (reportData.expense_lines || []).forEach(item => {
+                csvRows.push(`${item.code},"${item.name}",${item.balance}`);
+            });
+            csvRows.push(`,Total Operating Expenses,${reportData.total_expense}`);
+            csvRows.push('');
+            csvRows.push(`,NET PROFIT (${reportData.net_profit_margin?.toFixed(1)}% margin),${reportData.net_profit}`);
         } else {
             filename = `Balance_Sheet_${dateRange}.csv`;
             csvRows.push(`Balance Sheet - As of Date: ${reportData.as_of_date || 'Current'}`);
@@ -190,88 +198,144 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
                     </div>
 
                     {reportType === 'profit-loss' ? (
-                        /* PROFIT & LOSS VIEW */
-                        <div className="space-y-8">
-                            {/* Revenues Section */}
-                            <div className="space-y-3">
-                                <div className="bg-slate-100 text-slate-800 px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
-                                    1. Revenue / Income
+                        /* ERP PROFIT & LOSS VIEW */
+                        <div className="space-y-6">
+                            {/* Section 1: Revenue */}
+                            <div className="space-y-2">
+                                <div className="bg-blue-600 text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded">
+                                    1. Revenue (from Sales)
                                 </div>
-                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden">
                                     <table className="w-full text-left text-xs border-collapse">
                                         <thead>
-                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
-                                                <th className="py-2 pl-4 w-24">Account Code</th>
-                                                <th className="py-2">Account Name</th>
-                                                <th className="py-2 pr-4 text-right">Balance</th>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                                                <th className="py-2 pl-4 w-24">Code</th>
+                                                <th className="py-2">Account</th>
+                                                <th className="py-2 pr-4 text-right">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
-                                            {(reportData.revenue || []).map((item, idx) => (
+                                            {(reportData.revenue_lines || []).map((item, idx) => (
                                                 <tr key={idx} className="hover:bg-slate-50/50">
                                                     <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
                                                     <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
-                                                    <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                    <td className="py-2.5 pr-4 text-right font-mono text-blue-700 font-bold">{formatPKR(item.balance)}</td>
                                                 </tr>
                                             ))}
-                                            <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                            <tr className="border-t-2 border-blue-200 bg-blue-50/50 font-bold">
                                                 <td className="py-3 pl-4"></td>
-                                                <td className="py-3 text-slate-900 uppercase">Total Income / Revenue</td>
-                                                <td className="py-3 pr-4 text-right font-mono text-slate-950 text-sm">{formatPKR(reportData.total_revenue)}</td>
+                                                <td className="py-3 text-blue-900 uppercase">Total Revenue</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-blue-900 text-sm">{formatPKR(reportData.total_revenue)}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* Expenses Section */}
-                            <div className="space-y-3">
-                                <div className="bg-slate-100 text-slate-800 px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-slate-100 print:text-slate-900">
-                                    2. Operating & Cost Expenses
+                            {/* Section 2: COGS */}
+                            <div className="space-y-2">
+                                <div className="bg-orange-500 text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded">
+                                    2. Cost of Goods Sold (COGS)
                                 </div>
-                                <div className="border border-slate-200/60 rounded-xl overflow-hidden bg-white shadow-xs print:border-slate-300">
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden">
                                     <table className="w-full text-left text-xs border-collapse">
                                         <thead>
-                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-50 print:text-slate-600">
-                                                <th className="py-2 pl-4 w-24">Account Code</th>
-                                                <th className="py-2">Account Name</th>
-                                                <th className="py-2 pr-4 text-right">Balance</th>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                                                <th className="py-2 pl-4 w-24">Code</th>
+                                                <th className="py-2">Account</th>
+                                                <th className="py-2 pr-4 text-right">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
-                                            {(reportData.expense || []).map((item, idx) => (
+                                            {(reportData.cogs_lines || []).map((item, idx) => (
                                                 <tr key={idx} className="hover:bg-slate-50/50">
                                                     <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold">{item.code}</td>
                                                     <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
-                                                    <td className="py-2.5 pr-4 text-right font-mono text-slate-900 font-bold">{formatPKR(item.balance)}</td>
+                                                    <td className="py-2.5 pr-4 text-right font-mono text-orange-700 font-bold">{formatPKR(item.balance)}</td>
                                                 </tr>
                                             ))}
-                                            <tr className="border-t-2 border-slate-200 font-bold bg-slate-50/50">
+                                            <tr className="border-t-2 border-orange-200 bg-orange-50/50 font-bold">
                                                 <td className="py-3 pl-4"></td>
-                                                <td className="py-3 text-slate-900 uppercase">Total Expenses</td>
-                                                <td className="py-3 pr-4 text-right font-mono text-slate-950 text-sm">{formatPKR(reportData.total_expense)}</td>
+                                                <td className="py-3 text-orange-900 uppercase">Total COGS</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-orange-900 text-sm">{formatPKR(reportData.total_cogs)}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* Net Profit Summary Row */}
-                            <div className="pt-4 border-t border-slate-200 print:pt-3">
-                                <table className="w-full border-collapse text-xs">
-                                    <tbody>
-                                        <tr className="font-bold bg-slate-100/80 text-slate-950">
-                                            <td className="py-3.5 pl-4 uppercase tracking-wider text-sm">
-                                                {reportData.net_profit >= 0 ? 'Net Profit' : 'Net Loss'}
-                                            </td>
-                                            <td className="py-3.5 pr-4 text-right font-mono text-lg border-double-bottom">
-                                                <span className={reportData.net_profit >= 0 ? 'text-emerald-700 print:text-emerald-800' : 'text-rose-700 print:text-rose-800'}>
-                                                    {formatPKR(reportData.net_profit)}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            {/* Section 3: Gross Profit Subtotal */}
+                            <div className={`rounded-xl p-4 flex justify-between items-center border-2 ${reportData.gross_profit >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+                                <div>
+                                    <p className={`text-xs font-black uppercase tracking-wider ${reportData.gross_profit >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        3. Gross Profit
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 mt-0.5">Revenue minus Cost of Goods Sold</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className={`text-lg font-black font-mono ${reportData.gross_profit >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        {formatPKR(reportData.gross_profit)}
+                                    </p>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${reportData.gross_profit >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                        {reportData.gross_profit_margin?.toFixed(1)}% margin
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Section 4: Operating Expenses */}
+                            <div className="space-y-2">
+                                <div className="bg-rose-600 text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded">
+                                    4. Operating Expenses
+                                </div>
+                                <div className="border border-slate-200/60 rounded-xl overflow-hidden">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider">
+                                                <th className="py-2 pl-4 w-24">Category</th>
+                                                <th className="py-2">Expense Type</th>
+                                                <th className="py-2 pr-4 text-right">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {(reportData.expense_lines || []).length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="3" className="py-4 text-center text-slate-400 text-xs italic">No operating expenses recorded for this period.</td>
+                                                </tr>
+                                            ) : (
+                                                (reportData.expense_lines || []).map((item, idx) => (
+                                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                                        <td className="py-2.5 pl-4 font-mono text-slate-500 font-semibold text-[10px]">{item.code}</td>
+                                                        <td className="py-2.5 text-slate-800 font-bold">{item.name}</td>
+                                                        <td className="py-2.5 pr-4 text-right font-mono text-rose-700 font-bold">{formatPKR(item.balance)}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                            <tr className="border-t-2 border-rose-200 bg-rose-50/50 font-bold">
+                                                <td className="py-3 pl-4"></td>
+                                                <td className="py-3 text-rose-900 uppercase">Total Operating Expenses</td>
+                                                <td className="py-3 pr-4 text-right font-mono text-rose-900 text-sm">{formatPKR(reportData.total_expense)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Section 5: Net Profit */}
+                            <div className={`rounded-xl p-5 flex justify-between items-center border-2 ${reportData.net_profit >= 0 ? 'bg-emerald-600 border-emerald-700' : 'bg-rose-600 border-rose-700'}`}>
+                                <div>
+                                    <p className="text-xs font-black uppercase tracking-wider text-white/80">
+                                        5. Net Profit / Loss
+                                    </p>
+                                    <p className="text-[10px] text-white/60 mt-0.5">Gross Profit minus Operating Expenses</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-2xl font-black font-mono text-white">
+                                        {formatPKR(reportData.net_profit)}
+                                    </p>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white">
+                                        {reportData.net_profit_margin?.toFixed(1)}% net margin
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     ) : (

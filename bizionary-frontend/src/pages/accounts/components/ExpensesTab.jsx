@@ -71,8 +71,7 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Vendor</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Method</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Tax Amount</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Total Amount</th>
+                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Amount (Net)</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Receipt</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -80,7 +79,7 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                     <tbody className="divide-y divide-gray-50">
                         {expenses.length === 0 ? (
                             <tr>
-                                <td colSpan="8" className="px-6 py-8 text-center text-textMuted text-sm">No expense records found.</td>
+                                <td colSpan="7" className="px-6 py-8 text-center text-textMuted text-sm">No expense records found.</td>
                             </tr>
                         ) : (
                             expenses.map((item) => (
@@ -109,9 +108,6 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                                             <CreditCard className="w-3.5 h-3.5 text-gray-400" />
                                             {getPaymentMethodDisplay(item.payment_method)}
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-right text-gray-500">
-                                        {item.tax_amount > 0 ? formatPKR(item.tax_amount) : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <span className={`text-sm font-bold bg-rose-50 px-2 py-1 rounded inline-block ${item.voided ? 'text-gray-500 line-through bg-gray-100' : 'text-rose-600'}`}>

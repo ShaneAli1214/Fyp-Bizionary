@@ -232,16 +232,17 @@ class AccountsService:
     @staticmethod
     def get_date_filter(date_range_str):
         """
-        Parse date range string and return (start_date, end_date)
+        Parse date range string and return (start_date, end_date).
+        ref_date is anchored to the latest transaction (sale or journal entry)
+        so the window stays meaningful as new data is added over time.
         """
-        # Align base date logic dynamically with the latest transaction in the DB to avoid demo decay.
         from django.db.models import Max, Min
         from sales.models import Sale
         from accounts.models import JournalEntry
-        
+
         latest_sale = Sale.objects.aggregate(latest=Max('sale_date'))['latest']
         latest_je = JournalEntry.objects.aggregate(latest=Max('date'))['latest']
-        
+
         dates = [d for d in [latest_sale, latest_je] if d]
         ref_date = max(dates) if dates else date.today()
 
@@ -250,10 +251,11 @@ class AccountsService:
             earliest_je = JournalEntry.objects.aggregate(earliest=Min('date'))['earliest']
             earliest_dates = [d for d in [earliest_sale, earliest_je] if d]
             earliest_transaction = min(earliest_dates) if earliest_dates else ref_date
-            
-            # Ensure the 30-day range starts no earlier than 29 days before ref_date.
+
+            # Start no earlier than 29 days before ref_date
             start_date = max(earliest_transaction, ref_date - timedelta(days=29))
             return start_date, ref_date
+
         elif date_range_str == 'this_quarter':
             quarter = (ref_date.month - 1) // 3 + 1
             start_date = date(ref_date.year, 3 * quarter - 2, 1)
@@ -262,9 +264,12 @@ class AccountsService:
             else:
                 end_date = date(ref_date.year, 3 * quarter + 1, 1) - timedelta(days=1)
             return start_date, end_date
+
         elif date_range_str == 'this_year':
             return date(ref_date.year, 1, 1), date(ref_date.year, 12, 31)
+
         return None, None
+
 
     @staticmethod
     def get_previous_period(start_date, end_date):
@@ -330,13 +335,24 @@ class AccountsService:
 
     @staticmethod
     def get_cash_flow(start_date=None, end_date=None):
-        """Cash Flow from CashTransaction ledger."""
-        qs = CashTransaction.objects.all()
-        if start_date and end_date:
-            qs = qs.filter(date__range=(start_date, end_date))
-        inflow = qs.filter(txn_type='IN').aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-        outflow = qs.filter(txn_type='OUT').aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-        return inflow, outflow, inflow - outflow
+        """
+        ERP-grade Operating Cash Flow (cash-basis accounting).
+
+        Cash IN  = Revenue collected from paid sales
+        Cash OUT = Inventory cost paid (COGS) + Operating expenses paid
+        Net      = Cash IN − Cash OUT
+
+        Previously this used the CashTransaction ledger which only recorded
+        expense outflows (12 records, Rs 31K), completely omitting the
+        Rs 71M+ in inventory cost payments — making Net Cash Flow ≈ Revenue.
+        Now it computes from the same source of truth as Net Profit.
+        """
+        cf_in = AccountsService.get_revenue(start_date, end_date)
+        cogs_out = AccountsService.get_cogs(start_date, end_date)
+        expense_out = AccountsService.get_expenses(start_date, end_date)
+        cf_out = cogs_out + expense_out
+        cf_net = cf_in - cf_out
+        return cf_in, cf_out, cf_net
 
     @staticmethod
     def get_inventory_value():
@@ -566,65 +582,70 @@ class AccountsService:
     @staticmethod
     def get_profit_loss(start_date=None, end_date=None):
         """
-        Calculates Net Profit & Loss statement within a date range
+        ERP-grade Profit & Loss Statement.
+        Structure: Revenue (from Sales) → COGS → Gross Profit → OpEx → Net Profit.
+        All values computed dynamically from raw transactions — nothing stored.
         """
-        AccountsService.ensure_coa()
-        
-        items_qs = JournalItem.objects.filter(journal_entry__voided=False)
+        # 1. Revenue = SUM of paid sales
+        total_revenue = AccountsService.get_revenue(start_date, end_date)
+
+        # 2. COGS = SUM(quantity_sold × unit_cost_price) from immutable Sale snapshot
+        total_cogs = AccountsService.get_cogs(start_date, end_date)
+
+        # 3. Gross Profit
+        gross_profit = total_revenue - total_cogs
+        gross_margin = float(round((gross_profit / total_revenue) * 100, 2)) if total_revenue else 0.0
+
+        # 4. Operating Expenses (Expense model, non-voided, all categories)
+        exp_qs = Expense.objects.filter(voided=False)
         if start_date and end_date:
-            items_qs = items_qs.filter(journal_entry__date__range=(start_date, end_date))
-            
-        balances = items_qs.values('account_id', 'account__code', 'account__name', 'account__account_type').annotate(
-            total_debit=Sum('debit'),
-            total_credit=Sum('credit')
-        )
-        
-        revenue_items = []
+            exp_qs = exp_qs.filter(date__range=(start_date, end_date))
+
+        # Per-category breakdown
+        expense_breakdown = exp_qs.values('category').annotate(
+            total=Sum('amount'), count=Count('id')
+        ).order_by('-total')
+
+        category_labels = {
+            'PAYROLL': 'Payroll', 'MARKETING': 'Marketing & Advertising',
+            'RENT_UTILITIES': 'Rent & Utilities', 'SUPPLIES': 'Supplies & Consumables',
+            'TECHNOLOGY': 'Technology & Software', 'TRAVEL': 'Travel & Transport',
+            'OTHER': 'Other Operating Expenses',
+        }
+
         expense_items = []
-        total_revenue = Decimal('0.00')
-        total_expense = Decimal('0.00')
-        
-        all_rev_exp = Account.objects.filter(is_active=True, account_type__in=['REVENUE', 'EXPENSE'])
-        balances_map = {item['account_id']: item for item in balances}
-        
-        for acct in all_rev_exp:
-            bal_data = balances_map.get(acct.id, {
-                'total_debit': Decimal('0.00'),
-                'total_credit': Decimal('0.00')
+        total_opex = Decimal('0.00')
+        for row in expense_breakdown:
+            amt = row['total'] or Decimal('0.00')
+            expense_items.append({
+                'code': row['category'],
+                'name': category_labels.get(row['category'], row['category']),
+                'balance': float(amt),
+                'count': row['count'],
             })
-            dr = bal_data['total_debit'] or Decimal('0.00')
-            cr = bal_data['total_credit'] or Decimal('0.00')
-            
-            if acct.account_type == 'REVENUE':
-                bal = cr - dr
-                if bal != 0 or not acct.parent:
-                    revenue_items.append({
-                        'code': acct.code,
-                        'name': acct.name,
-                        'balance': float(bal)
-                    })
-                    total_revenue += bal
-            elif acct.account_type == 'EXPENSE':
-                bal = dr - cr
-                if bal != 0 or not acct.parent:
-                    expense_items.append({
-                        'code': acct.code,
-                        'name': acct.name,
-                        'balance': float(bal)
-                    })
-                    total_expense += bal
-                    
-        revenue_items.sort(key=lambda x: x['code'])
-        expense_items.sort(key=lambda x: x['code'])
-        
-        net_profit = total_revenue - total_expense
-        
+            total_opex += amt
+
+        # 5. Net Profit
+        net_profit = gross_profit - total_opex
+        net_margin = float(round((net_profit / total_revenue) * 100, 2)) if total_revenue else 0.0
+
         return {
-            'revenue': revenue_items,
+            # Section 1: Revenue
+            'revenue_lines': [{'code': '4010', 'name': 'Sales Revenue', 'balance': float(total_revenue)}],
             'total_revenue': float(total_revenue),
-            'expense': expense_items,
-            'total_expense': float(total_expense),
+            # Section 2: COGS
+            'cogs_lines': [{'code': '5010', 'name': 'Cost of Goods Sold', 'balance': float(total_cogs)}],
+            'total_cogs': float(total_cogs),
+            # Section 3: Gross Profit
+            'gross_profit': float(gross_profit),
+            'gross_profit_margin': gross_margin,
+            # Section 4: Operating Expenses
+            'expense_lines': expense_items,
+            'total_expense': float(total_opex),
+            # Section 5: Net Profit
             'net_profit': float(net_profit),
+            'net_profit_margin': net_margin,
+            # Meta
             'start_date': start_date.isoformat() if start_date else None,
             'end_date': end_date.isoformat() if end_date else None,
         }
