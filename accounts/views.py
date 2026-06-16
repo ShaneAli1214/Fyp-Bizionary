@@ -494,3 +494,188 @@ def balance_sheet_report_view(request):
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# ==================== EXPENSE BUDGET ENDPOINTS ====================
+
+@api_view(['GET', 'POST'])
+def expense_budget_list(request):
+    """
+    GET  /api/accounts/budgets/         — list all budgets with actual spend
+    POST /api/accounts/budgets/         — create a new budget target
+
+    Query params (GET): year, month, quarter, category, period_type
+    """
+    from .models import ExpenseBudget
+
+    if request.method == 'GET':
+        qs = ExpenseBudget.objects.all()
+
+        # Optional filters
+        year = request.GET.get('year')
+        month = request.GET.get('month')
+        quarter = request.GET.get('quarter')
+        category = request.GET.get('category')
+        period_type = request.GET.get('period_type')
+
+        if year:
+            qs = qs.filter(year=year)
+        if month:
+            qs = qs.filter(month=month)
+        if quarter:
+            qs = qs.filter(quarter=quarter)
+        if category:
+            qs = qs.filter(category=category)
+        if period_type:
+            qs = qs.filter(period_type=period_type)
+
+        results = []
+        for budget in qs:
+            actual = float(budget.get_actual_spend())
+            budgeted = float(budget.budgeted_amount)
+            variance = budgeted - actual
+            utilization = round(actual / budgeted * 100, 1) if budgeted > 0 else 0.0
+            results.append({
+                'id': budget.id,
+                'category': budget.category,
+                'period_type': budget.period_type,
+                'year': budget.year,
+                'month': budget.month,
+                'quarter': budget.quarter,
+                'budgeted_amount': budgeted,
+                'actual_spend': actual,
+                'variance': round(variance, 2),
+                'utilization_pct': utilization,
+                'status': 'OVER' if variance < 0 else ('OK' if utilization < 90 else 'WARNING'),
+                'department': budget.department,
+                'notes': budget.notes,
+            })
+
+        return Response({'success': True, 'data': results, 'count': len(results)})
+
+    # POST — create budget
+    try:
+        data = request.data
+        budget = ExpenseBudget.objects.create(
+            category=data['category'],
+            period_type=data.get('period_type', 'MONTHLY'),
+            year=data['year'],
+            month=data.get('month'),
+            quarter=data.get('quarter'),
+            budgeted_amount=data['budgeted_amount'],
+            department=data.get('department'),
+            notes=data.get('notes', ''),
+        )
+        return Response({
+            'success': True,
+            'id': budget.id,
+            'message': f'Budget created: {budget}',
+        }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def expense_budget_detail(request, pk):
+    """
+    GET    /api/accounts/budgets/<id>/  — retrieve budget with actuals
+    PUT    /api/accounts/budgets/<id>/  — update budget amount
+    DELETE /api/accounts/budgets/<id>/  — delete budget
+    """
+    from .models import ExpenseBudget
+    budget = get_object_or_404(ExpenseBudget, pk=pk)
+
+    if request.method == 'DELETE':
+        budget.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == 'PUT':
+        try:
+            budget.budgeted_amount = request.data.get('budgeted_amount', budget.budgeted_amount)
+            budget.notes = request.data.get('notes', budget.notes)
+            budget.save()
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    actual = float(budget.get_actual_spend())
+    budgeted = float(budget.budgeted_amount)
+    variance = budgeted - actual
+    return Response({
+        'success': True,
+        'data': {
+            'id': budget.id,
+            'category': budget.category,
+            'period_type': budget.period_type,
+            'year': budget.year,
+            'month': budget.month,
+            'quarter': budget.quarter,
+            'budgeted_amount': budgeted,
+            'actual_spend': actual,
+            'variance': round(variance, 2),
+            'utilization_pct': round(actual / budgeted * 100, 1) if budgeted > 0 else 0.0,
+            'status': 'OVER' if variance < 0 else ('OK' if actual / budgeted < 0.9 else 'WARNING') if budgeted > 0 else 'OK',
+        }
+    })
+
+
+# ==================== INVOICE PAYMENT ENDPOINTS ====================
+
+@api_view(['GET', 'POST'])
+def invoice_payment_list(request, invoice_pk):
+    """
+    GET  /api/accounts/invoices/<id>/payments/  — list all payments for invoice
+    POST /api/accounts/invoices/<id>/payments/  — record a new payment
+    """
+    from .models import InvoicePayment
+    invoice = get_object_or_404(Invoice, pk=invoice_pk)
+
+    if request.method == 'GET':
+        payments = InvoicePayment.objects.filter(invoice=invoice)
+        total_paid = sum(float(p.amount_paid) for p in payments)
+        return Response({
+            'success': True,
+            'invoice_number': invoice.invoice_number,
+            'invoice_amount': float(invoice.amount),
+            'total_paid': total_paid,
+            'balance_due': float(invoice.balance_due),
+            'status': invoice.status,
+            'payments': [
+                {
+                    'id': p.id,
+                    'amount_paid': float(p.amount_paid),
+                    'payment_date': str(p.payment_date),
+                    'payment_method': p.payment_method,
+                    'reference': p.reference,
+                    'notes': p.notes,
+                }
+                for p in payments
+            ]
+        })
+
+    # POST — record a payment
+    try:
+        from decimal import Decimal
+        amount = Decimal(str(request.data['amount_paid']))
+        if amount <= 0:
+            raise ValueError("Payment amount must be positive")
+        if amount > invoice.balance_due:
+            raise ValueError(f"Payment Rs.{amount} exceeds balance due Rs.{invoice.balance_due}")
+
+        payment = InvoicePayment.objects.create(
+            invoice=invoice,
+            amount_paid=amount,
+            payment_date=request.data.get('payment_date', date.today()),
+            payment_method=request.data.get('payment_method', 'CASH'),
+            reference=request.data.get('reference', ''),
+            notes=request.data.get('notes', ''),
+        )
+        # Refresh invoice from DB (save() in InvoicePayment updates it)
+        invoice.refresh_from_db()
+        return Response({
+            'success': True,
+            'payment_id': payment.id,
+            'invoice_status': invoice.status,
+            'balance_due': float(invoice.balance_due),
+            'message': f'Payment of Rs.{amount} recorded successfully',
+        }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

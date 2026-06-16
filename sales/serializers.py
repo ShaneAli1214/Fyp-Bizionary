@@ -108,13 +108,7 @@ class SaleSerializer(serializers.ModelSerializer):
         validated_data['total_price'] = sum(Decimal(str(item.get('total_price', 0))) for item in line_items)
         validated_data['product'] = primary_product
 
-        with transaction.atomic():
-            for item in validated_data['line_items']:
-                item_product = Product.objects.get(pk=item['product'])
-                item_product.stock_quantity -= int(item.get('quantity_sold', 0))
-                item_product.save(update_fields=['stock_quantity', 'updated_at'])
-            sale = super().create(validated_data)
-        return sale
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         incoming_line_items = validated_data.pop('line_items', None)
@@ -130,26 +124,4 @@ class SaleSerializer(serializers.ModelSerializer):
         elif 'total_price' not in validated_data:
             validated_data['total_price'] = new_qty * new_unit_price
 
-        with transaction.atomic():
-            old_items = instance.line_items or [{
-                'product': instance.product_id,
-                'quantity_sold': instance.quantity_sold,
-            }]
-
-            for item in old_items:
-                old_product = Product.objects.get(pk=item['product'])
-                old_product.stock_quantity += int(item.get('quantity_sold', 0))
-                old_product.save(update_fields=['stock_quantity', 'updated_at'])
-
-            if incoming_line_items is not None:
-                for item in incoming_line_items:
-                    new_item_product = Product.objects.get(pk=item['product'])
-                    new_item_product.stock_quantity -= int(item.get('quantity_sold', 0))
-                    new_item_product.save(update_fields=['stock_quantity', 'updated_at'])
-            else:
-                new_product.stock_quantity -= new_qty
-                new_product.save(update_fields=['stock_quantity', 'updated_at'])
-
-            sale = super().update(instance, validated_data)
-
-        return sale
+        return super().update(instance, validated_data)

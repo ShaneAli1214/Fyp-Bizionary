@@ -4,6 +4,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import F
 
 from .models import Purchase, OrderedSlip, SupplierCompany
 from .serializers import PurchaseSerializer, OrderedSlipSerializer, SupplierCompanySerializer
@@ -50,9 +51,17 @@ def _apply_receipt_to_inventory(ordered_slip, new_received_quantity):
     if received_delta <= 0:
         return
 
-    product = ordered_slip.product
-    product.stock_quantity += received_delta
-    product.save(update_fields=['stock_quantity', 'updated_at'])
+    from products.models import InventoryTransaction
+    from django.utils import timezone
+    InventoryTransaction.objects.create(
+        product=ordered_slip.product,
+        txn_type=InventoryTransaction.TYPE_IN,
+        quantity=received_delta,
+        reference_type='ordered_slip',
+        reference_id=ordered_slip.id,
+        note=f'OrderedSlip #{ordered_slip.id} receipt ({received_delta} units) from {ordered_slip.company_name}',
+        date=timezone.now().date(),
+    )
 
 
 @api_view(['GET', 'POST'])

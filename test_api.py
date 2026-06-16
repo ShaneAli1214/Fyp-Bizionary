@@ -19,8 +19,8 @@ try:
     resp = requests.get(f'{api_base}dashboard/recent-sales/', timeout=5)
     print(f'Status: {resp.status_code}')
     data = resp.json()
-    print(f'Raw response keys: {list(data.keys())}')
-    if 'data' in data:
+    print(f'Raw response keys: {list(data.keys()) if isinstance(data, dict) else "list"}')
+    if isinstance(data, dict) and 'data' in data:
         print(f'Data count: {len(data["data"])}')
         if data['data']:
             print(f'First item: {json.dumps(data["data"][0], indent=2, default=str)}')

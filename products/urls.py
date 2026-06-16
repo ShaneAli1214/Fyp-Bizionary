@@ -14,6 +14,11 @@ urlpatterns = [
     # ==================== Product CRUD ====================
     path('', views.product_list, name='product-list'),
     path('<int:pk>/', views.product_detail, name='product-detail'),
+
+    # ==================== ERP Inventory Intelligence ====================
+    path('inventory-kpis/', views.inventory_kpis, name='inventory-kpis'),
+    path('reorder-suggestions/', views.reorder_suggestions, name='reorder-suggestions'),
+    path('<int:pk>/ledger/', views.inventory_ledger, name='inventory-ledger'),
 ]
 
 """

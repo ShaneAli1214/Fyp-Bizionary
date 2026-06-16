@@ -322,8 +322,12 @@ class AccountsService:
 
     @staticmethod
     def get_expenses(start_date=None, end_date=None):
-        """Expenses = SUM(Expense.amount) where SUPPLIES + non-voided."""
-        qs = Expense.objects.filter(voided=False, category='SUPPLIES')
+        """
+        Expenses = SUM(Expense.amount) for ALL non-voided expense categories.
+        Includes: Payroll, Marketing, Rent & Utilities, Supplies,
+                  Technology, Travel, Other.
+        """
+        qs = Expense.objects.filter(voided=False)
         if start_date and end_date:
             qs = qs.filter(date__range=(start_date, end_date))
         return qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
@@ -445,7 +449,7 @@ class AccountsService:
         start_date, end_date = AccountsService.get_date_filter(date_range_str)
 
         sale_qs = Sale.objects.filter(payment_status='PAID')
-        exp_qs  = Expense.objects.filter(voided=False, category='SUPPLIES')
+        exp_qs  = Expense.objects.filter(voided=False)  # ALL categories
 
         if start_date and end_date:
             sale_qs = sale_qs.filter(sale_date__range=(start_date, end_date))

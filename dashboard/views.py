@@ -22,6 +22,7 @@ from django.db.models import Sum, Count, Max, Min, F, Q, ExpressionWrapper, Deci
 from django.db.models.functions import TruncMonth, TruncDay, TruncWeek, ExtractMonth, ExtractYear
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.core.cache import cache
 from decimal import Decimal
 from datetime import timedelta, date as date_type
 
@@ -221,6 +222,11 @@ def dashboard_kpis(request):
             "low_stock_count": <dynamic_count>
         }
     """
+    cache_key = 'dashboard_kpis_all'
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return Response(cached_data, status=status.HTTP_200_OK)
+
     try:
         # Normalize decimal precision to keep serializer validation consistent.
         to_2dp = lambda value: (value or Decimal('0.00')).quantize(Decimal('0.01'))
@@ -228,23 +234,16 @@ def dashboard_kpis(request):
         # KPI 1: Total Products Count
         total_products = Product.objects.count()
 
-        # KPI 2: Total Inventory Value (sum of stock_quantity * cost_price)
-        # Using ExpressionWrapper for calculation at database level
-        inventory_value_aggregate = Product.objects.aggregate(
-            total_value=Sum(
-                ExpressionWrapper(
-                    F('stock_quantity') * F('cost_price'),
-                    output_field=DecimalField(max_digits=15, decimal_places=2)
-                )
-            )
-        )
-        total_inventory_value = to_2dp(inventory_value_aggregate['total_value'])
+        # KPI 3: Total Revenue & KPIs — delegate to AccountsService (single source of truth)
+        # AccountsService counts only PAID sales; this keeps dashboard consistent
+        # with the Accounts section P&L and KPI tiles.
+        from accounts.services import AccountsService
+        erp_kpis = AccountsService.get_kpis_with_growth()  # all-time, no date filter
+        total_revenue = to_2dp(Decimal(str(erp_kpis['total_revenue'])))
 
-        # KPI 3: Total Revenue (sum of sales.total_price)
-        revenue_aggregate = Sale.objects.aggregate(
-            total=Sum('total_price')
-        )
-        total_revenue = to_2dp(revenue_aggregate['total'])
+        # KPI 2: Total Inventory Value — fetched from AccountsService (single source of truth)
+        total_inventory_value = to_2dp(Decimal(str(erp_kpis.get('inventory_value', 0.00))))
+
 
         # KPI 5: Total Purchases Value
         purchases_aggregate = Purchase.objects.aggregate(
@@ -288,9 +287,8 @@ def dashboard_kpis(request):
         # KPI: Actual count of OrderedSlip records (purchase order slips)
         total_ordered_slips = OrderedSlip.objects.count()
 
-        paid_sales = Sale.objects.filter(payment_status='PAID').aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
         paid_invoices = BillingInvoice.objects.filter(status='PAID').aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
-        total_payments_value = to_2dp(paid_sales + paid_invoices)
+        total_payments_value = to_2dp(total_revenue + paid_invoices)
 
         # Note: Account balance removed - Screen 4 (Accounts) is independent
 
@@ -323,26 +321,18 @@ def dashboard_kpis(request):
         }
 
         # ── ERP Profitability KPIs (single source of truth via AccountsService) ──
+        # erp_kpis already fetched above — reuse it, no extra DB round-trips
         try:
-            from accounts.services import AccountsService
-            total_cogs = AccountsService.get_cogs()
-            gross_profit = AccountsService.get_gross_profit()
-            total_expenses = AccountsService.get_expenses()
-            net_profit = AccountsService.get_net_profit()
-            cf_in, cf_out, cf_net = AccountsService.get_cash_flow()
-            gross_margin = float(round((gross_profit / total_revenue * 100), 2)) if total_revenue > 0 else 0.0
-            net_margin = float(round((net_profit / total_revenue * 100), 2)) if total_revenue > 0 else 0.0
-
             kpi_data.update({
-                'total_cogs': float(total_cogs),
-                'gross_profit': float(gross_profit),
-                'gross_profit_margin': gross_margin,
-                'total_expenses': float(total_expenses),
-                'net_profit': float(net_profit),
-                'net_profit_margin': net_margin,
-                'cash_inflow': float(cf_in),
-                'cash_outflow': float(cf_out),
-                'net_cash_flow': float(cf_net),
+                'total_cogs': erp_kpis['total_cogs'],
+                'gross_profit': erp_kpis['gross_profit'],
+                'gross_profit_margin': erp_kpis['gross_profit_margin'],
+                'total_expenses': erp_kpis.get('total_expense', 0),
+                'net_profit': erp_kpis['net_profit'],
+                'net_profit_margin': erp_kpis['net_profit_margin'],
+                'cash_inflow': erp_kpis['cash_inflow'],
+                'cash_outflow': erp_kpis['cash_outflow'],
+                'net_cash_flow': erp_kpis['cash_flow'],
             })
         except Exception as prof_err:
             pass  # Profitability fields remain at default 0 if service fails
@@ -350,6 +340,7 @@ def dashboard_kpis(request):
 
         serializer = DashboardKPISerializer(data=kpi_data)
         if serializer.is_valid():
+            cache.set(cache_key, serializer.data, timeout=300)  # 5 minutes TTL
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

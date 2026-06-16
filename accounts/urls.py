@@ -45,6 +45,13 @@ urlpatterns = [
     path('chart-tree/', views.chart_of_accounts_tree_view, name='chart-tree'),
     path('reports/profit-loss/', views.profit_loss_report_view, name='report-profit-loss'),
     path('reports/balance-sheet/', views.balance_sheet_report_view, name='report-balance-sheet'),
+
+    # ==================== Expense Budget (Budget vs Actual) ====================
+    path('budgets/', views.expense_budget_list, name='budget-list'),
+    path('budgets/<int:pk>/', views.expense_budget_detail, name='budget-detail'),
+
+    # ==================== Invoice Payments ====================
+    path('invoices/<int:invoice_pk>/payments/', views.invoice_payment_list, name='invoice-payments'),
 ]
 
 """

@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.db.models import F
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 import csv, io
@@ -41,20 +42,7 @@ def sale_detail(request, pk):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    with transaction.atomic():
-        if sale.line_items:
-            for item in sale.line_items:
-                product_id = item.get('product')
-                if not product_id:
-                    continue
-                product = Product.objects.get(pk=product_id)
-                product.stock_quantity += int(item.get('quantity_sold', 0))
-                product.save(update_fields=['stock_quantity', 'updated_at'])
-        else:
-            product = sale.product
-            product.stock_quantity += sale.quantity_sold
-            product.save(update_fields=['stock_quantity', 'updated_at'])
-        sale.delete()
+    sale.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -222,12 +210,7 @@ def bulk_upload_sales(request):
             try:
                 product = data.pop('product')
                 sale = Sale(product=product, **data)
-                # Save individually — signals will fire for each
                 sale.save()
-                # Update product stock (deduct sold qty)
-                Product.objects.filter(pk=product.pk).update(
-                    stock_quantity=product.stock_quantity - data['quantity_sold']
-                )
                 created_sales.append({
                     'row': i,
                     'sale_id': sale.id,

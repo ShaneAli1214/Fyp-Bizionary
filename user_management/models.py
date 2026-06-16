@@ -65,9 +65,13 @@ class Role(models.Model):
         default='STAFF'
     )
     description = models.TextField(blank=True, null=True)
-    permissions_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def permissions_count(self):
+        from .models import Permission
+        return Permission.objects.filter(user__role=self).count()
 
     class Meta:
         db_table = 'user_mgmt_role'

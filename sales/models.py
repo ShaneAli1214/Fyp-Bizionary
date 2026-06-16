@@ -92,3 +92,49 @@ class Sale(models.Model):
             self.unit_cost_price = self.product.cost_price
             
         super().save(*args, **kwargs)
+
+
+class SaleReturn(models.Model):
+    """
+    Sales Return transaction model
+    """
+    sale = models.ForeignKey(
+        Sale,
+        on_delete=models.PROTECT,
+        related_name='returns'
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name='returns'
+    )
+    quantity_returned = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    refund_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    return_date = models.DateField()
+    reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sales_returns'
+        ordering = ['-return_date', '-created_at']
+        indexes = [
+            models.Index(fields=['return_date']),
+            models.Index(fields=['sale']),
+            models.Index(fields=['product']),
+        ]
+
+    def __str__(self):
+        return f"Return #{self.id} for Sale #{self.sale.id} - {self.product.name} - Rs.{self.refund_amount}"
+
+    def save(self, *args, **kwargs):
+        if not self.refund_amount:
+            # Default to refunding the unit price paid in the sale
+            self.refund_amount = self.quantity_returned * self.sale.unit_price
+        super().save(*args, **kwargs)

@@ -162,3 +162,46 @@ class OrderedSlip(models.Model):
     @property
     def is_complete(self):
         return self.status == self.STATUS_COMPLETED
+
+
+class PurchaseLineItem(models.Model):
+    """
+    Line item for a Purchase Order (procurement receipt)
+    """
+    purchase = models.ForeignKey(
+        Purchase,
+        on_delete=models.CASCADE,
+        related_name='line_items'
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name='purchase_line_items'
+    )
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    unit_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    total_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'purchase_line_items'
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.quantity} × {self.product.name} @ Rs.{self.unit_cost}"
+
+    def save(self, *args, **kwargs):
+        if not self.total_cost:
+            self.total_cost = self.quantity * self.unit_cost
+        super().save(*args, **kwargs)

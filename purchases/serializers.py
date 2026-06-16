@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Purchase, OrderedSlip, SupplierCompany
+from django.db import transaction
+from decimal import Decimal
+from products.models import Product
+from .models import Purchase, OrderedSlip, SupplierCompany, PurchaseLineItem
 from .company_mapping import company_for_category
 
 
@@ -21,11 +24,30 @@ class SupplierCompanySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 
+class PurchaseLineItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_code = serializers.CharField(source='product.sku', read_only=True)
+
+    class Meta:
+        model = PurchaseLineItem
+        fields = (
+            'id',
+            'product',
+            'product_name',
+            'product_code',
+            'quantity',
+            'unit_cost',
+            'total_cost',
+        )
+        read_only_fields = ('id', 'total_cost')
+
+
 class PurchaseSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_code = serializers.CharField(source='product.sku', read_only=True)
     product_category = serializers.CharField(source='product.category', read_only=True)
     current_unit_price = serializers.DecimalField(source='product.unit_price', read_only=True, max_digits=10, decimal_places=2)
+    line_items = PurchaseLineItemSerializer(many=True, required=False)
 
     class Meta:
         model = Purchase
@@ -43,10 +65,17 @@ class PurchaseSerializer(serializers.ModelSerializer):
             'purchase_date',
             'payment_status',
             'notes',
+            'line_items',
             'created_at',
             'updated_at',
         )
         read_only_fields = ('id', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'product': {'required': False, 'allow_null': True},
+            'quantity_purchased': {'required': False},
+            'unit_cost': {'required': False},
+            'total_cost': {'required': False},
+        }
 
     def _assign_company(self, validated_data, instance=None):
         product = validated_data.get('product', getattr(instance, 'product', None))
@@ -55,20 +84,65 @@ class PurchaseSerializer(serializers.ModelSerializer):
         return validated_data
 
     def create(self, validated_data):
+        line_items_data = validated_data.pop('line_items', [])
         validated_data = self._assign_company(validated_data)
-        if not validated_data.get('total_cost'):
-            quantity = validated_data.get('quantity_purchased', 0)
-            unit_cost = validated_data.get('unit_cost', 0)
-            validated_data['total_cost'] = quantity * unit_cost
-        return super().create(validated_data)
+
+        if line_items_data:
+            # Multi-line purchase order
+            primary_product = Product.objects.get(pk=line_items_data[0]['product'].id)
+            total_qty = sum(int(item.get('quantity', 0)) for item in line_items_data)
+            total_cost = sum(Decimal(str(item.get('quantity', 0))) * Decimal(str(item.get('unit_cost', 0))) for item in line_items_data)
+            
+            validated_data['product'] = primary_product
+            validated_data['quantity_purchased'] = total_qty
+            validated_data['unit_cost'] = Decimal(str(line_items_data[0]['unit_cost']))
+            validated_data['total_cost'] = total_cost
+
+            with transaction.atomic():
+                purchase = Purchase(**validated_data)
+                purchase._is_multiline = True
+                purchase.save()
+
+                for item_data in line_items_data:
+                    PurchaseLineItem.objects.create(purchase=purchase, **item_data)
+            return purchase
+        else:
+            if not validated_data.get('total_cost'):
+                quantity = validated_data.get('quantity_purchased', 0)
+                unit_cost = validated_data.get('unit_cost', 0)
+                validated_data['total_cost'] = quantity * unit_cost
+            return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        line_items_data = validated_data.pop('line_items', None)
         validated_data = self._assign_company(validated_data, instance=instance)
-        if 'total_cost' not in validated_data:
-            quantity = validated_data.get('quantity_purchased', instance.quantity_purchased)
-            unit_cost = validated_data.get('unit_cost', instance.unit_cost)
-            validated_data['total_cost'] = quantity * unit_cost
-        return super().update(instance, validated_data)
+
+        if line_items_data is not None:
+            primary_product = Product.objects.get(pk=line_items_data[0]['product'].id)
+            total_qty = sum(int(item.get('quantity', 0)) for item in line_items_data)
+            total_cost = sum(Decimal(str(item.get('quantity', 0))) * Decimal(str(item.get('unit_cost', 0))) for item in line_items_data)
+            
+            validated_data['product'] = primary_product
+            validated_data['quantity_purchased'] = total_qty
+            validated_data['unit_cost'] = Decimal(str(line_items_data[0]['unit_cost']))
+            validated_data['total_cost'] = total_cost
+
+            with transaction.atomic():
+                instance._is_multiline = True
+                for attr, value in validated_data.items():
+                    setattr(instance, attr, value)
+                instance.save()
+
+                instance.line_items.all().delete()
+                for item_data in line_items_data:
+                    PurchaseLineItem.objects.create(purchase=instance, **item_data)
+            return instance
+        else:
+            if 'total_cost' not in validated_data:
+                quantity = validated_data.get('quantity_purchased', instance.quantity_purchased)
+                unit_cost = validated_data.get('unit_cost', instance.unit_cost)
+                validated_data['total_cost'] = quantity * unit_cost
+            return super().update(instance, validated_data)
 
 
 class OrderedSlipSerializer(serializers.ModelSerializer):

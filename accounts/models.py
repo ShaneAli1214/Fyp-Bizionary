@@ -422,3 +422,182 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"[{self.action}] {self.entity_type}#{self.entity_id} at {self.timestamp}"
+
+
+class ExpenseBudget(models.Model):
+    """
+    Budget vs Actual tracking per expense category.
+    'actual_spend' is always computed dynamically from the Expense table —
+    never stored — to maintain the ERP principle of not duplicating data.
+    """
+    PERIOD_CHOICES = [
+        ('MONTHLY', 'Monthly'),
+        ('QUARTERLY', 'Quarterly'),
+        ('ANNUAL', 'Annual'),
+    ]
+
+    CATEGORY_CHOICES = [
+        ('PAYROLL', 'Payroll'),
+        ('MARKETING', 'Marketing'),
+        ('RENT_UTILITIES', 'Rent & Utilities'),
+        ('SUPPLIES', 'Supplies'),
+        ('TECHNOLOGY', 'Technology'),
+        ('TRAVEL', 'Travel'),
+        ('OTHER', 'Other'),
+        ('ALL', 'All Categories (Total)'),
+    ]
+
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        help_text="Expense category this budget applies to"
+    )
+    period_type = models.CharField(
+        max_length=20,
+        choices=PERIOD_CHOICES,
+        default='MONTHLY',
+        help_text="Budget period type"
+    )
+    year = models.IntegerField(help_text="Budget year (e.g. 2026)")
+    month = models.IntegerField(
+        null=True, blank=True,
+        help_text="Budget month (1-12). Null for quarterly/annual budgets."
+    )
+    quarter = models.IntegerField(
+        null=True, blank=True,
+        help_text="Budget quarter (1-4). Null for monthly/annual budgets."
+    )
+    budgeted_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        help_text="Planned budget for this period"
+    )
+    department = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Optional: restrict budget to a specific department"
+    )
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'expense_budgets'
+        ordering = ['-year', '-month', 'category']
+        unique_together = ['category', 'period_type', 'year', 'month', 'quarter', 'department']
+        indexes = [
+            models.Index(fields=['year', 'month', 'category']),
+            models.Index(fields=['year', 'quarter', 'category']),
+        ]
+        verbose_name = 'Expense Budget'
+        verbose_name_plural = 'Expense Budgets'
+
+    def get_actual_spend(self):
+        """
+        Actual spend = SUM(Expense.amount) for this category+period,
+        computed dynamically. Never stored.
+        """
+        from datetime import date
+        qs = Expense.objects.filter(voided=False)
+        if self.category != 'ALL':
+            qs = qs.filter(category=self.category)
+        if self.period_type == 'MONTHLY' and self.month:
+            qs = qs.filter(date__year=self.year, date__month=self.month)
+        elif self.period_type == 'QUARTERLY' and self.quarter:
+            start_month = (self.quarter - 1) * 3 + 1
+            end_month = start_month + 2
+            qs = qs.filter(date__year=self.year, date__month__gte=start_month, date__month__lte=end_month)
+        elif self.period_type == 'ANNUAL':
+            qs = qs.filter(date__year=self.year)
+        return qs.aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+    @property
+    def variance(self):
+        """Variance = Budgeted - Actual. Positive = under budget."""
+        return self.budgeted_amount - self.get_actual_spend()
+
+    @property
+    def utilization_pct(self):
+        """Percentage of budget consumed."""
+        if not self.budgeted_amount:
+            return 0.0
+        return float(round(self.get_actual_spend() / self.budgeted_amount * 100, 1))
+
+    def __str__(self):
+        period = f"{self.year}"
+        if self.month:
+            period += f"-{self.month:02d}"
+        elif self.quarter:
+            period += f"-Q{self.quarter}"
+        return f"Budget: {self.category} {period} = Rs.{self.budgeted_amount}"
+
+
+class InvoicePayment(models.Model):
+    """
+    Individual payment instalments against an Invoice.
+    Enables proper AR tracking and partial payment support.
+    Invoice.balance_due should be computed from this table,
+    not stored as a mutable field.
+    """
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+        ('CARD', 'Card'),
+        ('CHEQUE', 'Cheque'),
+        ('OTHER', 'Other'),
+    ]
+
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name='payments',
+        help_text="Invoice this payment is against"
+    )
+    amount_paid = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Amount paid in this instalment"
+    )
+    payment_date = models.DateField(help_text="Date payment was received")
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        default='CASH'
+    )
+    reference = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Bank reference, cheque number, etc."
+    )
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'invoice_payments'
+        ordering = ['-payment_date', '-created_at']
+        indexes = [
+            models.Index(fields=['invoice', '-payment_date']),
+        ]
+        verbose_name = 'Invoice Payment'
+        verbose_name_plural = 'Invoice Payments'
+
+    def __str__(self):
+        return f"Payment of Rs.{self.amount_paid} for {self.invoice.invoice_number} on {self.payment_date}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Automatically update invoice status and balance_due after payment
+        invoice = self.invoice
+        total_paid = invoice.payments.aggregate(
+            total=models.Sum('amount_paid')
+        )['total'] or Decimal('0.00')
+        invoice.balance_due = max(Decimal('0.00'), invoice.amount - total_paid)
+        if invoice.balance_due == Decimal('0.00'):
+            invoice.status = 'PAID'
+        elif total_paid > Decimal('0.00'):
+            invoice.status = 'PENDING'
+        invoice.save(update_fields=['balance_due', 'status', 'updated_at'])
