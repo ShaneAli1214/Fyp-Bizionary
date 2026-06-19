@@ -215,6 +215,129 @@ sequenceDiagram
     UI-->>User: Render text & navigation links
 ```
 
+#### 2.6.3 User Authentication & Role-Based Access Control Flow
+The sequence diagram below displays the user authentication process and the role validation steps during API routing:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Staff as Staff User
+    participant UI as React SPA (Vite)
+    participant Auth as Auth Router
+    participant DB as SQLite DB
+    participant RBAC as Permission Middleware
+    participant Page as Admin Portal
+
+    Staff->>UI: Input credentials (username, password)
+    UI->>Auth: POST /api/user-management/login/ {username, password}
+    activate Auth
+    Auth->>DB: Query ERPUser matching username
+    DB-->>Auth: Return user record & hashed password
+    Auth->>Auth: Verify password match
+    Auth-->>UI: Return JWT Token & User Profile (Role: MANAGER)
+    deactivate Auth
+    
+    UI->>UI: Store Token in Context & sessionStorage
+    Staff->>UI: Click "Manage Users" Link
+    UI->>RBAC: GET /api/user-management/users/ (Bearer Token)
+    activate RBAC
+    RBAC->>DB: Verify Token & check permission level
+    Note over RBAC, DB: Verify user has active ADMIN or MANAGER permission
+    DB-->>RBAC: Return authorized role settings
+    RBAC-->>UI: Return list of users (HTTP 200 OK)
+    deactivate RBAC
+    UI-->>Staff: Render User list dashboard
+```
+
+#### 2.6.4 Double-Entry Ledger Posting Flow
+The sequence diagram below displays the accounting transaction posting logic when a customer records a payment against a pending invoice:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Accountant as Accountant User
+    participant UI as React Accounts Page
+    participant View as Invoice View
+    participant Service as Accounting Service
+    participant DB as SQLite DB
+    participant Ledger as Ledger Accounts
+
+    Accountant->>UI: Record payment on invoice (Rs. 50,000)
+    UI->>View: POST /api/accounts/invoice-payments/ {invoice_id, amount: 50000}
+    activate View
+    View->>DB: Query Invoice balance_due & total
+    DB-->>View: Return Invoice details
+    View->>Service: post_double_entry_payment(invoice, amount)
+    activate Service
+    
+    Service->>DB: Create JournalEntry ("Payment received against Invoice X")
+    activate DB
+    DB-->>Service: Return JournalEntry instance
+    deactivate DB
+    
+    Note over Service, Ledger: Post balancing entries (Debit Cash, Credit Receivables)
+    Service->>DB: Create JournalItem (Account: "Cash", Debit: 50000, Credit: 0)
+    Service->>DB: Create JournalItem (Account: "Accounts Receivable", Debit: 0, Credit: 50000)
+    
+    Service->>DB: Create CashTransaction (txn_type='IN', amount=50000, source='invoice')
+    
+    Service->>DB: Update Invoice status and balance_due
+    Service-->>View: Confirm posting balanced transaction
+    deactivate Service
+    
+    View-->>UI: HTTP 201 Created {status: "PAID", balance_due: 0}
+    deactivate View
+    UI-->>Accountant: Refresh ledger grid & show success toast
+```
+
+#### 2.6.5 Procurement Ordered Slip Lifecycle
+The sequence diagram below displays the lifecycle of a supplier purchase request slip from initial generation to final inventory receiving:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Buyer as Procurement Manager
+    participant UI as React Stock Portal
+    participant View as OrderedSlip View
+    participant Mail as Email Mailer Service
+    participant DB as Database (SQLite)
+    participant Supplier as Supplier Company
+
+    Buyer->>UI: Fill order form (Product: Refrigerator, Qty: 20)
+    UI->>View: POST /api/purchases/ordered-slips/ {product_id, quantity: 20}
+    activate View
+    View->>DB: Save OrderedSlip (Status: PENDING, due_date: creation + 2 days)
+    activate DB
+    DB-->>View: Return OrderedSlip instance
+    deactivate DB
+    
+    View->>Mail: send_procurement_email(slip_id)
+    activate Mail
+    Mail->>Supplier: Send Email (Details: product, quantity, unit_cost)
+    Supplier-->>Mail: SMTP 250 OK (Received)
+    Mail->>DB: Update OrderedSlip (email_status='SENT', email_sent_at=now)
+    Mail-->>View: Email sent successfully
+    deactivate Mail
+    
+    View-->>UI: HTTP 201 Created {slip_id, status: 'PENDING'}
+    deactivate View
+    UI-->>Buyer: Show "Order slip sent to supplier"
+    
+    Note over Buyer, Supplier: Stock arrives at warehouse 2 days later
+    Buyer->>UI: Enter stock receipt (Received Qty: 20)
+    UI->>View: POST /api/purchases/ordered-slips/{id}/receive/ {received_qty: 20}
+    activate View
+    View->>DB: Update OrderedSlip (status: COMPLETED, quantity_received: 20)
+    
+    Note over View, DB: Signals trigger inventory adjustment automatically
+    View->>DB: Create InventoryTransaction (txn_type: 'IN', qty: 20, source: 'ordered_slip')
+    View->>DB: Create Purchase record (to track financial payable)
+    
+    View-->>UI: HTTP 200 OK {status: 'COMPLETED'}
+    deactivate View
+    UI-->>Buyer: Display updated stock levels and closed slip
+```
+
 ### 2.7 Request/Response Lifecycle
 1.  **Action Trigger:** User triggers an event (e.g., records an expense).
 2.  **API Call:** React component constructs a request payload and sends it via Axios: `POST /api/accounts/expenses/`.
