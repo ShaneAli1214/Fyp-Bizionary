@@ -865,24 +865,11 @@ def reset_system(request):
             )
             product_map[product_data['sku']] = product
 
-        # 4. Seed sales
-        from product_catalog.master_data import SALES_DATA
-        for sale_data in SALES_DATA:
-            product = product_map.get(sale_data['product_sku'])
-            if product:
-                total_price = (sale_data['quantity_sold'] * sale_data['unit_price']) - sale_data['discount']
-                Sale.objects.create(
-                    product=product,
-                    customer_name=sale_data['customer_name'],
-                    quantity_sold=sale_data['quantity_sold'],
-                    unit_price=sale_data['unit_price'],
-                    total_price=total_price,
-                    discount=sale_data['discount'],
-                    payment_method=sale_data['payment_method'],
-                    payment_status=sale_data['payment_status'],
-                    sale_date=datetime.strptime(sale_data['sale_date'], '%Y-%m-%d').date(),
-                    notes=f"Real data sales transaction for {product.name}"
-                )
+        # 4. Seed sales dynamically from Excel files in output/
+        from sales.services import SalesImportService
+        sync_result = SalesImportService.sync_monthly_sales_files(force=True)
+        if not sync_result['success']:
+            raise Exception(f"Failed to sync sales files: {sync_result.get('error')}")
 
         # 5. Seed invoices (billing app)
         from product_catalog.master_data import INVOICES_DATA
@@ -1036,8 +1023,19 @@ def sales_by_period(request):
             x_axis_type = 'month'
             x_axis_label = 'Months'
         else:  # monthly
-            # Group sales for the month containing the latest sale
-            start_date = latest_date.replace(day=1)
+            # Check if a specific month is requested (format: YYYY-MM)
+            month_param = request.query_params.get('month', '')
+            if month_param and '-' in month_param:
+                try:
+                    parts = month_param.split('-')
+                    year_val = int(parts[0])
+                    month_val = int(parts[1])
+                    start_date = date_type(year_val, month_val, 1)
+                except ValueError:
+                    start_date = latest_date.replace(day=1)
+            else:
+                start_date = latest_date.replace(day=1)
+                
             # Get last day of month
             if start_date.month == 12:
                 next_month = start_date.replace(year=start_date.year + 1, month=1, day=1)
@@ -1049,7 +1047,7 @@ def sales_by_period(request):
             for label in labels:
                 chart_points.append({'period': label})
             date_context = f"{start_date.strftime('%B %d')} - {end_date.strftime('%B %d, %Y')}"
-            period_label = 'Monthly'
+            period_label = f"Monthly ({start_date.strftime('%B %Y')})"
             x_axis_type = 'week'
             x_axis_label = 'Weeks of the month'
             
@@ -1064,20 +1062,16 @@ def sales_by_period(request):
             'Electronics & Applications': 'electronics_appliances',
             'Grocery & Food Items': 'grocery_food_items',
             'Clothing & Textiles': 'clothing_textiles',
-            'Construction & Hardware': 'construction_hardware',
             'Pharmaceuticals & Health': 'pharmaceuticals_health',
             'Stationery & Office Supplies': 'stationery_office_supplies',
-            'Automobiles & Accessories': 'automobiles_accessories',
         }
         
         CATEGORY_COLORS = {
             'electronics_appliances': '#0A6ED1',
             'grocery_food_items': '#06B6D4',
             'clothing_textiles': '#8B5CF6',
-            'construction_hardware': '#F59E0B',
             'pharmaceuticals_health': '#16A34A',
             'stationery_office_supplies': '#F97316',
-            'automobiles_accessories': '#EF4444',
         }
         
         def get_category_info(cat_name):
@@ -1265,6 +1259,30 @@ def sales_by_period(request):
                     'products': []
                 })
                 
+        # Get list of unique available months in database
+        available_months = []
+        try:
+            unique_months_qs = Sale.objects.annotate(
+                month_date=TruncMonth('sale_date')
+            ).values('month_date').annotate(
+                count=Count('id')
+            ).order_by('-month_date')
+            
+            seen_months = set()
+            for item in unique_months_qs:
+                m_date = item['month_date']
+                if not m_date:
+                    continue
+                key = m_date.strftime('%Y-%m')
+                if key not in seen_months:
+                    seen_months.add(key)
+                    available_months.append({
+                        'key': key,
+                        'label': m_date.strftime('%B %Y')
+                    })
+        except Exception:
+            available_months = []
+
         response_data = {
             'period': period,
             'periodLabel': period_label,
@@ -1275,7 +1293,8 @@ def sales_by_period(request):
             'totalProfit': float(total_profit),
             'totalQuantity': total_quantity,
             'categories': formatted_categories,
-            'chartData': formatted_chart_data
+            'chartData': formatted_chart_data,
+            'availableMonths': available_months
         }
         
         return Response(response_data, status=status.HTTP_200_OK)

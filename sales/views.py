@@ -243,3 +243,28 @@ def bulk_upload_sales(request):
         },
         'created_sales': created_sales,
     }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def sync_excel_sales(request):
+    """
+    POST /api/sales/sync-excel/
+    Triggers dynamic scan and import of monthly sales Excel files.
+    Accepts: { "force": true } in JSON body (optional)
+    """
+    try:
+        force = request.data.get('force', False)
+        # Handle string 'true' or 'True' too
+        if isinstance(force, str):
+            force = force.lower() == 'true'
+            
+        from .services import SalesImportService
+        result = SalesImportService.sync_monthly_sales_files(force=force)
+        
+        if not result['success']:
+            return Response({'error': result.get('error')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': f"Failed to sync sales files: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

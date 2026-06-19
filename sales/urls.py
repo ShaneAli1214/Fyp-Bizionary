@@ -18,6 +18,7 @@ urlpatterns = [
     # ==================== Bulk Upload ====================
     # POST /api/sales/bulk-upload/   — JSON or CSV
     path('bulk-upload/', views.bulk_upload_sales, name='bulk-upload'),
+    path('sync-excel/', views.sync_excel_sales, name='sync-excel'),
 ]
 
 """

@@ -21,10 +21,8 @@ const CATEGORY_COLORS = {
     electronics_appliances: '#0A6ED1',
     grocery_food_items: '#06B6D4',
     clothing_textiles: '#8B5CF6',
-    construction_hardware: '#F59E0B',
     pharmaceuticals_health: '#16A34A',
     stationery_office_supplies: '#F97316',
-    automobiles_accessories: '#EF4444',
 };
 
 const normalizeKey = (name) => name.toLowerCase();

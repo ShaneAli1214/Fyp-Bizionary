@@ -13,7 +13,16 @@ import OrderSlipForm from '../ordered-slips/OrderSlipForm';
 const Dashboard = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const { periodOptions, selectedPeriod, setSelectedPeriod, selectedData, loading: insightsLoading } = useSalesInsights();
+    const { 
+        periodOptions, 
+        selectedPeriod, 
+        setSelectedPeriod, 
+        selectedMonth,
+        setSelectedMonth,
+        selectedData, 
+        loading: insightsLoading,
+        refresh: refreshInsights
+    } = useSalesInsights();
     
     // KPI state
     const [kpis, setKpis] = useState({
@@ -51,6 +60,7 @@ const Dashboard = () => {
     const [orderSlipSuccess, setOrderSlipSuccess] = useState('');
 
     const [actionMessage, setActionMessage] = useState({ type: '', text: '' });
+    const [syncing, setSyncing] = useState(false);
 
     // Revenue period filter state
     const REVENUE_PERIODS = [
@@ -202,6 +212,27 @@ const Dashboard = () => {
             showActionMessage('error', 'Reset failed: Server error.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Sync Sales Files Handler
+    const handleSyncSalesFiles = async () => {
+        setSyncing(true);
+        showActionMessage('info', 'Syncing monthly sales Excel files from output folder...');
+        try {
+            const res = await api.post('sales/sync-excel/', { force: true });
+            if (res.data?.success) {
+                const total = res.data.total_created;
+                showActionMessage('success', `Excel sales files synced successfully! Imported ${total} sales transactions.`);
+                fetchKPIs();
+                refreshInsights();
+            } else {
+                showActionMessage('error', 'Sync failed: ' + (res.data?.error || 'Unknown error'));
+            }
+        } catch (error) {
+            showActionMessage('error', 'Sync failed: Server error.');
+        } finally {
+            setSyncing(false);
         }
     };
 
@@ -399,6 +430,16 @@ const Dashboard = () => {
                     >
                         Reset System
                     </button>
+
+                    {/* Sync Sales Files */}
+                    <button
+                        onClick={handleSyncSalesFiles}
+                        disabled={syncing}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                    >
+                        {syncing && <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin inline-block" />}
+                        {syncing ? 'Syncing...' : 'Sync Sales Files'}
+                    </button>
                 </div>
             </div>
 
@@ -409,20 +450,38 @@ const Dashboard = () => {
                         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Sales Performance Insights</h3>
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Visual representation of real-time sales & category statistics.</p>
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        <span>Show:</span>
-                        <select
-                            value={selectedPeriod}
-                            onChange={(e) => setSelectedPeriod(e.target.value)}
-                            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-                        >
-                        {periodOptions?.map((opt) => (
-                            <option key={opt.key} value={opt.key}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {selectedPeriod === 'monthly' && selectedData?.availableMonths && selectedData.availableMonths.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                                <span>Month:</span>
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                                >
+                                    {selectedData.availableMonths.map((m) => (
+                                        <option key={m.key} value={m.key}>
+                                            {m.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-1.5">
+                            <span>Period:</span>
+                            <select
+                                value={selectedPeriod}
+                                onChange={(e) => setSelectedPeriod(e.target.value)}
+                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                            >
+                                {periodOptions?.map((opt) => (
+                                    <option key={opt.key} value={opt.key}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 {insightsLoading || !selectedData ? (
                     <div className="h-[340px] flex flex-col items-center justify-center space-y-3">

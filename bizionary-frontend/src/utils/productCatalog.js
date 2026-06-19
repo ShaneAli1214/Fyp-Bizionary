@@ -188,65 +188,6 @@ export const PRODUCT_CATALOG = [
         ],
     },
     {
-        value: 'Construction',
-        label: 'Construction & Hardware',
-        subcategories: [
-            {
-                value: 'Cement & Building Materials',
-                products: [
-                    'DG Khan Cement 50kg',
-                    'Lucky Cement 50kg',
-                    'Maple Leaf Cement 50kg',
-                    'Red Brick (per 1000)',
-                    'Block 6 inch (per piece)',
-                    'River Sand per cubic ft',
-                    'Crush Stone per cubic ft',
-                    'Steel Rod 10mm per kg',
-                ],
-            },
-            {
-                value: 'Paints & Finishes',
-                products: [
-                    'ICI Dulux Weathershield 4L',
-                    'ICI Dulux Interior 4L',
-                    'Berger WeatherCoat 4L',
-                    'Nippon Paint 4L',
-                    'Wall Putty 20kg',
-                    'Primer 4L',
-                    'Enamel Paint 1L',
-                ],
-            },
-            {
-                value: 'Plumbing & Electrical',
-                products: [
-                    'CPVC Pipe 1/2 inch',
-                    'CPVC Pipe 3/4 inch',
-                    'Ball Valve 1/2 inch',
-                    'Water Pump 0.5HP',
-                    'Electric Wire 2.5mm (per m)',
-                    'Electric Wire 4mm (per m)',
-                    'MCB 20A Single',
-                    'LED Downlight 7W',
-                    'LED Bulb 12W',
-                    'Fan Ceiling 56"',
-                ],
-            },
-            {
-                value: 'Tools & Hardware',
-                products: [
-                    'Stanley Hammer',
-                    'Drill Machine 13mm',
-                    'Measuring Tape 5m',
-                    'Screw Set 100pcs',
-                    'Wrench Set 8pcs',
-                    'Paint Brush Set 5pcs',
-                    'Safety Gloves',
-                    'Safety Helmet',
-                ],
-            },
-        ],
-    },
-    {
         value: 'Medicines',
         label: 'Pharmaceuticals & Health',
         subcategories: [
@@ -335,47 +276,6 @@ export const PRODUCT_CATALOG = [
                     'Binder Clip 25mm Box',
                     'Whiteboard Marker Set 4',
                     'Calculator Scientific',
-                ],
-            },
-        ],
-    },
-    {
-        value: 'Automobiles & Accessories',
-        label: 'Automobiles & Accessories',
-        subcategories: [
-            {
-                value: 'Engine & Maintenance',
-                products: [
-                    'Castrol GTX 5W-30 4L',
-                    'Shell Helix 10W-40 4L',
-                    'Total Quartz 5W-40 4L',
-                    'NGK Spark Plug Set 4',
-                    'Bosch Oil Filter',
-                    'Air Filter Toyota Corolla',
-                    'Coolant 1L',
-                    'Brake Fluid DOT4 500ml',
-                ],
-            },
-            {
-                value: 'Tyres & Batteries',
-                products: [
-                    'General Tyre 175/70 R13',
-                    'Bridgestone 195/65 R15',
-                    'Volta Battery 55Ah',
-                    'Exide Battery 65Ah',
-                    'AGS Battery 40Ah',
-                ],
-            },
-            {
-                value: 'Car Accessories',
-                products: [
-                    'Car Floor Mat Set 5pc',
-                    'Car Seat Cover Full Set',
-                    'Car Charger USB Dual',
-                    'Air Freshener',
-                    'Windshield Wipers Set',
-                    'Parking Sensor Kit',
-                    'Dashcam 1080p',
                 ],
             },
         ],
