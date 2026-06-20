@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ResponsiveContainer, ComposedChart, Bar, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import api from '../../services/api';
 import { formatPKR } from '../../utils/currency';
 import { formatDayLabel } from '../../utils/chartDates';
@@ -19,20 +19,32 @@ const formatCompactPKR = (value) => {
   return `Rs ${amount}`;
 };
 
+const CustomActiveDot = (props) => {
+  const { cx, cy } = props;
+  return (
+    <g>
+      {/* Outer pulsing ring */}
+      <circle cx={cx} cy={cy} r={8} fill="#4f46e5" opacity={0.3} className="animate-ping" />
+      {/* Inner solid white-bordered dot */}
+      <circle cx={cx} cy={cy} r={4.5} fill="#4f46e5" stroke="#ffffff" strokeWidth={1.5} />
+    </g>
+  );
+};
+
 const SalesTooltip = ({ active, payload, label }) => {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
-      <div className="mb-3 text-sm font-semibold text-slate-900">{label}</div>
-      <div className="space-y-2">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/95 backdrop-blur-md p-3.5 shadow-2xl text-white min-w-[200px] animate-in fade-in zoom-in-95 duration-100">
+      <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{label}</div>
+      <div className="space-y-1.5">
         {payload.map((item) => (
-          <div key={item.name} className="flex items-center justify-between gap-3 text-slate-700">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color || '#0A6ED1' }} />
+          <div key={item.name} className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || '#4f46e5' }} />
               <span>{item.name}</span>
             </div>
-            <span className="font-semibold text-slate-900">{formatPKR(item.value)}</span>
+            <span className="font-mono text-sm font-bold text-white">{formatPKR(item.value)}</span>
           </div>
         ))}
       </div>
@@ -77,7 +89,7 @@ const SalesCharts = ({ className }) => {
     };
   }, []);
 
-  if (loading) return <div className="h-64 flex items-center justify-center">Loading charts...</div>;
+  if (loading) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">Loading charts...</div>;
   if (!dailyPerformance || dailyPerformance.length === 0) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">No last 30 days sales data</div>;
 
   const compData = dailyPerformance.map((row, idx) => {
@@ -91,26 +103,50 @@ const SalesCharts = ({ className }) => {
 
   return (
     <div className={className}>
-      <div className="mb-3 text-sm font-semibold text-textMain">Sales Performance — Last 30 Days</div>
-      <ResponsiveContainer width="100%" height={360}>
-        <ComposedChart data={compData} margin={{ top: 10, right: 12, left: 0, bottom: 28 }}>
-          <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e6eef8" />
+      <div className="mb-4 text-sm font-bold text-textMain tracking-tight">Sales Performance — Last 30 Days</div>
+      <ResponsiveContainer width="100%" height={350}>
+        <ComposedChart data={compData} margin={{ top: 10, right: 12, left: -10, bottom: 10 }}>
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
+              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
           <XAxis
             dataKey="label"
-            interval={0}
-            angle={-45}
-            textAnchor="end"
+            interval={4}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#6b7280', fontSize: 10 }}
+            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
             tickMargin={10}
-            height={58}
-            dy={10}
+            height={30}
           />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={formatCompactPKR} />
-          <Tooltip content={<SalesTooltip />} />
-          <Bar dataKey="revenue" name="Revenue" barSize={18} radius={[8,8,0,0]} fill="#0A6ED1" />
-          <Line type="monotone" dataKey="previousRevenue" name="Previous Day Revenue" stroke="#7e63ff" strokeWidth={3} dot={false} />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
+            tickFormatter={formatCompactPKR} 
+          />
+          <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#f1f5f9', strokeWidth: 1 }} />
+          <Area 
+            type="monotone" 
+            dataKey="revenue" 
+            name="Revenue" 
+            stroke="#4f46e5" 
+            strokeWidth={2.5} 
+            fill="url(#colorRevenue)" 
+            activeDot={<CustomActiveDot />} 
+          />
+          <Line 
+            type="monotone" 
+            dataKey="previousRevenue" 
+            name="Previous Day Revenue" 
+            stroke="#cbd5e1" 
+            strokeWidth={1.5} 
+            strokeDasharray="4 4" 
+            dot={false} 
+          />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
