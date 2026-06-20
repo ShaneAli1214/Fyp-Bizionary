@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { NavLink } from 'react-router-dom';
+import useClickOutside from '../../hooks/useClickOutside';
 import { 
     LayoutDashboard, 
     CreditCard, 
@@ -17,6 +18,13 @@ import Logo from '../common/Logo';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { user } = useAuth();
+    const sidebarRef = useRef(null);
+
+    useClickOutside(sidebarRef, () => {
+        if (isOpen && onClose) {
+            onClose();
+        }
+    }, isOpen);
 
     const isInventoryManager = user?.role_name === 'Inventory Manager';
     const isSalesManager = user?.role_name === 'Sales Manager';
@@ -60,7 +68,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 />
             )}
             
-            <div className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-[#003A6B] border-r border-white/10 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div 
+                ref={sidebarRef}
+                className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-[#003A6B] border-r border-white/10 flex flex-col flex-shrink-0 transition-transform duration-300 ease-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            >
                 {/* Logo Section */}
                 <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
                     <div className="flex items-center gap-2 text-white">

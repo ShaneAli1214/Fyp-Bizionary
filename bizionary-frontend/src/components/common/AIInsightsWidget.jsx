@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TrendingUp, AlertTriangle, Package, Zap, Eye, EyeOff, RefreshCw, X } from 'lucide-react';
 import { insightsApi } from '../../services/insightsApi';
+import useClickOutside from '../../hooks/useClickOutside';
 
 const AIInsightsWidget = () => {
     const [insights, setInsights] = useState(null);
@@ -21,6 +22,13 @@ const AIInsightsWidget = () => {
     const [isScrolling, setIsScrolling] = useState(false);
     const intervalRef = useRef(null);
     const scrollTimeoutRef = useRef(null);
+    const panelRef = useRef(null);
+
+    useClickOutside(panelRef, () => {
+        if (isVisible) {
+            setIsVisible(false);
+        }
+    }, isVisible);
 
     // Scroll listener to auto-hide the floating button while scrolling
     useEffect(() => {
@@ -248,7 +256,10 @@ const AIInsightsWidget = () => {
             />
             
             {/* Slide-out Sidebar Panel */}
-            <div className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-gradient-to-b from-[#1C3A5A] to-[#0D1E30] text-white shadow-2xl z-50 flex flex-col border-l border-white/10 transition-transform duration-300 ease-in-out transform translate-x-0 animate-slide-in-right print:hidden">
+            <div 
+                ref={panelRef}
+                className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-gradient-to-b from-[#1C3A5A] to-[#0D1E30] text-white shadow-2xl z-50 flex flex-col border-l border-white/10 transition-transform duration-300 ease-in-out transform translate-x-0 animate-slide-in-right print:hidden"
+            >
                 {/* Header */}
                 <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/10">
                     <div className="flex items-center gap-2.5">
