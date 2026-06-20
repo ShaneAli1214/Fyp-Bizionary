@@ -11,18 +11,62 @@ import csv, io
 from .models import Sale
 from .serializers import SaleSerializer
 from products.models import Product
+from user_management.views import log_action
 
+
+from django.db.models import Q
+from django.core.paginator import Paginator
 
 @api_view(['GET', 'POST'])
 def sale_list(request):
     if request.method == 'GET':
-        sales = Sale.objects.all()
+        # Resolve N+1 queries by selecting related product fields in SQL Join
+        sales = Sale.objects.select_related('product').all()
+
+        # Server-side Search
+        search = request.GET.get('search', '').strip()
+        if search:
+            query = Q(product__name__icontains=search) | Q(customer_name__icontains=search)
+            if search.isdigit():
+                query |= Q(id=int(search))
+            sales = sales.filter(query)
+
+        # Server-side Category Filter
+        category = request.GET.get('category', 'ALL')
+        if category and category != 'ALL':
+            sales = sales.filter(product__category=category)
+
+        # Server-side Pagination
+        page_number = request.GET.get('page')
+        page_size = request.GET.get('page_size', 10)
+
+        if page_number is not None:
+            paginator = Paginator(sales, page_size)
+            try:
+                page_obj = paginator.page(page_number)
+            except Exception:
+                page_obj = paginator.page(1)
+
+            serializer = SaleSerializer(page_obj.object_list, many=True)
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'pagination': {
+                    'count': paginator.count,
+                    'num_pages': paginator.num_pages,
+                    'current_page': page_obj.number,
+                    'page_size': int(page_size)
+                }
+            })
+
+        # Fallback for non-paginated requests (backward compatibility)
         serializer = SaleSerializer(sales, many=True)
         return Response(serializer.data)
 
     serializer = SaleSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        sale = serializer.save()
+        log_action(request, 'CREATE', f"Sale #{sale.id} recorded.", module='Sales')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -42,7 +86,21 @@ def sale_detail(request, pk):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    sale.delete()
+    with transaction.atomic():
+        if sale.line_items:
+            for item in sale.line_items:
+                product_id = item.get('product')
+                if not product_id:
+                    continue
+                product = Product.objects.get(pk=product_id)
+                product.stock_quantity += int(item.get('quantity_sold', 0))
+                product.save(update_fields=['stock_quantity', 'updated_at'])
+        else:
+            product = sale.product
+            product.stock_quantity += sale.quantity_sold
+            product.save(update_fields=['stock_quantity', 'updated_at'])
+        log_action(request, 'DELETE', f"Sale #{sale.id} deleted and stock reversed.", module='Sales')
+        sale.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

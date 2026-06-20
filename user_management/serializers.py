@@ -100,7 +100,7 @@ class ActivityLogSerializer(serializers.ModelSerializer):
         model = ActivityLog
         fields = [
             'id', 'user', 'user_name', 'user_email', 'action', 
-            'description', 'ip_address', 'timestamp'
+            'description', 'ip_address', 'status', 'timestamp'
         ]
         read_only_fields = ['timestamp']
 
@@ -185,7 +185,7 @@ class ERPUserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name', 'password',
             'employee_id', 'phone', 'designation', 'date_of_joining',
             'department', 'department_name', 'role', 'role_name', 'role_level',
-            'status', 'is_active', 'two_factor_enabled', 'password_changed_at',
+            'status', 'is_active', 'two_factor_enabled', 'requires_password_change', 'password_changed_at',
             'last_login', 'last_activity', 'login_count', 'permissions',
             'created_at', 'updated_at'
         ]
@@ -204,13 +204,18 @@ class ERPUserSerializer(serializers.ModelSerializer):
         
         validated_data['password_hash'] = make_password(password)
         
+        from django.db import transaction
         # If employee_id not provided, auto generate one
         if not validated_data.get('employee_id'):
-            last_user = ERPUser.objects.order_by('-id').first()
-            next_id = 1 if not last_user else (last_user.id + 1)
-            validated_data['employee_id'] = f"BZ-{str(next_id).zfill(4)}"
-
-        user = ERPUser.objects.create(**validated_data)
+            with transaction.atomic():
+                # We use select_for_update to lock table rows and serialize read-then-write
+                last_user = ERPUser.objects.select_for_update().order_by('-id').first()
+                next_id = 1 if not last_user else (last_user.id + 1)
+                validated_data['employee_id'] = f"BZ-{str(next_id).zfill(4)}"
+                user = ERPUser.objects.create(**validated_data)
+        else:
+            user = ERPUser.objects.create(**validated_data)
+            
         return user
 
     def update(self, instance, validated_data):
@@ -260,6 +265,29 @@ class ERPUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Password must be at least 8 characters long"
             )
+        return value
+
+    def validate_phone(self, value):
+        """Validate phone format"""
+        if value:
+            import re
+            # Standard international phone regex: + optionally, followed by 9 to 15 digits
+            phone_regex = re.compile(r'^\+?\d{9,15}$')
+            clean_value = re.sub(r'[\s\-\(\)]', '', value)
+            if not phone_regex.match(clean_value):
+                raise serializers.ValidationError(
+                    "Invalid phone number format. Provide a valid phone number (9 to 15 digits)."
+                )
+        return value
+
+    def validate_date_of_joining(self, value):
+        """Validate date of joining is not in the future"""
+        if value:
+            from django.utils import timezone
+            if value > timezone.now().date():
+                raise serializers.ValidationError(
+                    "Date of joining cannot be in the future."
+                )
         return value
 
 

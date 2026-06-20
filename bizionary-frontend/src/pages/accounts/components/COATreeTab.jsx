@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Folder, FolderOpen, FileText, ChevronDown, ChevronRight, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
@@ -80,21 +80,46 @@ const AccountNode = ({ node, level = 0, expandedNodes, toggleExpand }) => {
     );
 };
 
-const COATreeTab = ({ refreshTrigger, dateRange }) => {
+const filterNonZeroAccounts = (nodes) => {
+    if (!nodes) return [];
+    return nodes
+        .map(node => {
+            if (node.children && node.children.length > 0) {
+                const filteredChildren = filterNonZeroAccounts(node.children);
+                if (filteredChildren.length > 0 || Number(node.balance || 0) !== 0) {
+                    return {
+                        ...node,
+                        children: filteredChildren
+                    };
+                }
+                return null;
+            } else {
+                return Number(node.balance || 0) !== 0 ? node : null;
+            }
+        })
+        .filter(Boolean);
+};
+
+const COATreeTab = ({ refreshTrigger, dateRange, startDate, endDate }) => {
     const [treeData, setTreeData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedNodes, setExpandedNodes] = useState({});
 
+    // Memoize the filtered active accounts tree
+    const activeTreeData = useMemo(() => filterNonZeroAccounts(treeData), [treeData]);
+
     const fetchTree = async () => {
         try {
             setLoading(true);
-            const res = await accountsApi.getCOATree(dateRange);
+            const res = await accountsApi.getCOATree(dateRange, startDate, endDate);
             if (res.data?.success) {
-                setTreeData(res.data.data);
+                const rawData = res.data.data || [];
+                setTreeData(rawData);
                 
-                // By default, expand top level nodes
+                // By default, expand only top-level active accounts that survive filtering
+                const activeTree = filterNonZeroAccounts(rawData);
                 const defaultExpanded = {};
-                res.data.data.forEach(node => {
+                activeTree.forEach(node => {
                     defaultExpanded[node.id] = true;
                 });
                 setExpandedNodes(defaultExpanded);
@@ -108,7 +133,7 @@ const COATreeTab = ({ refreshTrigger, dateRange }) => {
 
     useEffect(() => {
         fetchTree();
-    }, [refreshTrigger, dateRange]);
+    }, [refreshTrigger, dateRange, startDate, endDate]);
 
     const toggleExpand = (id) => {
         setExpandedNodes(prev => ({
@@ -127,7 +152,7 @@ const COATreeTab = ({ refreshTrigger, dateRange }) => {
                 }
             });
         };
-        recurse(treeData);
+        recurse(activeTreeData);
         setExpandedNodes(expanded);
     };
 
@@ -167,13 +192,13 @@ const COATreeTab = ({ refreshTrigger, dateRange }) => {
                     <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                     <p className="text-sm text-slate-500 font-bold">Compiling Chart of Accounts ledger balances...</p>
                 </div>
-            ) : treeData.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 p-6">
-                    <p className="text-slate-500 font-bold text-sm">No accounts registered in Chart of Accounts.</p>
+            ) : activeTreeData.length === 0 ? (
+                <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+                    No matching database records found for this period.
                 </div>
             ) : (
                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                    {treeData.map(node => (
+                    {activeTreeData.map(node => (
                         <AccountNode 
                             key={node.id} 
                             node={node} 

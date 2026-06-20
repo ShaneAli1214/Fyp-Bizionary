@@ -7,8 +7,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import EmailValidator
 from decimal import Decimal
-from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
 
 
 class Department(models.Model):
@@ -67,13 +65,9 @@ class Role(models.Model):
         default='STAFF'
     )
     description = models.TextField(blank=True, null=True)
+    permissions_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    @property
-    def permissions_count(self):
-        from .models import Permission
-        return Permission.objects.filter(user__role=self).count()
 
     class Meta:
         db_table = 'user_mgmt_role'
@@ -86,7 +80,7 @@ class Role(models.Model):
         return f"{self.name} ({self.get_level_display()})"
 
 
-class ERPUser(AbstractUser):
+class ERPUser(models.Model):
     """
     ERP User model extending Django's User model for extended functionality
     """
@@ -97,12 +91,12 @@ class ERPUser(AbstractUser):
         ('PENDING', 'Pending Activation'),
     ]
 
-    # Override AbstractUser email to be unique
+    # Basic Info
+    username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True, validators=[EmailValidator()])
-    
-    # Map AbstractUser password field to the existing password_hash database column
-    password = models.CharField(max_length=255, db_column='password_hash', default='')
-
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    password_hash = models.CharField(max_length=255, db_column='password_hash', default='')
     employee_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     designation = models.CharField(max_length=100, null=True, blank=True)
@@ -130,30 +124,21 @@ class ERPUser(AbstractUser):
         choices=STATUS_CHOICES,
         default='ACTIVE'
     )
+    is_active = models.BooleanField(default=True)
     
     # Security
     two_factor_enabled = models.BooleanField(default=False)
-    two_factor_secret = models.CharField(max_length=255, null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
     password_expires_at = models.DateTimeField(null=True, blank=True)
-    requires_password_change = models.BooleanField(default=True)
     
     # Activity Tracking
+    last_login = models.DateTimeField(null=True, blank=True)
     last_activity = models.DateTimeField(null=True, blank=True)
     login_count = models.IntegerField(default=0)
     
     # Dates
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # Property wrapper to support direct usage of password_hash in views/serializers
-    @property
-    def password_hash(self):
-        return self.password
-
-    @password_hash.setter
-    def password_hash(self, value):
-        self.password = value
 
     class Meta:
         db_table = 'user_mgmt_erpuser'
@@ -387,76 +372,3 @@ class SecuritySetting(models.Model):
 
     def __str__(self):
         return f"Security Settings: {self.user.username}"
-
-
-class UserSession(models.Model):
-    """
-    Model to track user active sessions/devices
-    """
-    user = models.ForeignKey(
-        ERPUser,
-        on_delete=models.CASCADE,
-        related_name='sessions'
-    )
-    session_key = models.CharField(max_length=255, unique=True, help_text="Unique refresh token identifier (jti)")
-    device = models.CharField(max_length=255, default='Unknown Device')
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    location = models.CharField(max_length=255, default='Unknown Location')
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_activity = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'user_mgmt_usersession'
-        ordering = ['-last_activity']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.device} ({self.ip_address})"
-
-
-# ============================================================================
-# Signals for Session Revocation
-# ============================================================================
-
-@receiver(pre_save, sender=ERPUser)
-def track_user_original_fields(sender, instance, **kwargs):
-    """
-    Pre-save signal to store original role and status before save
-    """
-    if instance.pk:
-        try:
-            orig = ERPUser.objects.get(pk=instance.pk)
-            instance._original_role_id = orig.role_id
-            instance._original_status = orig.status
-            instance._original_is_active = orig.is_active
-        except ERPUser.DoesNotExist:
-            instance._original_role_id = None
-            instance._original_status = None
-            instance._original_is_active = None
-    else:
-        instance._original_role_id = None
-        instance._original_status = None
-        instance._original_is_active = None
-
-
-@receiver(post_save, sender=ERPUser)
-def revoke_sessions_on_admin_changes(sender, instance, created, **kwargs):
-    """
-    Post-save signal to instantly revoke all active sessions if user's role or status changes
-    """
-    if not created:
-        role_changed = getattr(instance, '_original_role_id', None) != instance.role_id
-        status_changed = getattr(instance, '_original_status', None) != instance.status
-        is_active_changed = getattr(instance, '_original_is_active', None) != instance.is_active
-        
-        if role_changed or status_changed or is_active_changed:
-            # Revoke all active sessions
-            revoked_count = UserSession.objects.filter(user=instance, is_active=True).update(is_active=False)
-            if revoked_count > 0:
-                ActivityLog.objects.create(
-                    user=instance,
-                    action='OTHER',
-                    module='Security',
-                    description=f"Instantly revoked {revoked_count} active sessions due to status/role/activation modification.",
-                    status='SUCCESS'
-                )

@@ -27,7 +27,7 @@ const CATEGORY_COLORS = {
 
 const normalizeKey = (name) => name.toLowerCase();
 
-const SalesPerformanceChart = ({ selectedData }) => {
+const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
     const { chartData, categories } = selectedData;
 
     const categoryKeys = useMemo(() => categories.map((category) => ({
@@ -46,12 +46,19 @@ const SalesPerformanceChart = ({ selectedData }) => {
         <div className="bg-surface p-5 rounded-xl border border-surface/10 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div>
-                    <h4 className="font-semibold text-textMain">Sales Breakdown</h4>
+                    <h4 className="font-semibold text-textMain">{isAccountant ? 'Revenue & Profit Trend' : 'Sales Breakdown'}</h4>
                     <p className="text-xs text-textMuted">{selectedData.periodLabel} • {selectedData.dateContext}</p>
-                    <p className="mt-1 text-xs text-textMuted max-w-xl">Stacked bars show total quantity sold by category. Solid and dashed lines show revenue and profit trends in PKR.</p>
+                    <p className="mt-1 text-xs text-textMuted max-w-xl">
+                        {isAccountant 
+                            ? 'Line chart displays live revenue and profit trends in PKR for the selected timeframe.' 
+                            : 'Stacked bars show total quantity sold by category. Solid and dashed lines show revenue and profit trends in PKR.'
+                        }
+                    </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-textMuted">
-                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#0A6ED1]" /> Category quantity</span>
+                    {!isAccountant && (
+                        <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#0A6ED1]" /> Category quantity</span>
+                    )}
                     <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#16a34a]" /> Revenue (PKR)</span>
                     <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#dc2626]" /> Profit (PKR)</span>
                 </div>
@@ -69,17 +76,19 @@ const SalesPerformanceChart = ({ selectedData }) => {
                             interval={0}
                             height={selectedData.xAxisType === 'day' && chartData.length > 7 ? 56 : 30}
                         />
-                        <YAxis
-                            yAxisId="quantity"
-                            tick={{ fontSize: 11, fill: 'var(--color-textMain)' }}
-                            label={{ value: 'Quantity sold', angle: -90, position: 'insideLeft', fill: 'var(--color-textMuted)', offset: 10 }}
-                        />
+                        {!isAccountant && (
+                            <YAxis
+                                yAxisId="quantity"
+                                tick={{ fontSize: 11, fill: 'var(--color-textMain)' }}
+                                label={{ value: 'Quantity sold', angle: -90, position: 'insideLeft', fill: 'var(--color-textMuted)', offset: 10 }}
+                            />
+                        )}
                         <YAxis
                             yAxisId="money"
-                            orientation="right"
+                            orientation={isAccountant ? 'left' : 'right'}
                             tickFormatter={formatCompactPKR}
                             tick={{ fontSize: 11, fill: 'var(--color-textMain)' }}
-                            label={{ value: 'Amount (PKR)', angle: 90, position: 'insideRight', fill: 'var(--color-textMuted)', offset: 10 }}
+                            label={{ value: 'Amount (PKR)', angle: 90, position: isAccountant ? 'outside' : 'insideRight', fill: 'var(--color-textMuted)', offset: 10 }}
                         />
                         <Tooltip
                             formatter={(value, name) => {
@@ -92,7 +101,7 @@ const SalesPerformanceChart = ({ selectedData }) => {
                             contentStyle={{ background: 'white', borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 20px rgba(15,23,42,0.08)' }}
                         />
                         <Legend />
-                        {categoryKeys.map((category) => (
+                        {!isAccountant && categoryKeys.map((category) => (
                             <Bar
                                 key={category.key}
                                 dataKey={category.key}

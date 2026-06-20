@@ -6,3 +6,4 @@ Pillow==12.1.1
 openai==1.92.0
 PyMySQL==1.1.2
 groq==0.4.1
+pyotp==2.9.0

@@ -230,12 +230,32 @@ class AccountsService:
             JournalItem.objects.create(journal_entry=je, account=ar_acct, debit=Decimal('0.00'), credit=paid_amount)
 
     @staticmethod
-    def get_date_filter(date_range_str):
+    def get_date_filter(date_range_str=None, start_date_str=None, end_date_str=None):
         """
         Parse date range string and return (start_date, end_date).
         ref_date is anchored to the latest transaction (sale or journal entry)
         so the window stays meaningful as new data is added over time.
         """
+        from datetime import date, datetime, timedelta
+        
+        # 1. Parse start_date and end_date if explicitly provided
+        if start_date_str and end_date_str:
+            try:
+                if isinstance(start_date_str, (date, datetime)):
+                    start = start_date_str
+                else:
+                    start = datetime.strptime(str(start_date_str).split('T')[0], '%Y-%m-%d').date()
+
+                if isinstance(end_date_str, (date, datetime)):
+                    end = end_date_str
+                else:
+                    end = datetime.strptime(str(end_date_str).split('T')[0], '%Y-%m-%d').date()
+
+                return start, end
+            except Exception:
+                pass
+
+        # Align reference end date logic dynamically with the latest transaction in the DB to avoid demo decay.
         from django.db.models import Max, Min
         from sales.models import Sale
         from accounts.models import JournalEntry
@@ -267,8 +287,14 @@ class AccountsService:
 
         elif date_range_str == 'this_year':
             return date(ref_date.year, 1, 1), date(ref_date.year, 12, 31)
-
-        return None, None
+        
+        # 3. Dynamic Auto-Fit Fallback: automatically span from the earliest transaction to the latest
+        earliest_sale = Sale.objects.aggregate(earliest=Min('sale_date'))['earliest']
+        earliest_je = JournalEntry.objects.aggregate(earliest=Min('date'))['earliest']
+        earliest_dates = [d for d in [earliest_sale, earliest_je] if d]
+        
+        start_date = min(earliest_dates) if earliest_dates else (ref_date - timedelta(days=29))
+        return start_date, ref_date
 
 
     @staticmethod
@@ -372,12 +398,12 @@ class AccountsService:
         return result or Decimal('0.00')
 
     @staticmethod
-    def get_kpis_with_growth(date_range_str=None):
+    def get_kpis_with_growth(date_range_str=None, start_date_str=None, end_date_str=None):
         """
         ERP KPI summary with prior-period growth comparison.
         All values computed dynamically — nothing stored.
         """
-        start_date, end_date = AccountsService.get_date_filter(date_range_str)
+        start_date, end_date = AccountsService.get_date_filter(date_range_str, start_date_str, end_date_str)
         prev_start, prev_end = AccountsService.get_previous_period(start_date, end_date)
 
         def calc_growth(curr, prev):
@@ -440,13 +466,13 @@ class AccountsService:
         }
 
     @staticmethod
-    def income_vs_expense_trend(date_range_str=None):
+    def income_vs_expense_trend(date_range_str=None, start_date_str=None, end_date_str=None):
         """
         Monthly income vs expense trend.
         Income source: Sale.total_price grouped by sale_date month.
         Expense source: Expense.amount (SUPPLIES, non-voided) grouped by date month.
         """
-        start_date, end_date = AccountsService.get_date_filter(date_range_str)
+        start_date, end_date = AccountsService.get_date_filter(date_range_str, start_date_str, end_date_str)
 
         sale_qs = Sale.objects.filter(payment_status='PAID')
         exp_qs  = Expense.objects.filter(voided=False)  # ALL categories
@@ -481,9 +507,11 @@ class AccountsService:
         return Invoice.objects.filter(voided=False)[:limit]
 
     @staticmethod
-    def expense_categories_breakdown(date_range_str=None):
-        """Breakdown of expenses by category with percentages."""
-        start_date, end_date = AccountsService.get_date_filter(date_range_str)
+    def expense_categories_breakdown(date_range_str=None, start_date_str=None, end_date_str=None):
+        """
+        Get breakdown of expenses by category with optional date filtering
+        """
+        start_date, end_date = AccountsService.get_date_filter(date_range_str, start_date_str, end_date_str)
         qs = Expense.objects.filter(voided=False)
         if start_date and end_date:
             qs = qs.filter(date__range=(start_date, end_date))
@@ -498,9 +526,11 @@ class AccountsService:
         return result
 
     @staticmethod
-    def kpi_summary(date_range_str=None):
-        """Public entry point — returns full ERP KPI dict with growth rates."""
-        return AccountsService.get_kpis_with_growth(date_range_str)
+    def kpi_summary(date_range_str=None, start_date_str=None, end_date_str=None):
+        """
+        Wrapper to return dynamic, growth-based summary KPIs
+        """
+        return AccountsService.get_kpis_with_growth(date_range_str, start_date_str, end_date_str)
 
     @staticmethod
     def get_chart_of_accounts_tree(start_date=None, end_date=None):

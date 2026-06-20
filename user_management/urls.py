@@ -304,6 +304,16 @@ urlpatterns = [
     path('users/change-password/', views.change_password_view, name='user-change-password'),
     path('users/update-profile/', views.update_profile_view, name='user-update-profile'),
     path('auth/login/', views.login_view, name='login'),
+    path('auth/refresh/', views.refresh_token_view, name='auth-refresh'),
+    path('auth/logout/', views.logout_view, name='auth-logout'),
+    path('auth/verify-2fa/', views.verify_2fa_login_view, name='auth-verify-2fa'),
+    path('auth/forgot-password/', views.forgot_password_view, name='auth-forgot-password'),
+    path('auth/reset-password-confirm/', views.reset_password_confirm_view, name='auth-reset-password-confirm'),
+    path('users/2fa/setup/', views.mfa_setup_view, name='user-2fa-setup'),
+    path('users/2fa/disable/', views.mfa_disable_view, name='user-2fa-disable'),
+    path('sessions/', views.sessions_list_view, name='sessions-list'),
+    path('sessions/<int:pk>/revoke/', views.revoke_session_view, name='session-revoke'),
+    path('sessions/revoke-others/', views.revoke_other_sessions_view, name='sessions-revoke-others'),
     path('audit-logs/', views.audit_log_list_view, name='audit-log-list'),
 
     # ========================================================================

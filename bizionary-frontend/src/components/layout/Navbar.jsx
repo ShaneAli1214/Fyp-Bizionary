@@ -31,7 +31,24 @@ const Navbar = ({ onToggleSidebar }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const initials = (user?.name || 'Ali').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    // Resolve display name from backend payload fields (first_name, last_name, username)
+    // Works universally for every role — Admin, Accountant, Sales Manager, Inventory Manager
+    const displayName = user?.first_name
+        ? `${user.first_name} ${user.last_name || ''}`.trim()
+        : (user?.username || 'User');
+
+    const initials = displayName
+        .split(' ')
+        .filter(Boolean)
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) || 'U';
+
+    const isInventoryManager = user?.role_name === 'Inventory Manager';
+    const isSalesManager = user?.role_name === 'Sales Manager';
+    const isAccountant = user?.role_name === 'Accountant';
+    const isUserAdmin = user?.role_name === 'Super Admin' || user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -39,11 +56,25 @@ const Navbar = ({ onToggleSidebar }) => {
         { label: 'Products', path: '/products', icon: Package },
         { label: 'Stock', path: '/inventory-managment', icon: Boxes },
         { label: 'Sales', path: '/sales', icon: ShoppingCart },
-            { label: 'AI Insights', path: '/insights', icon: TrendingUp },
+        { label: 'AI Insights', path: '/insights', icon: TrendingUp },
         { label: 'Create Order', path: '/ordered-slips', icon: ClipboardList },
         { label: 'AI Chatbot', path: '/chatbot', icon: Bot },
         { label: 'Admin', path: '/user-management', icon: Lock }
-    ];
+    ].filter(item => {
+        if (isInventoryManager) {
+            return !['Accounts', 'Sales', 'Admin'].includes(item.label);
+        }
+        if (isSalesManager) {
+            return !['Accounts', 'Stock', 'Admin'].includes(item.label);
+        }
+        if (isAccountant) {
+            return !['Products', 'Stock', 'Create Order', 'Admin'].includes(item.label);
+        }
+        if (item.label === 'Admin') {
+            return isUserAdmin;
+        }
+        return true;
+    });
 
     return (
         <header className="h-16 text-white flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300 relative">
@@ -118,7 +149,7 @@ const Navbar = ({ onToggleSidebar }) => {
                     <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-white/10">
                         {initials}
                     </div>
-                    <span className="hidden sm:inline text-white/90">Welcome, <strong>{user?.name || 'Ali'}</strong></span>
+                    <span className="hidden sm:inline text-white/90">Welcome, <strong>{user?.first_name || user?.username || 'User'}</strong></span>
                     <ChevronDown className={`h-4 w-4 text-white/80 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -136,8 +167,8 @@ const Navbar = ({ onToggleSidebar }) => {
                             {initials}
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-sm text-slate-900 dark:text-white truncate">{user?.name || 'Ali'}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || 'admin@bizionary.com'}</span>
+                            <span className="font-bold text-sm text-slate-900 dark:text-white truncate">{displayName}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || '—'}</span>
                         </div>
                     </div>
 
@@ -167,7 +198,7 @@ const Navbar = ({ onToggleSidebar }) => {
                         <button
                             onClick={() => {
                                 setIsDropdownOpen(false);
-                                navigate('/user-management');
+                                navigate(isAccountant ? '/settings' : '/user-management');
                             }}
                             className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
                         >
@@ -197,16 +228,18 @@ const Navbar = ({ onToggleSidebar }) => {
                         </div>
 
                         {/* API Config button */}
-                        <button
-                            onClick={() => {
-                                setIsDropdownOpen(false);
-                                navigate('/settings');
-                            }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
-                        >
-                            <Sliders className="h-3.5 w-3.5 text-slate-400" />
-                            <span>API Configuration</span>
-                        </button>
+                        {!isAccountant && (
+                            <button
+                                onClick={() => {
+                                    setIsDropdownOpen(false);
+                                    navigate('/settings');
+                                }}
+                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                            >
+                                <Sliders className="h-3.5 w-3.5 text-slate-400" />
+                                <span>API Configuration</span>
+                            </button>
+                        )}
                     </div>
 
                     {/* Section 4: Danger Zone */}

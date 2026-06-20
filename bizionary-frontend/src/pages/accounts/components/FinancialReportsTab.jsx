@@ -16,7 +16,7 @@ const formatDateLabel = (dateStr) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
+const FinancialReportsTab = ({ refreshTrigger, dateRange, startDate, endDate }) => {
     const [reportType, setReportType] = useState('profit-loss'); // 'profit-loss' | 'balance-sheet'
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -26,9 +26,9 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
             setLoading(true);
             let res;
             if (reportType === 'profit-loss') {
-                res = await accountsApi.getProfitLoss(dateRange);
+                res = await accountsApi.getProfitLoss(dateRange, startDate, endDate);
             } else {
-                res = await accountsApi.getBalanceSheet(dateRange);
+                res = await accountsApi.getBalanceSheet(dateRange, startDate, endDate);
             }
             if (res.data?.success) {
                 setReportData(res.data.data);
@@ -42,7 +42,7 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
 
     useEffect(() => {
         fetchReport();
-    }, [refreshTrigger, dateRange, reportType]);
+    }, [refreshTrigger, dateRange, reportType, startDate, endDate]);
 
     const handlePrint = () => {
         window.print();
@@ -55,8 +55,8 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
         let filename = '';
 
         if (reportType === 'profit-loss') {
-            filename = `Profit_and_Loss_${dateRange}.csv`;
-            csvRows.push(`Profit & Loss Statement - Period: ${dateRange}`);
+            filename = `Profit_and_Loss_${startDate || 'custom'}_to_${endDate || 'custom'}.csv`;
+            csvRows.push(`Profit & Loss Statement - Period: ${startDate || ''} to ${endDate || ''}`);
             csvRows.push('');
             csvRows.push('Account Code,Account Name,Balance (PKR)');
             csvRows.push('REVENUE');
@@ -81,8 +81,8 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
             csvRows.push('');
             csvRows.push(`,NET PROFIT (${reportData.net_profit_margin?.toFixed(1)}% margin),${reportData.net_profit}`);
         } else {
-            filename = `Balance_Sheet_${dateRange}.csv`;
-            csvRows.push(`Balance Sheet - As of Date: ${reportData.as_of_date || 'Current'}`);
+            filename = `Balance_Sheet_${endDate || 'custom'}.csv`;
+            csvRows.push(`Balance Sheet - As of Date: ${reportData.as_of_date || endDate || 'Current'}`);
             csvRows.push('');
             csvRows.push('Account Code,Account Name,Balance (PKR)');
             csvRows.push('ASSETS');
@@ -167,9 +167,9 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange }) => {
                     <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                     <p className="text-sm text-slate-500 font-bold">Compiling ledger balances and report lines...</p>
                 </div>
-            ) : !reportData ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 p-6">
-                    <p className="text-slate-500 font-bold text-sm">Failed to generate financial statement.</p>
+            ) : (!reportData || (reportType === 'profit-loss' && (reportData.revenue || []).length === 0 && (reportData.expense || []).length === 0)) ? (
+                <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+                    No matching database records found for this period.
                 </div>
             ) : (
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-8 print:border-none print:shadow-none print:p-0">

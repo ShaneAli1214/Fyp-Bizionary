@@ -7,20 +7,24 @@ import SalesCharts from './SalesCharts';
 import SaleSlipModal from './SaleSlipModal';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
 
+const MemoizedSalesCharts = React.memo(SalesCharts);
+
 const SalesList = () => {
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentSale, setCurrentSale] = useState(null);
     const [saleSlipOpen, setSaleSlipOpen] = useState(false);
     const [selectedSlipSale, setSelectedSlipSale] = useState(null);
     const [createdSale, setCreatedSale] = useState(null);
     const [createMessage, setCreateMessage] = useState('');
-
     // Bulk upload states
     const [bulkModalOpen, setBulkModalOpen] = useState(false);
     const [bulkFile, setBulkFile] = useState(null);
@@ -31,6 +35,14 @@ const SalesList = () => {
     const [bulkTab, setBulkTab] = useState('csv');       // 'csv' | 'json'
     const [bulkJson, setBulkJson] = useState('');
     const fileInputRef = useRef(null);
+
+    // Debounce search term to prevent rapid API calls
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
 
     const categoryOptions = useMemo(() => {
         const dynamicCategories = sales
@@ -69,24 +81,44 @@ const SalesList = () => {
         }));
     };
 
-    useEffect(() => {
-        fetchSales();
-    }, []);
-
-    const fetchSales = async () => {
+    const fetchSales = async (pageNumber = 1) => {
         try {
             setLoading(true);
-            const res = await api.get('sales/');
-            let data = res.data.data || res.data;
-            // Ensure date sorting or transformations if needed
-            setSales(data);
+            const res = await api.get('sales/', {
+                params: {
+                    page: pageNumber,
+                    page_size: 10,
+                    search: debouncedSearch,
+                    category: categoryFilter
+                }
+            });
+            const dataPayload = res.data;
+            if (dataPayload && dataPayload.success) {
+                setSales(dataPayload.data || []);
+                setPagination(dataPayload.pagination || null);
+                setPage(dataPayload.pagination?.current_page || pageNumber);
+            } else {
+                setSales(Array.isArray(dataPayload) ? dataPayload : []);
+                setPagination(null);
+            }
         } catch (error) {
             console.warn('Failed to fetch sales from backend.');
             setSales([]);
+            setPagination(null);
         } finally {
             setLoading(false);
         }
     };
+
+    // Trigger API call when page or filters change
+    useEffect(() => {
+        fetchSales(page);
+    }, [page, debouncedSearch, categoryFilter]);
+
+    // Reset to first page on search or category filter change
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch, categoryFilter]);
 
     const handleCreateOrUpdate = async (saleData) => {
         let savedSale = null;
@@ -104,7 +136,7 @@ const SalesList = () => {
             setCreateMessage('Sale created successfully. You can now generate the slip.');
         }
 
-        await fetchSales();
+        await fetchSales(page);
         // Dispatch event to notify all listeners (especially AI Insights Widget) of sale creation
         window.dispatchEvent(new CustomEvent('saleCreated', { detail: { timestamp: Date.now() } }));
         emitInventoryRefresh('sales', currentSale ? 'updated' : 'created');
@@ -114,7 +146,7 @@ const SalesList = () => {
     const handleDelete = async (id) => {
         try {
             await api.delete(`sales/${id}/`);
-            await fetchSales();
+            await fetchSales(page);
             emitInventoryRefresh('sales', 'deleted');
         } catch (error) {
             alert("Failed to delete sale.");
@@ -215,17 +247,7 @@ const SalesList = () => {
         }
     };
 
-    const filteredSales = sales.filter(s =>
-        (
-            (s.product_name && s.product_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (s.customer_name && s.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            s.id.toString().includes(searchTerm)
-        ) &&
-        (
-            categoryFilter === 'ALL' || 
-            (normalizeProductCategory(s.product_category) || s.product_category) === categoryFilter
-        )
-    );
+    const filteredSales = sales;
 
     return (
         <div className="space-y-6">
@@ -439,7 +461,7 @@ const SalesList = () => {
 
             {/* Charts */}
             <div className="bg-surface p-4 rounded-2xl border border-gray-100 shadow-sm">
-                <SalesCharts />
+                <MemoizedSalesCharts />
             </div>
 
             {/* Main Table */}
@@ -522,6 +544,29 @@ const SalesList = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                )}
+                {pagination && pagination.num_pages > 1 && (
+                    <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-slate-50/50">
+                        <span className="text-xs text-gray-500 font-semibold">
+                            Showing page {pagination.current_page} of {pagination.num_pages} ({pagination.count} records)
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                disabled={pagination.current_page <= 1}
+                                onClick={() => setPage(prev => prev - 1)}
+                                className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            >
+                                Previous
+                            </button>
+                            <button
+                                disabled={pagination.current_page >= pagination.num_pages}
+                                onClick={() => setPage(prev => prev + 1)}
+                                className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

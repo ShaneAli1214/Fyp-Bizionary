@@ -13,6 +13,7 @@ const SETTINGS_STORAGE_KEY = 'app-settings-preferences';
 const Settings = () => {
     const { user, updateUser, logout } = useAuth();
     const { theme, setTheme, palette, setPalette } = useTheme();
+    const isAccountant = user?.role_name === 'Accountant';
 
     const [activeSection, setActiveSection] = useState('Account Info');
     const [toasts, setToasts] = useState([]);
@@ -55,10 +56,7 @@ const Settings = () => {
     });
 
     // Active Sessions state
-    const [sessions, setSessions] = useState([
-        { id: 1, device: 'Chrome on Windows', ip: '192.168.1.100', location: 'Sheikhupura, PK', isCurrent: true, lastActive: 'Active Now' },
-        { id: 2, device: 'Safari on iOS', ip: '203.0.113.45', location: 'Lahore, PK', isCurrent: false, lastActive: 'Last active 2 hrs ago' }
-    ]);
+    const [sessions, setSessions] = useState([]);
     const [isLoggingOutSessions, setIsLoggingOutSessions] = useState(false);
 
     // API Keys Configuration state
@@ -74,7 +72,9 @@ const Settings = () => {
     const [secretKeyCopied, setSecretKeyCopied] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
     const [isVerifying2FA, setIsVerifying2FA] = useState(false);
-    const secretKey2FA = 'B1ZN-ARYS-ECR3-T2FA';
+    const [setupSecret2FA, setSetupSecret2FA] = useState('');
+    const [setupProvisioningUri, setSetupProvisioningUri] = useState('');
+    const [isFetching2FASetup, setIsFetching2FASetup] = useState(false);
 
     // Toast Notification helper
     const addToast = (type, message) => {
@@ -89,6 +89,30 @@ const Settings = () => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
     };
 
+    const fetchSessions = async () => {
+        try {
+            const response = await api.get('user-management/sessions/');
+            setSessions(response.data.data || []);
+        } catch (err) {
+            console.error("Failed to load active sessions", err);
+        }
+    };
+
+    const start2FASetup = async () => {
+        setIsFetching2FASetup(true);
+        try {
+            const response = await api.get('user-management/users/2fa/setup/');
+            if (response.data?.success) {
+                setSetupSecret2FA(response.data.secret);
+                setSetupProvisioningUri(response.data.provisioning_uri);
+            }
+        } catch (err) {
+            addToast('error', 'Failed to retrieve 2FA setup codes.');
+        } finally {
+            setIsFetching2FASetup(false);
+        }
+    };
+
     // Load active settings and configs
     useEffect(() => {
         const fullName = (user?.name || '').trim();
@@ -99,6 +123,17 @@ const Settings = () => {
             lastName: user?.last_name || parts.slice(1).join(' ') || '',
             email: user?.email || '',
         });
+
+        if (user) {
+            setPreferences(prev => ({
+                ...prev,
+                twoFactorEnabled: user.two_factor_enabled || false
+            }));
+            fetchSessions();
+            if (!user.two_factor_enabled) {
+                start2FASetup();
+            }
+        }
     }, [user]);
 
     const fetchApiConfigs = async () => {
@@ -267,44 +302,85 @@ const Settings = () => {
         persistPreferences(next, 'Third-party integrations updated.');
     };
 
-    // 2FA Verification simulator
-    const handleVerify2FA = (e) => {
+    // 2FA Verification and Activation via API
+    const handleVerify2FA = async (e) => {
         e.preventDefault();
         if (verificationCode.length !== 6 || isNaN(verificationCode)) {
             addToast('error', 'Please enter a valid 6-digit authenticator code.');
             return;
         }
         setIsVerifying2FA(true);
-        setTimeout(() => {
-            const next = { ...preferences, twoFactorEnabled: true };
-            persistPreferences(next, 'Two-Factor Authentication is now ENABLED.');
-            setVerificationCode('');
+        try {
+            const response = await api.post('user-management/users/2fa/setup/', {
+                secret: setupSecret2FA,
+                code: verificationCode
+            });
+            if (response.data?.success) {
+                // Update global auth user state to reflect 2FA activation
+                updateUser({
+                    ...user,
+                    two_factor_enabled: true
+                });
+                setPreferences(prev => ({ ...prev, twoFactorEnabled: true }));
+                setVerificationCode('');
+                addToast('success', 'Two-Factor Authentication is now ENABLED.');
+            }
+        } catch (err) {
+            addToast('error', err.response?.data?.error || 'Verification failed. Please check code.');
+        } finally {
             setIsVerifying2FA(false);
-        }, 1200);
+        }
     };
 
-    const handleDisable2FA = () => {
+    const handleDisable2FA = async () => {
         if (window.confirm('Disable 2-Factor Authentication? Your account security level will decrease.')) {
-            const next = { ...preferences, twoFactorEnabled: false };
-            persistPreferences(next, 'Two-Factor Authentication has been disabled.');
+            try {
+                const response = await api.post('user-management/users/2fa/disable/', {});
+                if (response.data?.success) {
+                    updateUser({
+                        ...user,
+                        two_factor_enabled: false
+                    });
+                    setPreferences(prev => ({ ...prev, twoFactorEnabled: false }));
+                    addToast('success', 'Two-Factor Authentication has been disabled.');
+                    start2FASetup(); // Reload new setup key
+                }
+            } catch (err) {
+                addToast('error', 'Failed to disable 2FA.');
+            }
         }
     };
 
     const copySecretKey = () => {
-        navigator.clipboard.writeText(secretKey2FA);
+        navigator.clipboard.writeText(setupSecret2FA);
         setSecretKeyCopied(true);
         addToast('success', 'Authenticator secret key copied to clipboard.');
         setTimeout(() => setSecretKeyCopied(false), 2000);
     };
 
     // Active Sessions logout all others
-    const handleLogoutOtherSessions = () => {
+    const handleLogoutOtherSessions = async () => {
         setIsLoggingOutSessions(true);
-        setTimeout(() => {
-            setSessions((prev) => prev.filter((s) => s.isCurrent));
+        try {
+            await api.post('user-management/sessions/revoke-others/');
             addToast('success', 'Logged out of all other active sessions successfully.');
+            fetchSessions();
+        } catch (err) {
+            addToast('error', 'Failed to logout other sessions.');
+        } finally {
             setIsLoggingOutSessions(false);
-        }, 1000);
+        }
+    };
+
+    // Revoke specific session
+    const handleRevokeSession = async (sessionId) => {
+        try {
+            await api.post(`user-management/sessions/${sessionId}/revoke/`);
+            addToast('success', 'Session terminated successfully.');
+            fetchSessions();
+        } catch (err) {
+            addToast('error', 'Failed to terminate session.');
+        }
     };
 
     // Save Provider API Keys
@@ -376,7 +452,7 @@ const Settings = () => {
         { name: 'Notifications', icon: Bell },
         { name: 'Integrations', icon: Puzzle },
         { name: 'Privacy & Security', icon: Shield },
-        { name: 'API Configuration', icon: Sliders },
+        ...(!isAccountant ? [{ name: 'API Configuration', icon: Sliders }] : []),
     ];
 
     const renderLeftSidebar = () => (
@@ -726,9 +802,17 @@ const Settings = () => {
                 {/* 2FA Slide-In Setup Area */}
                 {(!preferences.twoFactorEnabled) && (
                     <div className="border-t border-gray-150 dark:border-slate-700/60 mt-4 pt-4 flex flex-col sm:flex-row gap-5 items-start animate-in fade-in duration-300">
-                        {/* Mock QR Code */}
+                        {/* Dynamic QR Code from provisioning URI */}
                         <div className="p-3 bg-white rounded-xl border border-gray-200 flex flex-col items-center justify-center shrink-0">
-                            <QrCode className="w-28 h-28 text-slate-900" />
+                            {setupProvisioningUri ? (
+                                <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(setupProvisioningUri)}&size=120x120`}
+                                    alt="2FA QR Code"
+                                    className="w-28 h-28 object-contain"
+                                />
+                            ) : (
+                                <QrCode className="w-28 h-28 text-slate-300 animate-pulse" />
+                            )}
                             <div className="text-[9px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                                 Scan Code
@@ -744,7 +828,7 @@ const Settings = () => {
                             </div>
                             
                             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-xl border border-gray-200 dark:border-slate-700/60">
-                                <span className="font-mono text-xs font-bold text-slate-700 dark:text-emerald-400 flex-1">{secretKey2FA}</span>
+                                <span className="font-mono text-xs font-bold text-slate-700 dark:text-emerald-400 flex-1">{setupSecret2FA || 'Generating Secret Key...'}</span>
                                 <button 
                                     onClick={copySecretKey}
                                     className="p-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:text-primary rounded-lg transition-all"
@@ -820,9 +904,20 @@ const Settings = () => {
                                 </h4>
                                 <p className="text-[10px] text-textMuted dark:text-slate-400 mt-1 font-medium">{session.location} • IP: {session.ip}</p>
                             </div>
-                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md ${session.isCurrent ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-slate-400 bg-slate-100 dark:bg-slate-900/80 dark:text-slate-500'}`}>
-                                {session.lastActive}
-                            </span>
+                            <div className="flex items-center gap-3">
+                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md ${session.isCurrent ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-slate-400 bg-slate-100 dark:bg-slate-900/80 dark:text-slate-500'}`}>
+                                    {session.lastActive}
+                                </span>
+                                {!session.isCurrent && (
+                                    <button
+                                        onClick={() => handleRevokeSession(session.id)}
+                                        className="p-1 text-rose-500 hover:text-rose-750 hover:bg-rose-50/50 rounded-lg transition-colors border border-rose-150/40"
+                                        title="Revoke session"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -945,7 +1040,7 @@ const Settings = () => {
                     {activeSection === 'Privacy & Security' && renderPrivacySecurity()}
                     {activeSection === 'Notifications' && renderNotifications()}
                     {activeSection === 'Integrations' && renderIntegrations()}
-                    {activeSection === 'API Configuration' && renderApiConfiguration()}
+                    {activeSection === 'API Configuration' && !isAccountant && renderApiConfiguration()}
                 </div>
             </div>
         </div>

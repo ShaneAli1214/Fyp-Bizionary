@@ -53,12 +53,62 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
         setShowPassword(false);
     }, [user, isOpen]);
 
+    useEffect(() => {
+        if (!formData.role || !roles || !departments) return;
+        const selectedRoleObj = roles.find(r => String(r.id) === String(formData.role));
+        if (!selectedRoleObj) return;
+
+        const roleName = selectedRoleObj.name;
+        let allowedDeptNames = [];
+        if (roleName === 'Accountant') {
+            allowedDeptNames = ['Finance Dept'];
+        } else if (roleName === 'Inventory Manager') {
+            allowedDeptNames = ['Inventory Dept'];
+        } else if (roleName === 'Sales Manager') {
+            allowedDeptNames = ['Sales Dept'];
+        } else if (roleName === 'Super Admin' || roleName === 'Admin') {
+            allowedDeptNames = ['Administration', 'QA Dept', 'General Dept'];
+        }
+
+        if (allowedDeptNames.length > 0) {
+            const currentDeptObj = departments.find(d => String(d.id) === String(formData.department));
+            if (!currentDeptObj || !allowedDeptNames.includes(currentDeptObj.name)) {
+                const defaultDept = departments.find(d => d.name === allowedDeptNames[0]);
+                if (defaultDept) {
+                    setFormData(prev => ({ ...prev, department: defaultDept.id }));
+                }
+            }
+        }
+    }, [formData.role, roles, departments]);
+
     if (!isOpen) return null;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+
+    const selectedRoleObj = roles.find(r => String(r.id) === String(formData.role));
+    const roleName = selectedRoleObj?.name;
+
+    const filteredDepartments = departments.filter(d => {
+        if (!roleName) return true;
+        if (roleName === 'Accountant') {
+            return d.name === 'Finance Dept';
+        }
+        if (roleName === 'Inventory Manager') {
+            return d.name === 'Inventory Dept';
+        }
+        if (roleName === 'Sales Manager') {
+            return d.name === 'Sales Dept';
+        }
+        if (roleName === 'Super Admin' || roleName === 'Admin') {
+            return ['Administration', 'QA Dept', 'General Dept'].includes(d.name);
+        }
+        return true;
+    });
+
+    const isDeptLocked = ['Accountant', 'Inventory Manager', 'Sales Manager'].includes(roleName);
 
     const handleAutoGeneratePassword = () => {
         // Generate random string
@@ -272,10 +322,11 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
                                         name="department"
                                         value={formData.department}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm appearance-none"
+                                        disabled={isDeptLocked}
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm appearance-none disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                     >
-                                        <option value="">None / Unassigned</option>
-                                        {departments.map(d => (
+                                        {!isDeptLocked && <option value="">None / Unassigned</option>}
+                                        {filteredDepartments.map(d => (
                                             <option key={d.id} value={d.id}>{d.name}</option>
                                         ))}
                                     </select>

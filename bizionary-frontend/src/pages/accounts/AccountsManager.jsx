@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Wallet, TrendingUp, TrendingDown, FileText, Plus, Calendar, ShieldCheck, Download, Upload } from 'lucide-react';
 import { accountsApi } from '../../services/accountsApi';
 import { formatPKR } from '../../utils/currency';
@@ -9,29 +9,126 @@ import COATreeTab from './components/COATreeTab';
 import FinancialReportsTab from './components/FinancialReportsTab';
 import RecordModal from './components/RecordModal';
 
-const formatDateLabel = (dateStr) => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return dateStr;
-    const year = parts[0];
-    const monthIndex = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10);
-    
-    const date = new Date(year, monthIndex, day);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const parseLocalDate = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    const str = String(val).split('T')[0];
+    const parts = str.split('-');
+    if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // 0-indexed
+        const day = parseInt(parts[2], 10);
+        return new Date(year, month, day);
+    }
+    return new Date(val);
 };
+
+const formatDateLabel = (date) => {
+    if (!date) return '';
+    const d = parseLocalDate(date);
+    if (!d || isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const toISODateString = (date) => {
+    if (!date) return '';
+    const d = parseLocalDate(date);
+    if (!d || isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+function useFilteredFinancials(transactions, dateRange) {
+    return useMemo(() => {
+        const start = parseLocalDate(dateRange.startDate);
+        const end = parseLocalDate(dateRange.endDate);
+        
+        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return {
+                filteredRevenue: 0,
+                filteredExpenses: 0,
+                filteredNetProfit: 0,
+                filteredInvoices: [],
+                filteredRevenuesList: [],
+                filteredExpensesList: []
+            };
+        }
+
+        const inRange = (dateStr) => {
+            if (!dateStr) return false;
+            const itemDate = parseLocalDate(dateStr);
+            if (!itemDate || isNaN(itemDate.getTime())) return false;
+            
+            const compareStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            const compareEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            const compareItem = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+            
+            return compareItem >= compareStart && compareItem <= compareEnd;
+        };
+
+        const filteredRevenuesList = transactions.filter(t => {
+            const targetDate = t.date || t.due_date;
+            if (!inRange(targetDate)) return false;
+            // Revenues criteria: type is income or category is Sales Revenue/SALES_REVENUE/etc.
+            return t.type === 'income' || t.category === 'Sales Revenue' || t.category === 'SALES_REVENUE' || t.category === 'SERVICE_INCOME' || t.category === 'OTHER_INCOME';
+        });
+
+        const filteredExpensesList = transactions.filter(t => {
+            const targetDate = t.date || t.due_date;
+            if (!inRange(targetDate)) return false;
+            // Expenses criteria: type is expense/debit/payout or amount is a debit/payout (e.g. t.type is debit/payout)
+            return t.type === 'expense' || t.type === 'debit' || t.type === 'payout';
+        });
+
+        const filteredInvoices = transactions.filter(t => {
+            const targetDate = t.date || t.due_date;
+            if (!inRange(targetDate)) return false;
+            // Invoices criteria: invoice number exists or receivable status (UNPAID/RECEIVABLE/etc. or isInvoice/type is invoice)
+            return !!(t.invoice_number || t.isInvoice || t.status === 'UNPAID' || t.status === 'RECEIVABLE' || t.status === 'PAID' || t.status === 'OVERDUE' || t.type === 'invoice');
+        });
+
+        const filteredRevenue = filteredRevenuesList.reduce((sum, t) => {
+            return t.voided ? sum : sum + Number(t.amount || 0);
+        }, 0);
+
+        const filteredExpenses = filteredExpensesList.reduce((sum, t) => {
+            return t.voided ? sum : sum + Number(t.amount || 0);
+        }, 0);
+
+        const filteredNetProfit = filteredRevenue - filteredExpenses;
+
+        return {
+            filteredRevenue,
+            filteredExpenses,
+            filteredNetProfit,
+            filteredInvoices,
+            filteredRevenuesList,
+            filteredExpensesList
+        };
+    }, [transactions, dateRange.startDate, dateRange.endDate]);
+}
 
 const AccountsManager = () => {
     const [activeTab, setActiveTab] = useState('revenues');
-    const [dateRange, setDateRange] = useState('last_30_days');
-    const [kpis, setKpis] = useState(null);
-    const [loadingKpis, setLoadingKpis] = useState(true);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     
-    // Modal & Toast State
+    // 1. Centralized State (Default: empty to allow auto-fitting from KPI response)
+    const [dateRange, setDateRange] = useState({
+        startDate: '',
+        endDate: ''
+    });
+    const [sliderDuration, setSliderDuration] = useState(30);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [toastMessage, setToastMessage] = useState(null);
+    const [kpis, setKpis] = useState(null);
+    const [loadingKpis, setLoadingKpis] = useState(true);
 
     const fileInputRef = useRef(null);
 
@@ -45,22 +142,52 @@ const AccountsManager = () => {
     };
 
     useEffect(() => {
-        document.title = "Accounts & Finance | Bizionary";
-        return () => {
-            document.title = "Bizionary ERP";
-        };
-    }, []);
-
-    useEffect(() => {
-        const fetchKpis = async () => {
+        const fetchAllData = async () => {
             try {
+                setLoading(true);
                 setLoadingKpis(true);
-                const res = await accountsApi.getKpis(dateRange);
-                if (res.data?.success) {
-                    setKpis(res.data.data);
+                setError(null);
+                
+                const startStr = dateRange.startDate ? toISODateString(dateRange.startDate) : '';
+                const endStr = dateRange.endDate ? toISODateString(dateRange.endDate) : '';
+                
+                // 1. Fetch KPIs
+                const kpiRes = await accountsApi.getKpis('custom', startStr, endStr);
+                if (kpiRes.data?.success) {
+                    const data = kpiRes.data.data;
+                    setKpis(data);
+                    
+                    // If start/end dates are empty, populate them from the KPI response (Auto-fit)
+                    if (!dateRange.startDate && !dateRange.endDate && data.start_date && data.end_date) {
+                        const newStart = parseLocalDate(data.start_date);
+                        const newEnd = parseLocalDate(data.end_date);
+                        setDateRange({
+                            startDate: newStart,
+                            endDate: newEnd
+                        });
+                        const diff = Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+                        setSliderDuration(Math.min(365, Math.max(1, diff)));
+                        return; // The state update will trigger this useEffect again with valid dates
+                    }
                 }
-            } catch (error) {
-                console.warn('Failed to fetch accounts KPIs.');
+                
+                // 2. Fetch Transactions (only if dates are populated)
+                if (startStr && endStr) {
+                    const [revRes, expRes, invRes] = await Promise.all([
+                        accountsApi.getRevenues('custom', 1, startStr, endStr),
+                        accountsApi.getExpenses('custom', 1, startStr, endStr),
+                        accountsApi.getInvoices('custom', 1, 500, startStr, endStr)
+                    ]);
+                    
+                    const revs = (revRes.data?.data || []).map(r => ({ ...r, type: 'income' }));
+                    const exps = (expRes.data?.data || []).map(e => ({ ...e, type: 'expense' }));
+                    const invs = (invRes.data?.data || []).map(i => ({ ...i, isInvoice: true, date: i.due_date, type: 'invoice' }));
+                    
+                    setTransactions([...revs, ...exps, ...invs]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch data:', err);
+                setError(err.message || 'Failed to fetch accounts data.');
                 setKpis({
                     total_revenue: 0,
                     revenue_growth: 0,
@@ -81,24 +208,63 @@ const AccountsManager = () => {
                     inventory_value: 0,
                 });
             } finally {
+                setLoading(false);
                 setLoadingKpis(false);
             }
         };
 
-        fetchKpis();
-    }, [refreshTrigger, dateRange]);
+        fetchAllData();
+    }, [refreshTrigger, dateRange.startDate, dateRange.endDate]);
 
-    useEffect(() => {
-        const handleOrderedSlipUpdated = () => {
-            triggerRefresh();
-        };
+    const { 
+        filteredRevenue, 
+        filteredExpenses, 
+        filteredNetProfit, 
+        filteredInvoices, 
+        filteredRevenuesList, 
+        filteredExpensesList 
+    } = useFilteredFinancials(transactions, dateRange);
 
-        window.addEventListener('orderedSlipUpdated', handleOrderedSlipUpdated);
+    const handleStartDateChange = (val) => {
+        if (!val) return;
+        const newStart = parseLocalDate(val);
+        setDateRange(prev => {
+            const nextEnd = prev.endDate >= newStart ? prev.endDate : newStart;
+            const diff = Math.ceil((nextEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+            setSliderDuration(Math.min(365, Math.max(1, diff)));
+            return {
+                startDate: newStart,
+                endDate: nextEnd
+            };
+        });
+    };
 
-        return () => {
-            window.removeEventListener('orderedSlipUpdated', handleOrderedSlipUpdated);
-        };
-    }, []);
+    const handleEndDateChange = (val) => {
+        if (!val) return;
+        const newEnd = parseLocalDate(val);
+        setDateRange(prev => {
+            const nextStart = prev.startDate <= newEnd ? prev.startDate : newEnd;
+            const diff = Math.ceil((newEnd - nextStart) / (1000 * 60 * 60 * 24)) + 1;
+            setSliderDuration(Math.min(365, Math.max(1, diff)));
+            return {
+                startDate: nextStart,
+                endDate: newEnd
+            };
+        });
+    };
+
+    const handleSliderChange = (duration) => {
+        const val = parseInt(duration, 10);
+        setSliderDuration(val);
+        setDateRange(prev => {
+            const nextEnd = new Date(prev.startDate);
+            nextEnd.setDate(nextEnd.getDate() + val - 1);
+            return {
+                ...prev,
+                endDate: nextEnd
+            };
+        });
+    };
 
     const handleAddRecord = () => {
         setSelectedRecord(null);
@@ -110,7 +276,6 @@ const AccountsManager = () => {
         setIsModalOpen(true);
     };
 
-    // Quick Actions
     const handleReconcile = async () => {
         showToast("General Ledger audit reconciliation completed successfully! General accounts are balanced.");
     };
@@ -128,23 +293,20 @@ const AccountsManager = () => {
         }
     };
 
-    const handleExportCSV = async () => {
+    const handleExportCSV = () => {
         try {
             let dataToExport = [];
             let headers = [];
             let filename = `${activeTab}_export.csv`;
 
             if (activeTab === 'revenues') {
-                const res = await accountsApi.getRevenues(dateRange, 1);
-                dataToExport = res.data?.data || [];
+                dataToExport = filteredRevenuesList;
                 headers = ['Date', 'Customer', 'Invoice #', 'Category', 'Status', 'Amount', 'Voided', 'Void Reason'];
             } else if (activeTab === 'expenses') {
-                const res = await accountsApi.getExpenses(dateRange, 1);
-                dataToExport = res.data?.data || [];
+                dataToExport = filteredExpensesList;
                 headers = ['Date', 'Vendor', 'Category', 'Payment Method', 'Tax Amount', 'Total Amount', 'Receipt', 'Voided', 'Void Reason'];
             } else if (activeTab === 'invoices') {
-                const res = await accountsApi.getInvoices(dateRange, 1);
-                dataToExport = res.data?.data || [];
+                dataToExport = filteredInvoices;
                 headers = ['Due Date', 'Customer', 'Invoice #', 'Status', 'Balance Due', 'Total Amount', 'Aging (Days)', 'Voided'];
             }
 
@@ -153,7 +315,6 @@ const AccountsManager = () => {
                 return;
             }
 
-            // Construct CSV String
             const csvRows = [];
             csvRows.push(headers.join(','));
 
@@ -226,16 +387,8 @@ const AccountsManager = () => {
         );
     };
 
-    const getDateRangeLabel = () => {
-        if (dateRange === 'last_30_days') return 'Last 30 days';
-        if (dateRange === 'this_quarter') return 'This Quarter';
-        if (dateRange === 'this_year') return 'This Year';
-        return 'All Time';
-    };
-
     return (
         <div className="space-y-6 relative">
-            {/* Toast Notification */}
             {toastMessage && (
                 <div className="fixed top-6 right-6 z-50 p-4 rounded-xl border bg-white shadow-lg flex items-center gap-3 animate-in slide-in-from-top duration-300">
                     <div className={`w-2 h-2 rounded-full ${toastMessage.type === 'error' ? 'bg-red-500' : toastMessage.type === 'info' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
@@ -251,27 +404,52 @@ const AccountsManager = () => {
                     <p className="text-sm text-textMuted mt-1">Upgrade general ledgers, accounts receivable, and audit compliance.</p>
                 </div>
 
-                {/* Global Date Filter & Add Actions */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-                        <button 
-                            onClick={() => setDateRange('last_30_days')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === 'last_30_days' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-slate-900'}`}
-                        >
-                            Last 30 Days
-                        </button>
-                        <button 
-                            onClick={() => setDateRange('this_quarter')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === 'this_quarter' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-slate-900'}`}
-                        >
-                            This Quarter
-                        </button>
-                        <button 
-                            onClick={() => setDateRange('this_year')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === 'this_year' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:text-slate-900'}`}
-                        >
-                            This Year
-                        </button>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white border border-slate-200 rounded-2xl p-2.5 gap-3 shadow-xs">
+                        <div className="flex items-center gap-1.5">
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 pl-0.5">Start Date</span>
+                                <input 
+                                    type="date" 
+                                    value={toISODateString(dateRange.startDate)}
+                                    onChange={(e) => handleStartDateChange(e.target.value)}
+                                    className="px-2 py-1 text-xs font-bold bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-primary transition-all font-mono"
+                                />
+                            </div>
+                            <span className="text-slate-300 font-bold self-end mb-1 text-xs px-0.5">to</span>
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 pl-0.5">End Date</span>
+                                <input 
+                                    type="date" 
+                                    value={toISODateString(dateRange.endDate)}
+                                    onChange={(e) => handleEndDateChange(e.target.value)}
+                                    className="px-2 py-1 text-xs font-bold bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-primary transition-all font-mono"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="hidden sm:block w-px h-6 bg-slate-200 self-end mb-1"></div>
+
+                        <div className="flex flex-col min-w-[140px] sm:min-w-[170px] justify-end">
+                            <div className="flex justify-between items-center mb-0.5">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Duration</span>
+                                <span className="text-[10px] font-black text-primary bg-sky-50 px-1.5 py-0.2 rounded border border-sky-100 font-mono">
+                                    {sliderDuration} {sliderDuration === 1 ? 'day' : 'days'}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 h-6">
+                                <span className="text-[9px] text-slate-400 font-bold font-mono">1d</span>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="365" 
+                                    value={sliderDuration}
+                                    onChange={(e) => handleSliderChange(e.target.value)}
+                                    className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                                <span className="text-[9px] text-slate-400 font-bold font-mono">1y</span>
+                            </div>
+                        </div>
                     </div>
 
                     {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
@@ -286,7 +464,6 @@ const AccountsManager = () => {
                 </div>
             </div>
 
-            {/* Quick Actions Panel */}
             {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
                 <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50 print:hidden">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wide px-2">Quick Actions:</span>
@@ -372,7 +549,6 @@ const AccountsManager = () => {
                 </div>
             </div>
 
-            {/* Tabs & Main Tables Container */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
                 <div className="flex justify-between items-center border-b border-gray-100 px-6 pt-4 print:hidden">
                     <div className="flex gap-6">
@@ -416,52 +592,76 @@ const AccountsManager = () => {
                     <div className="pb-4 flex items-center gap-1.5 text-xs font-semibold text-textMuted">
                         <Calendar className="w-3.5 h-3.5" />
                         <span>
-                            Filter: {getDateRangeLabel()}
-                            {kpis?.start_date && kpis?.end_date && (
-                                <span className="text-primary ml-1.5 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 font-bold">
-                                    {formatDateLabel(kpis.start_date)} - {formatDateLabel(kpis.end_date)}
-                                </span>
-                            )}
+                            Filter: 
+                            <span className="text-primary ml-1.5 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 font-bold">
+                                {formatDateLabel(dateRange.startDate)} - {formatDateLabel(dateRange.endDate)}
+                            </span>
                         </span>
                     </div>
                 </div>
 
                 <div className="p-6 flex-1 bg-slate-50/30 print:p-0 print:bg-transparent">
-                    {activeTab === 'revenues' && (
-                        <RevenuesTab 
-                            refreshTrigger={refreshTrigger} 
-                            onEdit={handleEditRecord} 
-                            triggerRefresh={triggerRefresh}
-                            dateRange={dateRange}
-                        />
-                    )}
-                    {activeTab === 'expenses' && (
-                        <ExpensesTab 
-                            refreshTrigger={refreshTrigger} 
-                            onEdit={handleEditRecord} 
-                            triggerRefresh={triggerRefresh}
-                            dateRange={dateRange}
-                        />
-                    )}
-                    {activeTab === 'invoices' && (
-                        <InvoicesTab 
-                            refreshTrigger={refreshTrigger} 
-                            onEdit={handleEditRecord} 
-                            triggerRefresh={triggerRefresh}
-                            dateRange={dateRange}
-                        />
-                    )}
-                    {activeTab === 'chart-tree' && (
-                        <COATreeTab 
-                            refreshTrigger={refreshTrigger}
-                            dateRange={dateRange}
-                        />
-                    )}
-                    {activeTab === 'financial-reports' && (
-                        <FinancialReportsTab 
-                            refreshTrigger={refreshTrigger}
-                            dateRange={dateRange}
-                        />
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-sm text-slate-500 font-bold">Loading transactions...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="bg-rose-50 border border-rose-100 text-rose-700 p-6 rounded-2xl text-center py-10 font-bold">
+                            {error}
+                        </div>
+                    ) : (
+                        <>
+                            {activeTab === 'revenues' && (
+                                filteredRevenuesList.length === 0 ? (
+                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                ) : (
+                                    <RevenuesTab 
+                                        revenues={filteredRevenuesList}
+                                        onEdit={handleEditRecord} 
+                                        triggerRefresh={triggerRefresh}
+                                    />
+                                )
+                            )}
+                            {activeTab === 'expenses' && (
+                                filteredExpensesList.length === 0 ? (
+                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                ) : (
+                                    <ExpensesTab 
+                                        expenses={filteredExpensesList}
+                                        onEdit={handleEditRecord} 
+                                        triggerRefresh={triggerRefresh}
+                                    />
+                                )
+                            )}
+                            {activeTab === 'invoices' && (
+                                filteredInvoices.length === 0 ? (
+                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                ) : (
+                                    <InvoicesTab 
+                                        invoices={filteredInvoices}
+                                        onEdit={handleEditRecord} 
+                                        triggerRefresh={triggerRefresh}
+                                    />
+                                )
+                            )}
+                            {activeTab === 'chart-tree' && (
+                                <COATreeTab 
+                                    refreshTrigger={refreshTrigger}
+                                    dateRange="custom"
+                                    startDate={toISODateString(dateRange.startDate)}
+                                    endDate={toISODateString(dateRange.endDate)}
+                                />
+                            )}
+                            {activeTab === 'financial-reports' && (
+                                <FinancialReportsTab 
+                                    refreshTrigger={refreshTrigger}
+                                    dateRange="custom"
+                                    startDate={toISODateString(dateRange.startDate)}
+                                    endDate={toISODateString(dateRange.endDate)}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </div>
@@ -478,4 +678,3 @@ const AccountsManager = () => {
 };
 
 export default AccountsManager;
-

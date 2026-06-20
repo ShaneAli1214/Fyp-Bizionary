@@ -1,16 +1,25 @@
 import api from './api';
 
+const buildUrl = (baseUrl, dateRange, startDate, endDate, extraParams = []) => {
+    const params = [...extraParams];
+    if (dateRange && dateRange !== 'custom') params.push(`date_range=${dateRange}`);
+    if (startDate) params.push(`start_date=${startDate}`);
+    if (endDate) params.push(`end_date=${endDate}`);
+    return baseUrl + (params.length ? `?${params.join('&')}` : '');
+};
+
 export const accountsApi = {
     // KPIs
-    getKpis: (dateRange) => api.get(`accounts/kpis/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getKpis: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/kpis/', dateRange, startDate, endDate)),
 
     // Analytics
-    getTrend: (dateRange) => api.get(`accounts/trend/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getTrend: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/trend/', dateRange, startDate, endDate)),
     getRecentInvoices: (limit = 5) => api.get(`accounts/recent-invoices/?limit=${limit}`),
-    getExpenseCategories: (dateRange) => api.get(`accounts/expense-categories/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getExpenseCategories: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/expense-categories/', dateRange, startDate, endDate)),
 
     // Revenues
-    getRevenues: (dateRange, page = 1) => api.get(`accounts/revenues/?page=${page}${dateRange ? `&date_range=${dateRange}` : ''}`),
+    getRevenues: (dateRange, page = 1, startDate, endDate) => 
+        api.get(buildUrl('accounts/revenues/', dateRange, startDate, endDate, [`page=${page}`])),
     getRevenue: (id) => api.get(`accounts/revenues/${id}/`),
     createRevenue: (data) => api.post('accounts/revenues/', data),
     updateRevenue: (id, data) => api.put(`accounts/revenues/${id}/`, data),
@@ -18,7 +27,8 @@ export const accountsApi = {
     voidRevenue: (id, reason) => api.post(`accounts/revenues/${id}/void/`, { reason }),
 
     // Expenses
-    getExpenses: (dateRange, page = 1) => api.get(`accounts/expenses/?page=${page}${dateRange ? `&date_range=${dateRange}` : ''}`),
+    getExpenses: (dateRange, page = 1, startDate, endDate) => 
+        api.get(buildUrl('accounts/expenses/', dateRange, startDate, endDate, [`page=${page}`])),
     getExpense: (id) => api.get(`accounts/expenses/${id}/`),
     createExpense: (data) => api.post('accounts/expenses/', data),
     updateExpense: (id, data) => api.put(`accounts/expenses/${id}/`, data),
@@ -26,7 +36,8 @@ export const accountsApi = {
     voidExpense: (id, reason) => api.post(`accounts/expenses/${id}/void/`, { reason }),
 
     // Invoices
-    getInvoices: (dateRange, page = 1, pageSize = 10) => api.get(`accounts/invoices/?page=${page}&page_size=${pageSize}${dateRange ? `&date_range=${dateRange}` : ''}`),
+    getInvoices: (dateRange, page = 1, pageSize = 10, startDate, endDate) => 
+        api.get(buildUrl('accounts/invoices/', dateRange, startDate, endDate, [`page=${page}`, `page_size=${pageSize}`])),
     getInvoice: (id) => api.get(`accounts/invoices/${id}/`),
     createInvoice: (data) => api.post('accounts/invoices/', data),
     updateInvoice: (id, data) => api.put(`accounts/invoices/${id}/`, data),
@@ -34,8 +45,7 @@ export const accountsApi = {
     voidInvoice: (id, reason) => api.post(`accounts/invoices/${id}/void/`, { reason }),
 
     // Advanced & Reports
-    getCOATree: (dateRange) => api.get(`accounts/chart-tree/${dateRange ? `?date_range=${dateRange}` : ''}`),
-    getProfitLoss: (dateRange) => api.get(`accounts/reports/profit-loss/${dateRange ? `?date_range=${dateRange}` : ''}`),
-    getBalanceSheet: (dateRange) => api.get(`accounts/reports/balance-sheet/${dateRange ? `?date_range=${dateRange}` : ''}`),
+    getCOATree: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/chart-tree/', dateRange, startDate, endDate)),
+    getProfitLoss: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/reports/profit-loss/', dateRange, startDate, endDate)),
+    getBalanceSheet: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/reports/balance-sheet/', dateRange, startDate, endDate)),
 };
-

@@ -18,19 +18,36 @@ import Logo from '../common/Logo';
 const Sidebar = ({ isOpen, onClose }) => {
     const { user } = useAuth();
 
+    const isInventoryManager = user?.role_name === 'Inventory Manager';
+    const isSalesManager = user?.role_name === 'Sales Manager';
+    const isAccountant = user?.role_name === 'Accountant';
+    const isUserAdmin = user?.role_name === 'Super Admin' || user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
+
     const navigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
         { name: 'Accounts', href: '/accounts', icon: CreditCard },
         { name: 'Products', href: '/products', icon: Package },
         { name: 'Stock', href: '/inventory-managment', icon: Boxes },
         { name: 'Sales', href: '/sales', icon: ShoppingCart },
-            { name: 'AI Insights', href: '/insights', icon: TrendingUp },
+        { name: 'AI Insights', href: '/insights', icon: TrendingUp },
         { name: 'Create Order', href: '/ordered-slips', icon: ClipboardList },
         { name: 'AI Chatbot', href: '/chatbot', icon: Bot },
         { name: 'Admin', href: '/user-management', icon: Lock, adminOnly: true }
-    ];
-
-    const isUserAdmin = user?.role === 'Admin' || user?.role === 'Super Admin' || user?.role_name === 'Super Admin' || user?.role_name === 'Admin';
+    ].filter(item => {
+        if (isInventoryManager) {
+            return !['Accounts', 'Sales', 'Admin'].includes(item.name);
+        }
+        if (isSalesManager) {
+            return !['Accounts', 'Stock', 'Admin'].includes(item.name);
+        }
+        if (isAccountant) {
+            return !['Products', 'Stock', 'Create Order', 'Admin'].includes(item.name);
+        }
+        if (item.adminOnly && !isUserAdmin) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Package, AlertCircle, Zap, Brain } from 'lucide-react';
 import { insightsApi } from '../../services/insightsApi';
+import { useAuth } from '../../context/AuthContext';
 
 const NLP_PERIODS = {
     daily: { days: 1, label: 'Daily' },
@@ -66,6 +67,8 @@ const applyOptimisticReviewToReport = (currentReport, reviewPayload) => {
 };
 
 const AIInsights = () => {
+    const { user } = useAuth();
+    const isAccountant = user?.role_name === 'Accountant';
     const [activeTab, setActiveTab] = useState('live');
     const [selectedNlpPeriod, setSelectedNlpPeriod] = useState('monthly');
     const [insights, setInsights] = useState(null);
@@ -305,6 +308,39 @@ const AIInsights = () => {
     const dailyTopByRevenue = displayedInsights.daily_top_by_revenue || [];
     const latestRevenue = dailyTopByRevenue.length ? dailyTopByRevenue[dailyTopByRevenue.length - 1] : null;
 
+    const hasInsights = insights && (Number(insights.total_revenue || 0) > 0 || Number(insights.total_sales || 0) > 0);
+
+    if (!hasInsights) {
+        return (
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-8 border border-primary/20">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
+                            <Brain className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-textMain">AI Insights Dashboard</h1>
+                            <p className="text-textMuted mt-1">Powered by Advanced Analytics & AI</p>
+                            <p className="text-xs text-textMuted mt-1">Data source: db.sqlite3 (live)</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Empty State / Compilation Placeholder */}
+                <div className="rounded-3xl bg-white border border-slate-100 p-12 text-center flex flex-col items-center justify-center min-h-[350px] shadow-sm">
+                    <div className="w-16 h-16 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center mb-5 animate-pulse">
+                        <Brain className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">AI Financial Insights Compiling</h3>
+                    <p className="text-sm text-textMuted max-w-md mt-2 leading-relaxed">
+                        Bizionary AI is currently analyzing your general ledger accounts. Predictive modeling, revenue diagnostics, and cash flow warnings will automatically activate once sales and revenue records are created.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -322,28 +358,30 @@ const AIInsights = () => {
             </div>
 
             {/* Tabs */}
-            <div className="rounded-2xl bg-white p-2 border border-gray-100 shadow-sm inline-flex gap-2">
-                <button
-                    onClick={() => setActiveTab('live')}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
-                        activeTab === 'live'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-textMain hover:bg-gray-200'
-                    }`}
-                >
-                    Live Insights
-                </button>
-                <button
-                    onClick={() => setActiveTab('nlp')}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
-                        activeTab === 'nlp'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-textMain hover:bg-gray-200'
-                    }`}
-                >
-                    NLP Report
-                </button>
-            </div>
+            {!isAccountant && (
+                <div className="rounded-2xl bg-white p-2 border border-gray-100 shadow-sm inline-flex gap-2">
+                    <button
+                        onClick={() => setActiveTab('live')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
+                            activeTab === 'live'
+                                ? 'bg-primary text-white'
+                                : 'bg-gray-100 text-textMain hover:bg-gray-200'
+                        }`}
+                    >
+                        Live Insights
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('nlp')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
+                            activeTab === 'nlp'
+                                ? 'bg-primary text-white'
+                                : 'bg-gray-100 text-textMain hover:bg-gray-200'
+                        }`}
+                    >
+                        NLP Report
+                    </button>
+                </div>
+            )}
 
             {activeTab === 'nlp' ? (
                 <div className="space-y-6">
@@ -571,9 +609,9 @@ const AIInsights = () => {
             </div>
 
             {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${isAccountant ? 'grid-cols-1' : 'lg:grid-cols-2'} gap-6`}>
                 {/* Sales Trend */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                <div className={`rounded-3xl bg-white p-6 shadow-sm border border-gray-100 ${isAccountant ? 'col-span-full' : ''}`}>
                     <h3 className="text-lg font-bold text-textMain mb-4">Sales Trend (30 Days)</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={salesTrendData}>
@@ -587,51 +625,55 @@ const AIInsights = () => {
                 </div>
 
                 {/* Hot Selling Products */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-4">🔥 Hot Selling Products</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={hotProductsChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis tick={{ fontSize: 12 }} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="sales" fill="#10B981" radius={[8, 8, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
+                {!isAccountant && (
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-4">🔥 Hot Selling Products</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={hotProductsChartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                <YAxis tick={{ fontSize: 12 }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                                <Bar dataKey="sales" fill="#10B981" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                )}
             </div>
 
             {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Cold Selling Products */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-4">❄️ Low Selling Products</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={coldProductsChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis tick={{ fontSize: 12 }} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="sales" fill="#F59E0B" radius={[8, 8, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
+            {!isAccountant && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Cold Selling Products */}
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-4">❄️ Low Selling Products</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={coldProductsChartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                <YAxis tick={{ fontSize: 12 }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                                <Bar dataKey="sales" fill="#F59E0B" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
 
-                {/* Restocking Needed */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-4">⚠️ Products Needing Restocking</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={restockingChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis tick={{ fontSize: 12 }} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="current" fill="#EF4444" radius={[8, 8, 0, 0]} />
-                            <Bar dataKey="recommended" fill="#8B5CF6" radius={[8, 8, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {/* Restocking Needed */}
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-4">⚠️ Products Needing Restocking</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={restockingChartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                <YAxis tick={{ fontSize: 12 }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                                <Bar dataKey="current" fill="#EF4444" radius={[8, 8, 0, 0]} />
+                                <Bar dataKey="recommended" fill="#8B5CF6" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* AI Analysis */}
                 <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 p-8 border border-primary/20">
@@ -649,98 +691,102 @@ const AIInsights = () => {
                 {errorBanner}
 
             {/* Daily Top Products (Quantity & Revenue) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Quantity)</h3>
-                    <p className="text-sm text-textMuted mb-3">Date: {latestQuantity?.date || 'N/A'}</p>
-                    <ul className="space-y-2">
-                        {(latestQuantity?.top || []).map((item, idx) => (
-                            <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                                <div>
-                                    <div className="font-medium text-textMain">{item.product_name}</div>
-                                    <div className="text-sm text-textMuted">Units: {item.units}</div>
-                                </div>
-                                <div className="text-sm font-semibold">
-                                    {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+            {!isAccountant && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Quantity)</h3>
+                        <p className="text-sm text-textMuted mb-3">Date: {latestQuantity?.date || 'N/A'}</p>
+                        <ul className="space-y-2">
+                            {(latestQuantity?.top || []).map((item, idx) => (
+                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                    <div>
+                                        <div className="font-medium text-textMain">{item.product_name}</div>
+                                        <div className="text-sm text-textMuted">Units: {item.units}</div>
+                                    </div>
+                                    <div className="text-sm font-semibold">
+                                        {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Revenue)</h3>
-                    <p className="text-sm text-textMuted mb-3">Date: {latestRevenue?.date || 'N/A'}</p>
-                    <ul className="space-y-2">
-                        {(latestRevenue?.top || []).map((item, idx) => (
-                            <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                                <div>
-                                    <div className="font-medium text-textMain">{item.product_name}</div>
-                                    <div className="text-sm text-textMuted">Revenue: ₨{Number(item.revenue || 0).toLocaleString()}</div>
-                                </div>
-                                <div className="text-sm font-semibold">
-                                    {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Revenue)</h3>
+                        <p className="text-sm text-textMuted mb-3">Date: {latestRevenue?.date || 'N/A'}</p>
+                        <ul className="space-y-2">
+                            {(latestRevenue?.top || []).map((item, idx) => (
+                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                    <div>
+                                        <div className="font-medium text-textMain">{item.product_name}</div>
+                                        <div className="text-sm text-textMuted">Revenue: ₨{Number(item.revenue || 0).toLocaleString()}</div>
+                                    </div>
+                                    <div className="text-sm font-semibold">
+                                        {item.change_vs_prev_day_percent == null ? '-' : `${item.change_vs_prev_day_percent}%`}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Product Details Tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Hot Products Table */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-4">Top Performers</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200">
-                                    <th className="text-left py-3 text-textMuted font-semibold">Product</th>
-                                    <th className="text-right py-3 text-textMuted font-semibold">Sales</th>
-                                    <th className="text-right py-3 text-textMuted font-semibold">Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {displayedInsights.hot_products?.map((product, idx) => (
-                                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-3 text-textMain font-medium">{product.product_name}</td>
-                                        <td className="text-right py-3 text-textMain">{product.total_sales}</td>
-                                        <td className="text-right py-3 text-green-600 font-semibold">
-                                            ₨{product.total_revenue?.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                                        </td>
+            {!isAccountant && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Hot Products Table */}
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-4">Top Performers</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-gray-200">
+                                        <th className="text-left py-3 text-textMuted font-semibold">Product</th>
+                                        <th className="text-right py-3 text-textMuted font-semibold">Sales</th>
+                                        <th className="text-right py-3 text-textMuted font-semibold">Revenue</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {displayedInsights.hot_products?.map((product, idx) => (
+                                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="py-3 text-textMain font-medium">{product.product_name}</td>
+                                            <td className="text-right py-3 text-textMain">{product.total_sales}</td>
+                                            <td className="text-right py-3 text-green-600 font-semibold">
+                                                ₨{product.total_revenue?.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                {/* Restocking Table */}
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-textMain mb-4">Urgent: Low Stock</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200">
-                                    <th className="text-left py-3 text-textMuted font-semibold">Product</th>
-                                    <th className="text-center py-3 text-textMuted font-semibold">Current</th>
-                                    <th className="text-center py-3 text-textMuted font-semibold">Min</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {displayedInsights.restocking_needed?.map((product, idx) => (
-                                    <tr key={idx} className="border-b border-gray-100 hover:bg-red-50">
-                                        <td className="py-3 text-textMain font-medium">{product.product_name}</td>
-                                        <td className="text-center py-3 text-red-600 font-bold">{product.stock_level}</td>
-                                        <td className="text-center py-3 text-textMuted">{product.reorder_level}</td>
+                    {/* Restocking Table */}
+                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-bold text-textMain mb-4">Urgent: Low Stock</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-gray-200">
+                                        <th className="text-left py-3 text-textMuted font-semibold">Product</th>
+                                        <th className="text-center py-3 text-textMuted font-semibold">Current</th>
+                                        <th className="text-center py-3 text-textMuted font-semibold">Min</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {displayedInsights.restocking_needed?.map((product, idx) => (
+                                        <tr key={idx} className="border-b border-gray-100 hover:bg-red-50">
+                                            <td className="py-3 text-textMain font-medium">{product.product_name}</td>
+                                            <td className="text-center py-3 text-red-600 font-bold">{product.stock_level}</td>
+                                            <td className="text-center py-3 text-textMuted">{product.reorder_level}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
                 </>
             )}
         </div>

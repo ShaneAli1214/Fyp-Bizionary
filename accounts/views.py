@@ -9,10 +9,41 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from datetime import date
+from functools import wraps
 
 from .models import Revenue, Expense, Invoice
 from .serializers import RevenueSerializer, ExpenseSerializer, InvoiceSerializer
 from .services import AccountsService
+from user_management.views import log_action
+
+
+def check_accounts_permission(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        from user_management.views import get_request_user
+        user = get_request_user(request)
+        if not user:
+            return Response({
+                'success': False,
+                'error': 'Authentication credentials were not provided.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        role_name = user.role.name if user.role else ''
+        if role_name == 'Inventory Manager':
+            return Response({
+                'success': False,
+                'error': 'Permission Denied. Inventory Managers do not have access to Accounts.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        if role_name == 'Sales Manager':
+            return Response({
+                'success': False,
+                'error': 'Permission Denied. Sales Managers do not have access to Accounts.'
+            }, status=status.HTTP_403_FORBIDDEN)
+            
+        request.user = user
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def paginate_queryset(request, queryset, serializer_class):
@@ -45,14 +76,17 @@ def paginate_queryset(request, queryset, serializer_class):
 # ==================== KPI ENDPOINTS ====================
 
 @api_view(['GET'])
+@check_accounts_permission
 def accounts_kpi_view(request):
     """
-    GET /api/accounts/kpis/?date_range=last_30_days
+    GET /api/accounts/kpis/?date_range=last_30_days&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     Returns key performance indicators with prior-period growth rates.
     """
     try:
         date_range = request.GET.get('date_range')
-        kpis = AccountsService.kpi_summary(date_range)
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        kpis = AccountsService.kpi_summary(date_range, start_date, end_date)
         
         return Response({
             'success': True,
@@ -69,14 +103,17 @@ def accounts_kpi_view(request):
 # ==================== ANALYTICS ENDPOINTS ====================
 
 @api_view(['GET'])
+@check_accounts_permission
 def income_expense_trend_view(request):
     """
-    GET /api/accounts/trend/?date_range=last_30_days
+    GET /api/accounts/trend/?date_range=last_30_days&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     Returns monthly trend of income vs expenses
     """
     try:
         date_range = request.GET.get('date_range')
-        trend_data = AccountsService.income_vs_expense_trend(date_range)
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        trend_data = AccountsService.income_vs_expense_trend(date_range, start_date, end_date)
         
         return Response({
             'success': True,
@@ -91,6 +128,7 @@ def income_expense_trend_view(request):
 
 
 @api_view(['GET'])
+@check_accounts_permission
 def recent_invoices_view(request):
     """
     GET /api/accounts/recent-invoices/
@@ -114,14 +152,17 @@ def recent_invoices_view(request):
 
 
 @api_view(['GET'])
+@check_accounts_permission
 def expense_categories_view(request):
     """
-    GET /api/accounts/expense-categories/?date_range=last_30_days
+    GET /api/accounts/expense-categories/?date_range=last_30_days&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     Returns breakdown of expenses by category with percentages
     """
     try:
         date_range = request.GET.get('date_range')
-        categories = AccountsService.expense_categories_breakdown(date_range)
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        categories = AccountsService.expense_categories_breakdown(date_range, start_date, end_date)
         
         return Response({
             'success': True,
@@ -138,6 +179,7 @@ def expense_categories_view(request):
 # ==================== CRUD ENDPOINTS ====================
 
 @api_view(['GET', 'POST'])
+@check_accounts_permission
 def revenue_list_create(request):
     """
     GET /api/accounts/revenues/?date_range=last_30_days&page=1
@@ -148,18 +190,24 @@ def revenue_list_create(request):
         
         # Filter by date range
         date_range = request.GET.get('date_range')
-        if date_range:
-            start, end = AccountsService.get_date_filter(date_range)
-            if start and end:
-                queryset = queryset.filter(date__range=(start, end))
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
                 
-        return paginate_queryset(request, queryset, RevenueSerializer)
+        serializer = RevenueSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
     
     elif request.method == 'POST':
         serializer = RevenueSerializer(data=request.data)
         if serializer.is_valid():
             revenue = serializer.save()
             AccountsService.post_revenue_ledger(revenue)
+            log_action(request, 'CREATE', f"Revenue record '{revenue.description}' (PKR {revenue.amount}) created.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -171,6 +219,7 @@ def revenue_list_create(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
 def revenue_detail(request, pk):
     """
     GET /api/accounts/revenues/<id>/
@@ -191,6 +240,7 @@ def revenue_detail(request, pk):
         if serializer.is_valid():
             revenue = serializer.save()
             AccountsService.post_revenue_ledger(revenue)
+            log_action(request, 'UPDATE', f"Revenue record '{revenue.description}' (PKR {revenue.amount}) updated.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -204,6 +254,7 @@ def revenue_detail(request, pk):
         # Hard delete also cleans up associated journal entry
         if revenue.journal_entry:
             revenue.journal_entry.delete()
+        log_action(request, 'DELETE', f"Revenue record '{revenue.description}' (PKR {revenue.amount}) deleted.", module='Accounts')
         revenue.delete()
         return Response({
             'success': True,
@@ -212,6 +263,7 @@ def revenue_detail(request, pk):
 
 
 @api_view(['GET', 'POST'])
+@check_accounts_permission
 def expense_list_create(request):
     """
     GET /api/accounts/expenses/?date_range=last_30_days&page=1
@@ -221,18 +273,24 @@ def expense_list_create(request):
         queryset = Expense.objects.all().order_by('-date', '-created_at')
         
         date_range = request.GET.get('date_range')
-        if date_range:
-            start, end = AccountsService.get_date_filter(date_range)
-            if start and end:
-                queryset = queryset.filter(date__range=(start, end))
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
                 
-        return paginate_queryset(request, queryset, ExpenseSerializer)
+        serializer = ExpenseSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
     
     elif request.method == 'POST':
         serializer = ExpenseSerializer(data=request.data)
         if serializer.is_valid():
             expense = serializer.save()
             AccountsService.post_expense_ledger(expense)
+            log_action(request, 'CREATE', f"Expense '{expense.description}' (PKR {expense.amount}) created.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -244,6 +302,7 @@ def expense_list_create(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
 def expense_detail(request, pk):
     """
     GET /api/accounts/expenses/<id>/
@@ -264,6 +323,7 @@ def expense_detail(request, pk):
         if serializer.is_valid():
             expense = serializer.save()
             AccountsService.post_expense_ledger(expense)
+            log_action(request, 'UPDATE', f"Expense '{expense.description}' (PKR {expense.amount}) updated.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -276,6 +336,7 @@ def expense_detail(request, pk):
     elif request.method == 'DELETE':
         if expense.journal_entry:
             expense.journal_entry.delete()
+        log_action(request, 'DELETE', f"Expense '{expense.description}' (PKR {expense.amount}) deleted.", module='Accounts')
         expense.delete()
         return Response({
             'success': True,
@@ -284,6 +345,7 @@ def expense_detail(request, pk):
 
 
 @api_view(['GET', 'POST'])
+@check_accounts_permission
 def invoice_list_create(request):
     """
     GET /api/accounts/invoices/?date_range=last_30_days&page=1
@@ -293,18 +355,24 @@ def invoice_list_create(request):
         queryset = Invoice.objects.all().order_by('-created_at')
         
         date_range = request.GET.get('date_range')
-        if date_range:
-            start, end = AccountsService.get_date_filter(date_range)
-            if start and end:
-                queryset = queryset.filter(date__range=(start, end))
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            queryset = queryset.filter(date__range=(start, end))
                 
-        return paginate_queryset(request, queryset, InvoiceSerializer)
+        serializer = InvoiceSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
     
     elif request.method == 'POST':
         serializer = InvoiceSerializer(data=request.data)
         if serializer.is_valid():
             invoice = serializer.save()
             AccountsService.post_invoice_ledger(invoice)
+            log_action(request, 'CREATE', f"Invoice #{invoice.invoice_number} for '{invoice.customer_name}' (PKR {invoice.total_amount}) created.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -316,6 +384,7 @@ def invoice_list_create(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
 def invoice_detail(request, pk):
     """
     GET /api/accounts/invoices/<id>/
@@ -336,6 +405,7 @@ def invoice_detail(request, pk):
         if serializer.is_valid():
             invoice = serializer.save()
             AccountsService.post_invoice_ledger(invoice)
+            log_action(request, 'UPDATE', f"Invoice #{invoice.invoice_number} for '{invoice.customer_name}' updated.", module='Accounts')
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -348,6 +418,7 @@ def invoice_detail(request, pk):
     elif request.method == 'DELETE':
         if invoice.journal_entry:
             invoice.journal_entry.delete()
+        log_action(request, 'DELETE', f"Invoice #{invoice.invoice_number} for '{invoice.customer_name}' deleted.", module='Accounts')
         invoice.delete()
         return Response({
             'success': True,
@@ -358,6 +429,7 @@ def invoice_detail(request, pk):
 # ==================== VOID ACTIONS ====================
 
 @api_view(['POST'])
+@check_accounts_permission
 def revenue_void(request, pk):
     """
     POST /api/accounts/revenues/<id>/void/
@@ -371,10 +443,10 @@ def revenue_void(request, pk):
     revenue.void_reason = reason
     revenue.payment_status = 'PENDING'
     revenue.save()
-    
-    # Update double entry impact
+
     AccountsService.post_revenue_ledger(revenue)
-    
+    log_action(request, 'UPDATE', f"Revenue record '{revenue.description}' voided. Reason: {reason}", module='Accounts')
+
     return Response({
         'success': True,
         'message': 'Revenue record voided successfully'
@@ -382,6 +454,7 @@ def revenue_void(request, pk):
 
 
 @api_view(['POST'])
+@check_accounts_permission
 def expense_void(request, pk):
     """
     POST /api/accounts/expenses/<id>/void/
@@ -394,10 +467,10 @@ def expense_void(request, pk):
     expense.voided = True
     expense.void_reason = reason
     expense.save()
-    
-    # Update double entry impact
+
     AccountsService.post_expense_ledger(expense)
-    
+    log_action(request, 'UPDATE', f"Expense '{expense.description}' voided. Reason: {reason}", module='Accounts')
+
     return Response({
         'success': True,
         'message': 'Expense record voided successfully'
@@ -405,6 +478,7 @@ def expense_void(request, pk):
 
 
 @api_view(['POST'])
+@check_accounts_permission
 def invoice_void(request, pk):
     """
     POST /api/accounts/invoices/<id>/void/
@@ -419,10 +493,10 @@ def invoice_void(request, pk):
     invoice.status = 'CANCELLED'
     invoice.balance_due = 0
     invoice.save()
-    
-    # Update double entry impact
+
     AccountsService.post_invoice_ledger(invoice)
-    
+    log_action(request, 'UPDATE', f"Invoice #{invoice.invoice_number} voided. Reason: {reason}", module='Accounts')
+
     return Response({
         'success': True,
         'message': 'Invoice voided successfully'
@@ -432,6 +506,7 @@ def invoice_void(request, pk):
 # ==================== REPORT ENDPOINTS ====================
 
 @api_view(['GET'])
+@check_accounts_permission
 def chart_of_accounts_tree_view(request):
     """
     GET /api/accounts/chart-tree/
@@ -439,8 +514,10 @@ def chart_of_accounts_tree_view(request):
     """
     try:
         date_range = request.GET.get('date_range')
-        start_date, end_date = AccountsService.get_date_filter(date_range)
-        tree = AccountsService.get_chart_of_accounts_tree(start_date, end_date)
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        parsed_start, parsed_end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        tree = AccountsService.get_chart_of_accounts_tree(parsed_start, parsed_end)
         return Response({
             'success': True,
             'data': tree
@@ -453,6 +530,7 @@ def chart_of_accounts_tree_view(request):
 
 
 @api_view(['GET'])
+@check_accounts_permission
 def profit_loss_report_view(request):
     """
     GET /api/accounts/reports/profit-loss/
@@ -460,8 +538,10 @@ def profit_loss_report_view(request):
     """
     try:
         date_range = request.GET.get('date_range')
-        start_date, end_date = AccountsService.get_date_filter(date_range)
-        report = AccountsService.get_profit_loss(start_date, end_date)
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        parsed_start, parsed_end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        report = AccountsService.get_profit_loss(parsed_start, parsed_end)
         return Response({
             'success': True,
             'data': report
@@ -474,6 +554,7 @@ def profit_loss_report_view(request):
 
 
 @api_view(['GET'])
+@check_accounts_permission
 def balance_sheet_report_view(request):
     """
     GET /api/accounts/reports/balance-sheet/
@@ -481,8 +562,11 @@ def balance_sheet_report_view(request):
     """
     try:
         date_range = request.GET.get('date_range')
-        start_date, end_date = AccountsService.get_date_filter(date_range)
-        as_of_date = end_date or date.today()
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        parsed_start, parsed_end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        from datetime import date
+        as_of_date = parsed_end or date.today()
         report = AccountsService.get_balance_sheet(as_of_date)
         return Response({
             'success': True,

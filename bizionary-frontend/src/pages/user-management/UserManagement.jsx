@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Shield, Building2, Search, RotateCcw, AlertCircle } from 'lucide-react';
 import { userManagementApi } from '../../services/userManagementApi';
 import UsersTable from './components/UsersTable';
+import AuditLogsTable from './components/AuditLogsTable';
 import AddEditUserModal from './components/AddEditUserModal';
 
 const UserManagement = () => {
@@ -26,6 +27,7 @@ const UserManagement = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [activeTab, setActiveTab] = useState('users');
 
     const fetchData = async () => {
         try {
@@ -150,146 +152,180 @@ const UserManagement = () => {
                     <h1 className="text-2xl font-bold text-[#1C3A5A] tracking-tight">User Management</h1>
                     <p className="text-sm text-textMuted mt-1">Manage corporate system users, role-based access control (RBAC), and departments.</p>
                 </div>
-                <button 
-                    onClick={handleAddUser}
-                    className="flex items-center justify-center gap-2 bg-[#1C3A5A] hover:bg-[#2B527E] text-white px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
+                {activeTab === 'users' && (
+                    <button 
+                        onClick={handleAddUser}
+                        className="flex items-center justify-center gap-2 bg-[#1C3A5A] hover:bg-[#2B527E] text-white px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
+                    >
+                        <UserPlus className="w-5 h-5" />
+                        Add New User
+                    </button>
+                )}
+            </div>
+
+            {/* Tabs Navigation */}
+            <div className="flex border-b border-gray-200">
+                <button
+                    onClick={() => setActiveTab('users')}
+                    className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
+                        activeTab === 'users'
+                            ? 'border-[#1C3A5A] text-[#1C3A5A]'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                    }`}
                 >
-                    <UserPlus className="w-5 h-5" />
-                    Add New User
+                    <Users className="w-4 h-4" />
+                    User Directory
+                </button>
+                <button
+                    onClick={() => setActiveTab('audit_logs')}
+                    className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
+                        activeTab === 'audit_logs'
+                            ? 'border-[#1C3A5A] text-[#1C3A5A]'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                    }`}
+                >
+                    <Shield className="w-4 h-4" />
+                    Security Audit Logs
                 </button>
             </div>
 
-            {/* Error Message */}
-            {errorMsg && (
-                <div className="p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center gap-3 text-sm">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <span>{errorMsg}</span>
-                </div>
-            )}
+            {activeTab === 'users' ? (
+                <>
+                    {/* Error Message */}
+                    {errorMsg && (
+                        <div className="p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center gap-3 text-sm">
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <span>{errorMsg}</span>
+                        </div>
+                    )}
 
-            {/* Filter Bar */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-                    {/* Search field */}
-                    <div className="relative md:col-span-2">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4.5 h-4.5" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                            placeholder="Search by name, username, or email..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white"
-                        />
-                    </div>
+                    {/* Filter Bar */}
+                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                            {/* Search field */}
+                            <div className="relative md:col-span-2">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4.5 h-4.5" />
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                                    placeholder="Search by name, username, or email..."
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white"
+                                />
+                            </div>
 
-                    {/* Role Filter */}
-                    <div>
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
-                        >
-                            <option value="">All Roles</option>
-                            {roles.map(r => (
-                                <option key={r.id} value={r.id}>{r.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Dept Filter */}
-                    <div>
-                        <select
-                            value={deptFilter}
-                            onChange={(e) => { setDeptFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
-                        >
-                            <option value="">All Departments</option>
-                            {departments.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Status Filter */}
-                    <div className="flex gap-2">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                            <option value="SUSPENDED">Suspended</option>
-                        </select>
-                        <button
-                            onClick={handleResetFilters}
-                            title="Reset filters"
-                            className="p-2.5 text-gray-500 hover:text-[#1C3A5A] bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all flex items-center justify-center flex-shrink-0"
-                        >
-                            <RotateCcw className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Data Table */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <UsersTable 
-                    users={users} 
-                    loading={loading} 
-                    onEdit={handleEditUser} 
-                    onToggleStatus={handleToggleStatus} 
-                    onResetPassword={handleResetPassword}
-                />
-                
-                {/* Pagination Controls */}
-                {users.length > 0 && (
-                    <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                        <span className="text-xs text-textMuted">
-                            Showing <span className="font-semibold text-textMain">{users.length}</span> of <span className="font-semibold text-textMain">{totalCount}</span> users
-                        </span>
-                        
-                        <div className="flex items-center gap-4">
-                            {/* Rows per page selector */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs text-textMuted">Rows:</span>
+                            {/* Role Filter */}
+                            <div>
                                 <select
-                                    value={pageSize}
-                                    onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                                    className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-[#1C3A5A]"
+                                    value={roleFilter}
+                                    onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
                                 >
-                                    <option value={5}>5</option>
-                                    <option value={10}>10</option>
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
+                                    <option value="">All Roles</option>
+                                    {roles.map(r => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
                                 </select>
                             </div>
-                            
-                            {/* Navigation Buttons */}
-                            <div className="flex items-center gap-1.5">
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+
+                            {/* Dept Filter */}
+                            <div>
+                                <select
+                                    value={deptFilter}
+                                    onChange={(e) => { setDeptFilter(e.target.value); setCurrentPage(1); }}
+                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
                                 >
-                                    Previous
-                                </button>
-                                <span className="text-xs text-textMuted font-medium">
-                                    Page <span className="text-textMain font-semibold">{currentPage}</span> of <span className="text-textMain font-semibold">{totalPages}</span>
-                                </span>
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    <option value="">All Departments</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Status Filter */}
+                            <div className="flex gap-2">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
                                 >
-                                    Next
+                                    <option value="">All Statuses</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                    <option value="SUSPENDED">Suspended</option>
+                                </select>
+                                <button
+                                    onClick={handleResetFilters}
+                                    title="Reset filters"
+                                    className="p-2.5 text-gray-500 hover:text-[#1C3A5A] bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                                >
+                                    <RotateCcw className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+
+                    {/* Data Table */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <UsersTable 
+                            users={users} 
+                            loading={loading} 
+                            onEdit={handleEditUser} 
+                            onToggleStatus={handleToggleStatus} 
+                            onResetPassword={handleResetPassword}
+                        />
+                        
+                        {/* Pagination Controls */}
+                        {users.length > 0 && (
+                            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                                <span className="text-xs text-textMuted">
+                                    Showing <span className="font-semibold text-textMain">{users.length}</span> of <span className="font-semibold text-textMain">{totalCount}</span> users
+                                </span>
+                                
+                                <div className="flex items-center gap-4">
+                                    {/* Rows per page selector */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-textMuted">Rows:</span>
+                                        <select
+                                            value={pageSize}
+                                            onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                                            className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-[#1C3A5A]"
+                                        >
+                                            <option value={5}>5</option>
+                                            <option value={10}>10</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                    </div>
+                                    
+                                    {/* Navigation Buttons */}
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            Previous
+                                        </button>
+                                        <span className="text-xs text-textMuted font-medium">
+                                            Page <span className="text-textMain font-semibold">{currentPage}</span> of <span className="text-textMain font-semibold">{totalPages}</span>
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <AuditLogsTable />
+            )}
 
             {/* Modal Dialog */}
             <AddEditUserModal 

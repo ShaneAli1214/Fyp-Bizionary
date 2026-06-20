@@ -18,7 +18,29 @@ const AIInsightsWidget = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [lastUpdated, setLastUpdated] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isScrolling, setIsScrolling] = useState(false);
     const intervalRef = useRef(null);
+    const scrollTimeoutRef = useRef(null);
+
+    // Scroll listener to auto-hide the floating button while scrolling
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolling(true);
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            scrollTimeoutRef.current = setTimeout(() => {
+                setIsScrolling(false);
+            }, 400);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const fetchInsights = async () => {
         try {
@@ -205,45 +227,14 @@ const AIInsightsWidget = () => {
         return () => { cancelled = true; };
     }, [topPeriod]);
 
-    if (loading) {
-        return (
-            <div className="fixed top-24 right-5 z-50 w-80 print:hidden">
-                <div className="ai-gradient rounded-xl p-4 text-white shadow-2xl ai-glow">
-                    <div className="animate-pulse">
-                        <div className="h-4 bg-white/20 rounded mb-2"></div>
-                        <div className="h-3 bg-white/20 rounded mb-4"></div>
-                        <div className="space-y-2">
-                            <div className="h-8 bg-white/20 rounded"></div>
-                            <div className="h-8 bg-white/20 rounded"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="fixed top-24 right-5 z-50 w-80 print:hidden">
-                <div className="bg-red-500 rounded-xl p-4 text-white shadow-2xl">
-                    <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5" />
-                        <span className="text-sm">{error}</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     if (!isVisible) {
         return (
             <button
                 onClick={() => setIsVisible(true)}
-                className="fixed bottom-[84px] right-6 z-40 flex items-center justify-center sm:justify-start gap-2 w-12 h-12 sm:w-auto px-0 sm:px-4.5 py-0 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out border border-white/20 hover:from-emerald-600 hover:to-teal-700 font-bold text-xs tracking-wider uppercase print:hidden"
+                className={`fixed z-40 flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-white/20 hover:from-emerald-600 hover:to-teal-700 active:scale-95 transition-all duration-300 ease-in-out print:hidden ${isScrolling ? 'opacity-0 translate-y-10 scale-0 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'} w-9 h-9 bottom-[76px] right-6 sm:w-9 sm:h-9 sm:bottom-[82px] sm:right-8 lg:w-10 lg:h-10 lg:bottom-[86px] lg:right-8`}
                 title="Show AI Insights"
             >
-                <Zap className="w-4 h-4 fill-emerald-300/40 text-emerald-300 animate-pulse pointer-events-none" />
-                <span className="hidden sm:inline">AI Insights</span>
+                <Zap className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-emerald-300/40 text-emerald-300 animate-pulse pointer-events-none" />
             </button>
         );
     }
@@ -294,9 +285,36 @@ const AIInsightsWidget = () => {
 
                 {/* Content */}
                 <div className="p-5 flex-1 overflow-y-auto space-y-5">
-                    <p className="text-[10px] text-white/50 text-center">
-                        Last updated {lastUpdated ? `@ ${lastUpdated}` : 'just now'}
-                    </p>
+                    {error && (
+                        <div className="bg-rose-500/20 border border-rose-500/30 rounded-xl p-3 text-white flex items-center gap-2 text-xs">
+                            <AlertTriangle className="w-4 h-4 text-rose-400 animate-bounce" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    {loading ? (
+                        <div className="animate-pulse space-y-5">
+                            <div className="h-24 bg-white/5 rounded-2xl border border-white/10 p-4">
+                                <div className="h-3 bg-white/20 rounded w-1/2 mb-3"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-full mb-2"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-5/6"></div>
+                            </div>
+                            <div className="h-24 bg-white/5 rounded-2xl border border-white/10 p-4">
+                                <div className="h-3 bg-white/20 rounded w-1/2 mb-3"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-full mb-2"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-5/6"></div>
+                            </div>
+                            <div className="h-24 bg-white/5 rounded-2xl border border-white/10 p-4">
+                                <div className="h-3 bg-white/20 rounded w-1/2 mb-3"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-full mb-2"></div>
+                                <div className="h-2.5 bg-white/10 rounded w-5/6"></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <p className="text-[10px] text-white/50 text-center">
+                                Last updated {lastUpdated ? `@ ${lastUpdated}` : 'just now'}
+                            </p>
                     
                     {/* Pricing Optimization */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
@@ -437,6 +455,8 @@ const AIInsightsWidget = () => {
                             This recommendation is generated automatically from live sales data and updates daily.
                         </p>
                     </div>
+                        </>
+                    )}
                 </div>
             </div>
         </>

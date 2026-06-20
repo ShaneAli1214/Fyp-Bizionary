@@ -22,6 +22,9 @@ class IsERPAdminUser(BasePermission):
         user = get_request_user(request)
         if not user:
             return False
+        role_name = user.role.name if user.role else ''
+        if role_name in ['Inventory Manager', 'Sales Manager']:
+            return False
         return user.role and (user.role.level == 'ADMIN' or 'admin' in user.role.name.lower())
 
 
@@ -33,7 +36,12 @@ class IsERPAuthenticated(BasePermission):
     def has_permission(self, request, view):
         from user_management.views import get_request_user
         user = get_request_user(request)
-        return user is not None
+        if not user:
+            return False
+        role_name = user.role.name if user.role else ''
+        if role_name in ['Inventory Manager', 'Sales Manager']:
+            return False
+        return True
 
 
 class APIConfigurationViewSet(viewsets.ModelViewSet):

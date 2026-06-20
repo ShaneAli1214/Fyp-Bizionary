@@ -5,9 +5,28 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import F
+from functools import wraps
 
 from .models import Purchase, OrderedSlip, SupplierCompany
 from .serializers import PurchaseSerializer, OrderedSlipSerializer, SupplierCompanySerializer
+from user_management.views import log_action
+
+
+def restrict_accountant_modifications(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        from user_management.views import get_request_user
+        user = get_request_user(request)
+        if user:
+            role_name = user.role.name if user.role else ''
+            if role_name == 'Accountant':
+                if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+                    return Response({
+                        'success': False,
+                        'error': 'Permission Denied. Accountants are not permitted to modify products or stock.'
+                    }, status=status.HTTP_403_FORBIDDEN)
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def _serialize_validation_errors(errors):
@@ -15,6 +34,7 @@ def _serialize_validation_errors(errors):
 
 
 @api_view(['GET', 'POST'])
+@restrict_accountant_modifications
 def company_list_create(request):
     if request.method == 'GET':
         companies = SupplierCompany.objects.all()
@@ -35,13 +55,17 @@ def company_list_create(request):
                     update_fields.append(field_name)
             if update_fields:
                 company.save(update_fields=update_fields + ['updated_at'])
+        if created:
+            log_action(request, 'CREATE', f"Supplier company '{company.name}' created.", module='Purchases')
         return Response(SupplierCompanySerializer(company).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['DELETE'])
+@restrict_accountant_modifications
 def company_detail_delete(request, pk):
     company = get_object_or_404(SupplierCompany, pk=pk)
+    log_action(request, 'DELETE', f"Supplier company '{company.name}' deleted.", module='Purchases')
     company.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -65,6 +89,7 @@ def _apply_receipt_to_inventory(ordered_slip, new_received_quantity):
 
 
 @api_view(['GET', 'POST'])
+@restrict_accountant_modifications
 def ordered_slip_list(request):
     if request.method == 'GET':
         ordered_slips = OrderedSlip.objects.select_related('product').all()
@@ -74,11 +99,13 @@ def ordered_slip_list(request):
     serializer = OrderedSlipSerializer(data=request.data)
     if serializer.is_valid():
         ordered_slip = serializer.save()
+        log_action(request, 'CREATE', f"Purchase order slip #{ordered_slip.id} created for product '{ordered_slip.product.name}' (Qty: {ordered_slip.quantity_ordered}).", module='Purchases')
         return Response(OrderedSlipSerializer(ordered_slip).data, status=status.HTTP_201_CREATED)
     return Response(_serialize_validation_errors(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
+@restrict_accountant_modifications
 def ordered_slip_detail(request, pk):
     ordered_slip = get_object_or_404(OrderedSlip.objects.select_related('product'), pk=pk)
 
@@ -90,14 +117,17 @@ def ordered_slip_detail(request, pk):
         serializer = OrderedSlipSerializer(ordered_slip, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            log_action(request, 'UPDATE', f"Purchase order slip #{ordered_slip.id} updated.", module='Purchases')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    log_action(request, 'DELETE', f"Purchase order slip #{ordered_slip.id} for product '{ordered_slip.product.name}' deleted.", module='Purchases')
     ordered_slip.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['POST'])
+@restrict_accountant_modifications
 def ordered_slip_send_email(request, pk):
     return Response(
         {'detail': 'Email sending is temporarily disabled for ordered slips.'},
@@ -106,6 +136,7 @@ def ordered_slip_send_email(request, pk):
 
 
 @api_view(['POST'])
+@restrict_accountant_modifications
 def ordered_slip_mark_partial(request, pk):
     ordered_slip = get_object_or_404(OrderedSlip.objects.select_related('product'), pk=pk)
     received_quantity = request.data.get('quantity_received', request.data.get('received_quantity', None))
@@ -125,10 +156,12 @@ def ordered_slip_mark_partial(request, pk):
             ordered_slip.received_at = timezone.now()
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
 
+    log_action(request, 'UPDATE', f"Order slip #{ordered_slip.id}: marked partial receipt — {received_quantity}/{ordered_slip.quantity_ordered} units received.", module='Purchases')
     return Response(OrderedSlipSerializer(ordered_slip).data)
 
 
 @api_view(['POST'])
+@restrict_accountant_modifications
 def ordered_slip_mark_complete(request, pk):
     ordered_slip = get_object_or_404(OrderedSlip.objects.select_related('product'), pk=pk)
 
@@ -139,10 +172,12 @@ def ordered_slip_mark_complete(request, pk):
         ordered_slip.received_at = timezone.now()
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
 
+    log_action(request, 'UPDATE', f"Order slip #{ordered_slip.id}: marked fully complete — all {ordered_slip.quantity_ordered} units received.", module='Purchases')
     return Response(OrderedSlipSerializer(ordered_slip).data)
 
 
 @api_view(['GET', 'POST'])
+@restrict_accountant_modifications
 def purchase_list(request):
     if request.method == 'GET':
         purchases = Purchase.objects.all()
@@ -151,12 +186,14 @@ def purchase_list(request):
 
     serializer = PurchaseSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        purchase = serializer.save()
+        log_action(request, 'CREATE', f"Purchase record #{purchase.id} created.", module='Purchases')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@restrict_accountant_modifications
 def purchase_detail(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
 
@@ -168,8 +205,10 @@ def purchase_detail(request, pk):
         serializer = PurchaseSerializer(purchase, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            log_action(request, 'UPDATE', f"Purchase record #{purchase.id} updated.", module='Purchases')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    log_action(request, 'DELETE', f"Purchase record #{purchase.id} deleted.", module='Purchases')
     purchase.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)

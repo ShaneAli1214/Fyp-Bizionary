@@ -1,47 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Edit2, Trash2, Calendar, FileText, Ban } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Edit2, Calendar, FileText, Ban } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
 import VoidModal from './VoidModal';
 
-const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
-    const [revenues, setRevenues] = useState([]);
-    const [loading, setLoading] = useState(true);
+const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
     const [page, setPage] = useState(1);
-    const [pagination, setPagination] = useState(null);
-    const prevDateRangeRef = useRef(dateRange);
+    const pageSize = 10;
     
     // Void Modal State
     const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
     const [voidTargetId, setVoidTargetId] = useState(null);
 
-    useEffect(() => {
-        if (prevDateRangeRef.current !== dateRange) {
-            prevDateRangeRef.current = dateRange;
-            if (page !== 1) {
-                setPage(1);
-                return;
-            }
-        }
+    const paginatedRevenues = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return revenues.slice(start, start + pageSize);
+    }, [revenues, page]);
 
-        const fetchRevenues = async () => {
-            try {
-                setLoading(true);
-                const res = await accountsApi.getRevenues(dateRange, page);
-                if (res.data?.success) {
-                    setRevenues(res.data.data);
-                    setPagination(res.data.pagination);
-                }
-            } catch (error) {
-                console.warn('Failed to fetch revenues.');
-                setRevenues([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRevenues();
-    }, [refreshTrigger, dateRange, page]);
+    const numPages = Math.ceil(revenues.length / pageSize);
 
     const handleStatusChange = async (id, newStatus) => {
         try {
@@ -69,12 +45,18 @@ const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
     };
 
     const getCategoryDisplay = (cat) => {
-        if (cat === 'SALES_REVENUE') return 'Sales Revenue';
-        if (cat === 'SERVICE_INCOME') return 'Service Income';
+        if (cat === 'SALES_REVENUE' || cat === 'Sales') return 'Sales Revenue';
+        if (cat === 'SERVICE_INCOME' || cat === 'Revenue') return 'Service Income';
         return 'Other Income';
     };
 
-    if (loading) return <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div></div>;
+    if (revenues.length === 0) {
+        return (
+            <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+                No matching database records found for this period.
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -105,99 +87,93 @@ const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {revenues.length === 0 ? (
-                            <tr>
-                                <td colSpan="7" className="px-6 py-8 text-center text-textMuted text-sm">No revenue records found.</td>
-                            </tr>
-                        ) : (
-                            revenues.map((item) => (
-                                <tr key={item.id} className={`hover:bg-slate-50/50 transition-colors group ${item.voided ? 'bg-slate-50/50 opacity-60' : ''}`}>
-                                    <td className="px-6 py-4 text-sm font-medium text-textMain">
-                                        <div className="flex items-center gap-1.5">
-                                            <Calendar className="w-4 h-4 text-gray-400" />
-                                            {item.date}
+                        {paginatedRevenues.map((item) => (
+                            <tr key={item.id} className={`hover:bg-slate-50/50 transition-colors group ${item.voided ? 'bg-slate-50/50 opacity-60' : ''}`}>
+                                <td className="px-6 py-4 text-sm font-medium text-textMain">
+                                    <div className="flex items-center gap-1.5">
+                                        <Calendar className="w-4 h-4 text-gray-400" />
+                                        {item.date}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-bold text-textMain">
+                                    {item.customer || 'General Customer'}
+                                    {item.voided && <span className="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">
+                                    {item.invoice_number ? (
+                                        <div className="flex items-center gap-1">
+                                            <FileText className="w-3.5 h-3.5 text-primary" />
+                                            {item.invoice_number}
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-textMain">
-                                        {item.customer}
-                                        {item.voided && <span className="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
-                                        {item.invoice_number ? (
-                                            <div className="flex items-center gap-1">
-                                                <FileText className="w-3.5 h-3.5 text-primary" />
-                                                {item.invoice_number}
-                                            </div>
-                                        ) : '-'}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{getCategoryDisplay(item.category)}</td>
-                                    <td className="px-6 py-4">
-                                        {item.voided ? (
-                                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded uppercase">Voided</span>
-                                        ) : (
-                                            <select 
-                                                value={item.payment_status}
-                                                onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                                                className="text-xs font-bold bg-slate-50 hover:bg-slate-100 border border-gray-200 rounded px-2.5 py-1 text-slate-700 outline-none cursor-pointer transition-all focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                    ) : '-'}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{getCategoryDisplay(item.category)}</td>
+                                <td className="px-6 py-4">
+                                    {item.voided ? (
+                                        <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded uppercase">Voided</span>
+                                    ) : (
+                                        <select 
+                                            value={item.payment_status}
+                                            onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                                            className="text-xs font-bold bg-slate-50 hover:bg-slate-100 border border-gray-200 rounded px-2.5 py-1 text-slate-700 outline-none cursor-pointer transition-all focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                        >
+                                            <option value="PAID">Paid</option>
+                                            <option value="PENDING">Pending</option>
+                                            <option value="OVERDUE">Overdue</option>
+                                        </select>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <span className={`text-sm font-bold bg-emerald-50 px-2 py-1 rounded inline-block ${item.voided ? 'text-gray-500 line-through bg-gray-100' : 'text-emerald-600'}`}>
+                                        {formatPKR(item.amount)}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right space-x-2">
+                                    {!item.voided && (
+                                        <>
+                                            <button 
+                                                onClick={() => onEdit(item)}
+                                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                title="Edit"
                                             >
-                                                <option value="PAID">Paid</option>
-                                                <option value="PENDING">Pending</option>
-                                                <option value="OVERDUE">Overdue</option>
-                                            </select>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <span className={`text-sm font-bold bg-emerald-50 px-2 py-1 rounded inline-block ${item.voided ? 'text-gray-500 line-through bg-gray-100' : 'text-emerald-600'}`}>
-                                            {formatPKR(item.amount)}
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleVoidClick(item.id)}
+                                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                title="Void"
+                                            >
+                                                <Ban className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    )}
+                                    {item.voided && (
+                                        <span className="text-xs text-textMuted italic font-medium" title={item.void_reason}>
+                                            Reason: {item.void_reason}
                                         </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right space-x-2">
-                                        {!item.voided && (
-                                            <>
-                                                <button 
-                                                    onClick={() => onEdit(item)}
-                                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleVoidClick(item.id)}
-                                                    className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
-                                                    title="Void"
-                                                >
-                                                    <Ban className="w-4 h-4" />
-                                                </button>
-                                            </>
-                                        )}
-                                        {item.voided && (
-                                            <span className="text-xs text-textMuted italic font-medium" title={item.void_reason}>
-                                                Reason: {item.void_reason}
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
 
-            {pagination && pagination.num_pages > 1 && (
+            {numPages > 1 && (
                 <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-slate-50/50">
                     <span className="text-xs text-gray-500 font-semibold">
-                        Showing page {pagination.current_page} of {pagination.num_pages} ({pagination.count} records)
+                        Showing page {page} of {numPages} ({revenues.length} records)
                     </span>
                     <div className="flex gap-2">
                         <button
-                            disabled={pagination.current_page <= 1}
+                            disabled={page <= 1}
                             onClick={() => setPage(prev => prev - 1)}
                             className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Previous
                         </button>
                         <button
-                            disabled={pagination.current_page >= pagination.num_pages}
+                            disabled={page >= numPages}
                             onClick={() => setPage(prev => prev + 1)}
                             className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
                         >
@@ -219,4 +195,3 @@ const RevenuesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
 };
 
 export default RevenuesTab;
-

@@ -6,13 +6,33 @@ from django.db.models import Sum, Count, F, Q, ExpressionWrapper, DecimalField, 
 from django.db.models.functions import TruncMonth
 from decimal import Decimal
 from datetime import date, timedelta
+from functools import wraps
 
 from .models import Product, InventoryTransaction
 from .serializers import ProductSerializer
 from sales.models import Sale
+from user_management.views import log_action
+
+
+def restrict_accountant_modifications(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        from user_management.views import get_request_user
+        user = get_request_user(request)
+        if user:
+            role_name = user.role.name if user.role else ''
+            if role_name == 'Accountant':
+                if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+                    return Response({
+                        'success': False,
+                        'error': 'Permission Denied. Accountants are not permitted to modify products or stock.'
+                    }, status=status.HTTP_403_FORBIDDEN)
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 @api_view(['GET', 'POST'])
+@restrict_accountant_modifications
 def product_list(request):
     if request.method == 'GET':
         products = Product.objects.all()
@@ -21,12 +41,14 @@ def product_list(request):
 
     serializer = ProductSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        product = serializer.save()
+        log_action(request, 'CREATE', f"Product '{product.name}' (SKU: {product.product_code}) created.", module='Products')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@restrict_accountant_modifications
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
@@ -38,6 +60,7 @@ def product_detail(request, pk):
         serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.product_code}) updated.", module='Products')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -45,9 +68,11 @@ def product_detail(request, pk):
         serializer = ProductSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.product_code}) partially updated.", module='Products')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    log_action(request, 'DELETE', f"Product '{product.name}' (SKU: {product.product_code}) permanently deleted.", module='Products')
     product.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
