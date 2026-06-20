@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from django.core.cache import cache
 import openai
 
@@ -21,11 +22,17 @@ class IsERPAdminUser(BasePermission):
         from user_management.views import get_request_user
         user = get_request_user(request)
         if not user:
-            return False
+            raise NotAuthenticated()
+        
         role_name = user.role.name if user.role else ''
         if role_name in ['Inventory Manager', 'Sales Manager']:
-            return False
-        return user.role and (user.role.level == 'ADMIN' or 'admin' in user.role.name.lower())
+            raise PermissionDenied("Inventory and Sales Managers do not have permission to manage API configurations.")
+            
+        is_admin = user.role and (user.role.level == 'ADMIN' or 'admin' in user.role.name.lower())
+        if not is_admin:
+            raise PermissionDenied("Only Administrators have permission to manage API configurations.")
+            
+        return True
 
 
 class IsERPAuthenticated(BasePermission):
@@ -37,10 +44,12 @@ class IsERPAuthenticated(BasePermission):
         from user_management.views import get_request_user
         user = get_request_user(request)
         if not user:
-            return False
+            raise NotAuthenticated()
+            
         role_name = user.role.name if user.role else ''
         if role_name in ['Inventory Manager', 'Sales Manager']:
-            return False
+            raise PermissionDenied("Inventory and Sales Managers do not have access to this resource.")
+            
         return True
 
 

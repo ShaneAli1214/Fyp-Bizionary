@@ -14,6 +14,7 @@ const Settings = () => {
     const { user, updateUser, logout } = useAuth();
     const { theme, setTheme, palette, setPalette } = useTheme();
     const isAccountant = user?.role_name === 'Accountant';
+    const isAdmin = user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
 
     const [activeSection, setActiveSection] = useState('Account Info');
     const [toasts, setToasts] = useState([]);
@@ -137,6 +138,7 @@ const Settings = () => {
     }, [user]);
 
     const fetchApiConfigs = async () => {
+        if (!isAdmin) return;
         try {
             const response = await api.get('accounts/api-configuration/');
             if (response.data) {
@@ -155,7 +157,9 @@ const Settings = () => {
     };
 
     useEffect(() => {
-        fetchApiConfigs();
+        if (isAdmin) {
+            fetchApiConfigs();
+        }
 
         const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
         if (saved) {
@@ -452,7 +456,7 @@ const Settings = () => {
         { name: 'Notifications', icon: Bell },
         { name: 'Integrations', icon: Puzzle },
         { name: 'Privacy & Security', icon: Shield },
-        ...(!isAccountant ? [{ name: 'API Configuration', icon: Sliders }] : []),
+        ...(isAdmin ? [{ name: 'API Configuration', icon: Sliders }] : []),
     ];
 
     const renderLeftSidebar = () => (
@@ -1040,7 +1044,7 @@ const Settings = () => {
                     {activeSection === 'Privacy & Security' && renderPrivacySecurity()}
                     {activeSection === 'Notifications' && renderNotifications()}
                     {activeSection === 'Integrations' && renderIntegrations()}
-                    {activeSection === 'API Configuration' && !isAccountant && renderApiConfiguration()}
+                    {activeSection === 'API Configuration' && isAdmin && renderApiConfiguration()}
                 </div>
             </div>
         </div>
