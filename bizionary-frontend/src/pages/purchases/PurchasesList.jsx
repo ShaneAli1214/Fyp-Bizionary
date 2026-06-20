@@ -3,7 +3,7 @@ import { Plus, Search, Edit2, Trash2, Filter, ShoppingBag } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import PurchaseForm from './PurchaseForm';
-import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
+import { PRODUCT_CATEGORIES, normalizeProductCategory, getCategoryLabel } from '../../utils/productCategories';
 
 const PurchasesList = () => {
     const [purchases, setPurchases] = useState([]);
@@ -145,7 +145,7 @@ const PurchasesList = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">PO-{p.id.toString().padStart(4, '0')}</td>
                                         <td className="px-6 py-4 text-textMuted">{p.purchase_date}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{p.company_name}</td>
-                                        <td className="px-6 py-4 text-textMuted">{normalizeProductCategory(p.product_category) || 'N/A'}</td>
+                                        <td className="px-6 py-4 text-textMuted">{getCategoryLabel(p.product_category) || 'N/A'}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">{p.product_name || `Product ID: ${p.product}`}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-100">

@@ -33,8 +33,21 @@ def sale_list(request):
 
         # Server-side Category Filter
         category = request.GET.get('category', 'ALL')
-        if category and category != 'ALL':
-            sales = sales.filter(product__category=category)
+        if category and category.strip().upper() != 'ALL':
+            category_clean = category.strip()
+            # Map frontend short codes to database display values
+            category_mapping = {
+                'tech': 'Electronics & Appliances',
+                'grocery': 'Grocery & Food Items',
+                'clothing': 'Clothing & Textiles',
+                'stationary': 'Stationery & Office Supplies',
+                'medicines': 'Pharmaceuticals & Health',
+            }
+            db_category = category_mapping.get(category_clean.lower(), category_clean)
+            sales = sales.filter(
+                Q(product__category__iexact=db_category) |
+                Q(product__category__iexact=category_clean)
+            )
 
         # Server-side Pagination
         page_number = request.GET.get('page')
