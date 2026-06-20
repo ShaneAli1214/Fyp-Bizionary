@@ -78,6 +78,7 @@ class DashboardKPISerializer(serializers.Serializer):
 
     # Accurate ordered slips count (OrderedSlip table)
     total_ordered_slips = serializers.IntegerField(required=False, default=0)
+    total_accounts = serializers.IntegerField(required=False, default=0)
 
     # ── ERP Profitability KPIs (computed by AccountsService) ──
     total_cogs = serializers.DecimalField(max_digits=15, decimal_places=2, required=False, default=0)

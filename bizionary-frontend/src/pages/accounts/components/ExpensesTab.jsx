@@ -52,6 +52,7 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Vendor</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Description</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Method</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Tax Amount</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Total Amount</th>
@@ -79,6 +80,11 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                                     <div className="flex items-center gap-1.5">
                                         <Tag className="w-3.5 h-3.5 text-gray-400" />
                                         {item.category_display || item.category}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">
+                                    <div className="truncate max-w-xs text-xs text-textMuted" title={item.description}>
+                                        {item.description || '-'}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-600">

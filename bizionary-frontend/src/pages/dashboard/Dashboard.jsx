@@ -43,6 +43,7 @@ const Dashboard = () => {
         unpaid_invoices: 0,
         low_stock_count: 0,
         total_customers: 0,
+        total_accounts: 0,
         total_orders: 0,
         total_payments_count: 0,
         total_stock_batches: 0,
@@ -357,10 +358,10 @@ const Dashboard = () => {
                 )}
 
                 {/* 1. Accounts */}
-                {!isInventoryManager && !isSalesManager && !isAccountant && (
+                {!isInventoryManager && !isSalesManager && (
                     <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between items-center h-44 hover:shadow-md transition-all">
                         <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Accounts</div>
-                        <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_customers}</div>
+                        <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{kpis.total_accounts}</div>
                         <button 
                             onClick={() => navigate('/accounts')}
                             className="px-6 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 uppercase"
