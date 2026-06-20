@@ -36,10 +36,15 @@ def check_accounts_permission(view_func):
             }, status=status.HTTP_403_FORBIDDEN)
         
         if role_name == 'Sales Manager':
-            return Response({
-                'success': False,
-                'error': 'Permission Denied. Sales Managers do not have access to Accounts.'
-            }, status=status.HTTP_403_FORBIDDEN)
+            resolver_match = getattr(request, 'resolver_match', None)
+            url_name = resolver_match.url_name if resolver_match else ''
+            if request.method == 'GET' and url_name in ['invoice-list-create', 'recent-invoices', 'invoice-detail']:
+                pass
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Permission Denied. Sales Managers do not have access to general Accounts.'
+                }, status=status.HTTP_403_FORBIDDEN)
             
         request.user = user
         return view_func(request, *args, **kwargs)
