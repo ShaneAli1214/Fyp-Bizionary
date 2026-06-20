@@ -451,13 +451,13 @@ def user_list_view(request):
             }, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
-        # Enforce that only Super Admin (or any user if database is empty) can create users
+        # Enforce that only Admin (or any user if database is empty) can create users
         if ERPUser.objects.filter(role__level='ADMIN').exists():
             requesting_user = get_request_user(request)
             if not requesting_user or requesting_user.role.level != 'ADMIN':
                 return Response({
                     'success': False,
-                    'error': 'Permission Denied. Only a Super Admin can create new users.'
+                    'error': 'Permission Denied. Only an Admin can create new users.'
                 }, status=status.HTTP_403_FORBIDDEN)
         else:
             requesting_user = None
@@ -508,7 +508,7 @@ def user_detail_view(request, pk):
         if not requesting_user or requesting_user.role.level != 'ADMIN':
             return Response({
                 'success': False,
-                'error': 'Permission Denied. Only a Super Admin can modify user accounts.'
+                'error': 'Permission Denied. Only an Admin can modify user accounts.'
             }, status=status.HTTP_403_FORBIDDEN)
 
         serializer = ERPUserSerializer(user, data=request.data, partial=True)
@@ -539,7 +539,7 @@ def user_detail_view(request, pk):
         if not requesting_user or requesting_user.role.level != 'ADMIN':
             return Response({
                 'success': False,
-                'error': 'Permission Denied. Only a Super Admin can deactivate users.'
+                'error': 'Permission Denied. Only an Admin can deactivate users.'
             }, status=status.HTTP_403_FORBIDDEN)
 
         user.status = 'INACTIVE'
@@ -1036,7 +1036,7 @@ def toggle_status_view(request, pk):
     if not requesting_user or requesting_user.role.level != 'ADMIN':
         return Response({
             'success': False,
-            'error': 'Permission Denied. Only a Super Admin can change user status.'
+            'error': 'Permission Denied. Only an Admin can change user status.'
         }, status=status.HTTP_403_FORBIDDEN)
         
     user = get_object_or_404(ERPUser, pk=pk)
@@ -1079,7 +1079,7 @@ def reset_password_view(request, pk):
     if not requesting_user or requesting_user.role.level != 'ADMIN':
         return Response({
             'success': False,
-            'error': 'Permission Denied. Only a Super Admin can reset user passwords.'
+            'error': 'Permission Denied. Only an Admin can reset user passwords.'
         }, status=status.HTTP_403_FORBIDDEN)
         
     user = get_object_or_404(ERPUser, pk=pk)
@@ -1126,7 +1126,7 @@ def audit_log_list_view(request):
     if not requesting_user or requesting_user.role.level != 'ADMIN':
         return Response({
             'success': False,
-            'error': 'Permission Denied. Only a Super Admin can view audit logs.'
+            'error': 'Permission Denied. Only an Admin can view audit logs.'
         }, status=status.HTTP_403_FORBIDDEN)
         
     logs = ActivityLog.objects.select_related('user').order_by('-timestamp')

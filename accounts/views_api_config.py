@@ -15,7 +15,7 @@ from .serializers_api_config import APIConfigurationSerializer, APIConfiguration
 class IsERPAdminUser(BasePermission):
     """
     Custom permission to check if the request user is authenticated
-    as an ERP Admin or Super Admin using their bearer token.
+    as an ERP Admin using their bearer token.
     """
     def has_permission(self, request, view):
         from user_management.views import get_request_user

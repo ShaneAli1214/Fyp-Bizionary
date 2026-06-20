@@ -411,7 +411,7 @@ const Settings = () => {
             fetchApiConfigs();
         } catch (error) {
             console.error(error);
-            addToast('error', 'Failed to configure API key. Confirm super admin access permissions.');
+            addToast('error', 'Failed to configure API key. Confirm admin access permissions.');
         } finally {
             setIsSavingApi(false);
         }

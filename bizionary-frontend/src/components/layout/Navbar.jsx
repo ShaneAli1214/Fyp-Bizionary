@@ -48,7 +48,7 @@ const Navbar = ({ onToggleSidebar }) => {
     const isInventoryManager = user?.role_name === 'Inventory Manager';
     const isSalesManager = user?.role_name === 'Sales Manager';
     const isAccountant = user?.role_name === 'Accountant';
-    const isUserAdmin = user?.role_name === 'Super Admin' || user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
+    const isUserAdmin = user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: LayoutDashboard },

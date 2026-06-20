@@ -57,7 +57,7 @@ const UserManagement = () => {
             setDepartments(deptsRes.data?.data || []);
         } catch (error) {
             console.error('Failed to fetch user management data:', error);
-            setErrorMsg(error.response?.data?.error || 'Failed to fetch user data. Please ensure you are logged in as a Super Admin.');
+            setErrorMsg(error.response?.data?.error || 'Failed to fetch user data. Please ensure you are logged in as an Admin.');
             setUsers([]);
         } finally {
             setLoading(false);

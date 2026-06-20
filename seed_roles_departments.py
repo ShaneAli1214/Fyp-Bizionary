@@ -24,7 +24,7 @@ SAFETY GUARANTEES
 -----------------
 - No user will ever have their role or department set to a deleted record.
 - If a user's role is being removed and no direct canonical equivalent exists,
-  they are re-assigned to 'Super Admin' (fail-safe floor, not ceiling).
+#   they are re-assigned to 'Admin' (fail-safe floor, not ceiling).
 - All operations run in a single atomic transaction — if anything fails,
   the database is rolled back to its pre-script state.
 """
@@ -45,14 +45,9 @@ from user_management.models import Role, Department, ERPUser
 
 CANONICAL_ROLES = [
     {
-        "name": "Super Admin",
-        "level": "ADMIN",
-        "description": "Unrestricted administrative access to all modules, users, and configurations.",
-    },
-    {
         "name": "Admin",
         "level": "ADMIN",
-        "description": "Administrative access with limited system configuration rights.",
+        "description": "Unrestricted administrative access to all modules, users, and configurations.",
     },
     {
         "name": "Accountant",
@@ -75,7 +70,7 @@ CANONICAL_DEPARTMENTS = [
     {
         "name": "Administration",
         "description": "General system administration and executive management.",
-        "head": "Super Admin",
+        "head": "Admin",
     },
     {
         "name": "Finance Dept",
@@ -107,6 +102,7 @@ CANONICAL_DEPARTMENTS = [
 # Role name mapping: if a user's role is being deleted, which canonical role
 # should they fall back to?  Key = name being deleted, Value = canonical name.
 ROLE_REASSIGNMENT_MAP = {
+    "Super Admin":      "Admin",
     "Finance Manager":  "Accountant",
     "Inventory Keeper": "Inventory Manager",
     "Sales Keeper":     "Sales Manager",
@@ -123,6 +119,7 @@ DEPT_REASSIGNMENT_MAP = {
     "Sales":     "Sales Dept",
     "HR":        "General Dept",
 }
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -195,12 +192,12 @@ def run_cleanup():
 
             if count > 0:
                 # Find the reassignment target
-                fallback_name = ROLE_REASSIGNMENT_MAP.get(stale_role.name, "Super Admin")
+                fallback_name = ROLE_REASSIGNMENT_MAP.get(stale_role.name, "Admin")
                 fallback_role = canonical_role_map.get(fallback_name)
 
                 if not fallback_role:
                     # Ultimate safety net
-                    fallback_role = canonical_role_map["Super Admin"]
+                    fallback_role = canonical_role_map["Admin"]
 
                 affected_users.update(role=fallback_role)
                 print(f"  [MOVE]  {count} user(s): '{stale_role.name}' -> '{fallback_role.name}'")

@@ -28,8 +28,6 @@ const UsersTable = ({ users, loading, onEdit, onToggleStatus, onResetPassword })
         const name = (roleName || '').toLowerCase();
         if (name.includes('admin')) {
             return 'bg-rose-50 text-rose-700 border-rose-200';
-        } else if (name.includes('hr')) {
-            return 'bg-violet-50 text-violet-700 border-violet-200';
         } else if (name.includes('accountant') || name.includes('finance')) {
             return 'bg-amber-50 text-amber-700 border-amber-200';
         } else if (name.includes('inventory') || name.includes('keeper')) {

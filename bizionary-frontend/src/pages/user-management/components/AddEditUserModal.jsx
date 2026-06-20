@@ -66,7 +66,7 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
             allowedDeptNames = ['Inventory Dept'];
         } else if (roleName === 'Sales Manager') {
             allowedDeptNames = ['Sales Dept'];
-        } else if (roleName === 'Super Admin' || roleName === 'Admin') {
+        } else if (roleName === 'Admin') {
             allowedDeptNames = ['Administration', 'QA Dept', 'General Dept'];
         }
 
@@ -102,7 +102,7 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
         if (roleName === 'Sales Manager') {
             return d.name === 'Sales Dept';
         }
-        if (roleName === 'Super Admin' || roleName === 'Admin') {
+        if (roleName === 'Admin') {
             return ['Administration', 'QA Dept', 'General Dept'].includes(d.name);
         }
         return true;
@@ -342,7 +342,7 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
                                         value={formData.designation}
                                         onChange={handleChange}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white shadow-sm"
-                                        placeholder="e.g. HR Manager / Senior Accountant"
+                                        placeholder="e.g. Accountant / Sales Manager"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
