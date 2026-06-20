@@ -70,6 +70,7 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Vendor</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Description</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Method</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Amount (Net)</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Receipt</th>
@@ -79,7 +80,7 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                     <tbody className="divide-y divide-gray-50">
                         {expenses.length === 0 ? (
                             <tr>
-                                <td colSpan="7" className="px-6 py-8 text-center text-textMuted text-sm">No expense records found.</td>
+                                <td colSpan="8" className="px-6 py-8 text-center text-textMuted text-sm">No expense records found.</td>
                             </tr>
                         ) : (
                             expenses.map((item) => (
@@ -101,6 +102,11 @@ const ExpensesTab = ({ refreshTrigger, onEdit, triggerRefresh, dateRange }) => {
                                         <div className="flex items-center gap-1.5">
                                             <Tag className="w-3.5 h-3.5 text-gray-400" />
                                             {item.category_display || item.category}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                        <div className="truncate max-w-xs text-xs text-textMuted" title={item.description}>
+                                            {item.description || '-'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">

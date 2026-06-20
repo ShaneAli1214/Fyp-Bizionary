@@ -287,6 +287,9 @@ def dashboard_kpis(request):
         # KPI: Actual count of OrderedSlip records (purchase order slips)
         total_ordered_slips = OrderedSlip.objects.count()
 
+        from accounts.models import Account
+        total_accounts = Account.objects.filter(is_active=True).count()
+
         paid_invoices = BillingInvoice.objects.filter(status='PAID').aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
         total_payments_value = to_2dp(total_revenue + paid_invoices)
 
@@ -318,6 +321,7 @@ def dashboard_kpis(request):
 
             # Accurate ordered slips count (from OrderedSlip table)
             'total_ordered_slips': total_ordered_slips,
+            'total_accounts': total_accounts,
         }
 
         # ── ERP Profitability KPIs (single source of truth via AccountsService) ──

@@ -7,81 +7,19 @@ export const PRODUCT_CATEGORIES = [
 ];
 
 export const CATEGORY_COMPANIES = {
-    Tech: [
-        { name: 'TechHub Pvt Ltd', email: 'ahmed@techhub.pk', contact: 'Ahmed Khan', phone: '0300-1234567' },
-        { name: 'iWorld Pakistan', email: 'sara@iworld.pk', contact: 'Sara Ali', phone: '0321-2345678' },
-        { name: 'Vivo Pakistan', email: 'bilal@vivo.pk', contact: 'Bilal Malik', phone: '0333-3456789' },
-        { name: 'Oppo Distributors', email: 'zain@oppo.pk', contact: 'Zain Raza', phone: '0345-4567890' },
-        { name: 'Realme Pakistan', email: 'ayesha@realme.pk', contact: 'Ayesha Butt', phone: '0301-5678901' },
-        { name: 'Xiaomi Pakistan', email: 'kamran@xiaomi.pk', contact: 'Kamran Iqbal', phone: '0311-6789012' },
-        { name: 'Dell Pakistan', email: 'sobia@dell.pk', contact: 'Sobia Hashmi', phone: '0321-7890123' },
-        { name: 'HP Distributors', email: 'asif@hp.pk', contact: 'Asif Mehmood', phone: '0333-8901234' },
-        { name: 'Lenovo Pakistan', email: 'rabia@lenovo.pk', contact: 'Rabia Noor', phone: '0300-9012345' },
-        { name: 'Asus Pakistan', email: 'tariq@asus.pk', contact: 'Tariq Javed', phone: '0321-0123456' },
-        { name: 'Acer Pakistan', email: 'hina@acer.pk', contact: 'Hina Shah', phone: '0345-1234567' },
-        { name: 'TCL Pakistan', email: 'usman@tcl.pk', contact: 'Usman Ghani', phone: '0301-2345678' },
-        { name: 'LG Pakistan', email: 'shahida@lg.pk', contact: 'Shahida Pervez', phone: '0345-7890123' },
-        { name: 'Sony Pakistan', email: 'hamza@sony.pk', contact: 'Hamza Tariq', phone: '0301-8901234' },
-        { name: 'Casio Pakistan', email: 'tariq@casio.pk', contact: 'Tariq Bashir', phone: '0301-0123458' },
-    ],
-    Computers: [
-        { name: 'Dell Pakistan', email: 'sales@dell.com.pk' },
-        { name: 'HP Distributors', email: 'sales@hp.com.pk' },
-        { name: 'Lenovo Pakistan', email: 'sales@lenovo.com.pk' },
-        { name: 'Asus Pakistan', email: 'sales@asus.com.pk' },
-        { name: 'Acer Pakistan', email: 'sales@acer.com.pk' },
-    ],
-    Grocery: [
-        { name: 'Falak Foods', email: 'info@falakfoods.pk' },
-        { name: 'Sunridge Foods', email: 'info@sunridgefoods.pk' },
-        { name: 'National Foods', email: 'info@nationalfoods.com.pk' },
-        { name: 'Shan Foods', email: 'info@shanfoods.com.pk' },
-        { name: 'Dalda Foods', email: 'info@daldafoods.com.pk' },
-        { name: 'Mehran Foods', email: 'info@mehranfoods.com.pk' },
-    ],
-    Clothing: [
-        { name: 'Gul Ahmed', email: 'info@gulahmed.com' },
-        { name: 'Khaadi', email: 'info@khaadi.com' },
-        { name: 'Sana Safinaz', email: 'info@sanasafinaz.com' },
-        { name: 'Nishat Linen', email: 'info@nishatlinen.com' },
-        { name: 'J (Junaid Jamshed)', email: 'info@jj.com.pk' },
-    ],
-    Stationary: [
-        { name: 'Panda Stationers', email: 'info@pandastationers.pk' },
-        { name: '3M Pakistan', email: 'info@3m.com.pk' },
-    ],
-    Medicines: [
-        { name: 'GSK Pakistan', email: 'info@gsk.com.pk' },
-        { name: 'Abbott Pakistan', email: 'info@abbott.com.pk' },
-    ],
-    FMCG: [
-        { name: 'Nestle Pakistan', email: 'info@nestle.pk' },
-        { name: 'Unilever Pakistan', email: 'info@unilever.pk' },
-        { name: 'P&G Pakistan', email: 'info@pg.com.pk' },
-        { name: 'Reckitt Pakistan', email: 'info@reckitt.pk' },
-    ],
-    Beverages: [
-        { name: 'Tapal Tea', email: 'info@tapal.com.pk' },
-        { name: 'Hamdard', email: 'info@hamdard.com.pk' },
-    ],
-    Dairy: [
-        { name: 'FrieslandCampina', email: 'info@frieslandcampina.pk' },
-        { name: 'Haleeb Foods', email: 'info@haleebfoods.com.pk' },
-    ],
-    'Frozen Foods': [
-        { name: 'KNs Pakistan', email: 'info@kns.com.pk' },
-    ],
-    Food: [
-        { name: 'Dawn Foods', email: 'info@dawnfoods.pk' },
-    ],
-    Footwear: [
-        { name: 'Bata Pakistan', email: 'info@bata.com.pk' },
-        { name: 'Servis', email: 'info@servis.com.pk' },
-    ],
-    Pharma: [
-        { name: 'GSK Pakistan', email: 'info@gsk.com.pk' },
-        { name: 'Abbott Pakistan', email: 'info@abbott.com.pk' },
-    ],
+    Tech: [],
+    Computers: [],
+    Grocery: [],
+    Clothing: [],
+    Stationary: [],
+    Medicines: [],
+    FMCG: [],
+    Beverages: [],
+    Dairy: [],
+    'Frozen Foods': [],
+    Food: [],
+    Footwear: [],
+    Pharma: [],
 };
 
 export const normalizeProductCategory = (category) => {
