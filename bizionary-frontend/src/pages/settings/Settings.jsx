@@ -473,7 +473,7 @@ const Settings = () => {
     );
 
     const renderAccountInfo = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <User className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -524,7 +524,7 @@ const Settings = () => {
     );
 
     const renderAppearance = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <MonitorSmartphone className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -569,7 +569,7 @@ const Settings = () => {
     );
 
     const renderLanguageRegion = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Globe className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -614,7 +614,7 @@ const Settings = () => {
     );
 
     const renderNotifications = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Bell className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -650,7 +650,7 @@ const Settings = () => {
     );
 
     const renderIntegrations = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Puzzle className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -688,7 +688,7 @@ const Settings = () => {
     const renderPrivacySecurity = () => (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Change Password Panel */}
-            <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300">
+            <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300">
                 <div className="mb-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <KeyRound className="w-5 h-5 text-primary dark:text-emerald-400" />
@@ -766,7 +766,7 @@ const Settings = () => {
             </div>
 
             {/* Two-Factor Authentication Panel */}
-            <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300">
+            <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300">
                 <div className="flex items-center justify-between gap-6 pb-4">
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Two-Factor Authentication (2FA)</h3>
@@ -872,7 +872,7 @@ const Settings = () => {
             </div>
 
             {/* Active Sessions Panel */}
-            <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300">
+            <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Login Sessions</h3>
@@ -920,7 +920,7 @@ const Settings = () => {
     );
 
     const renderApiConfiguration = () => (
-        <div className="bg-white dark:bg-[#1c2541] p-6 rounded-2xl border border-gray-100 dark:border-slate-800/60 shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
+        <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-6 rounded-2xl border border-gray-100 dark:border-white/[0.07] shadow-sm transition-colors duration-300 animate-in fade-in duration-300">
             <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Sliders className="w-5 h-5 text-primary dark:text-emerald-400" />

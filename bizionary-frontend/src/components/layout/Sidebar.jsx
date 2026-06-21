@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     CreditCard,
@@ -12,6 +12,8 @@ import {
     Bot,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
+    Menu,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
@@ -59,6 +61,21 @@ const Sidebar = ({ isOpen, onClose }) => {
     const { user } = useAuth();
     const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } = useSidebar();
     const sidebarRef = useRef(null);
+    const location = useLocation();
+
+    const getActiveWorkspaceName = () => {
+        const path = location.pathname;
+        if (path === '/') return 'Home';
+        if (path.startsWith('/accounts')) return 'Accounting';
+        if (path.startsWith('/products')) return 'Products';
+        if (path.startsWith('/inventory-managment')) return 'Stock';
+        if (path.startsWith('/sales')) return 'Selling';
+        if (path.startsWith('/ordered-slips')) return 'Buying';
+        if (path.startsWith('/chatbot')) return 'AI Chatbot';
+        if (path.startsWith('/user-management')) return 'Admin';
+        return 'Home';
+    };
+    const activeWorkspaceName = getActiveWorkspaceName();
 
     // Support both prop-based (legacy) and context-based mobile open state
     const mobileOpen = isOpen !== undefined ? isOpen : isMobileOpen;
@@ -82,41 +99,52 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full">
-            {/* Logo header */}
-            <div className={`h-12 flex items-center border-b border-gray-200 dark:border-white/10 shrink-0 ${isCollapsed ? 'justify-center px-3' : 'px-4 gap-2.5'}`}>
-                <Logo className="h-7 w-auto text-gray-900 dark:text-white shrink-0" />
-                {!isCollapsed && (
-                    <span className="text-sm font-black text-gray-900 dark:text-white tracking-wider uppercase sidebar-label">
+        <div className="flex flex-col h-full bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]">
+            {/* Header: logo + toggle */}
+            <div className="h-12 flex items-center border-b border-gray-100 dark:border-white/8 shrink-0 px-4 justify-between select-none bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]">
+                <div className="flex items-center gap-2">
+                    <Logo className="h-6 w-auto text-gray-900 dark:text-white shrink-0" />
+                    <span className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-wider uppercase sidebar-label">
                         Bizionary
                     </span>
-                )}
-                {/* Mobile close button */}
-                {mobileOpen && (
+                </div>
+                <div className="flex items-center gap-1.5">
+                    {/* Hamburger button (toggles sidebar on desktop) */}
                     <button
-                        onClick={closeMobile}
-                        className="ml-auto text-gray-400 dark:text-white/60 hover:text-gray-700 dark:hover:text-white p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors lg:hidden"
-                        aria-label="Close menu"
+                        onClick={toggleCollapsed}
+                        className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-lg transition-colors cursor-pointer"
+                        aria-label="Collapse sidebar"
                     >
-                        <X className="w-4 h-4" />
+                        <Menu className="w-4.5 h-4.5" />
                     </button>
-                )}
+                    {/* Mobile close button */}
+                    {mobileOpen && (
+                        <button
+                            onClick={closeMobile}
+                            className="text-gray-400 dark:text-white/60 hover:text-gray-700 dark:hover:text-white p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors lg:hidden cursor-pointer"
+                            aria-label="Close menu"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden py-3">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 select-none">
                 {NAV_GROUPS.map((group) => {
                     const visibleItems = group.items.filter(filterItem);
                     if (!visibleItems.length) return null;
 
                     return (
-                        <div key={group.label} className="mb-1">
+                        <div key={group.label} className="mb-2.5">
                             {!isCollapsed && (
-                                <span className="sidebar-group-label px-4 pt-3 pb-1 block">
-                                    {group.label}
-                                </span>
+                                <div className="sidebar-group-label px-4 pt-2 pb-1 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">
+                                    <ChevronDown className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                                    <span>{group.label}</span>
+                                </div>
                             )}
-                            <div className={`space-y-0.5 ${isCollapsed ? 'px-2' : 'px-3'}`}>
+                            <div className="space-y-0.5 px-3">
                                 {visibleItems.map((item) => {
                                     const Icon = item.icon;
                                     return (
@@ -128,23 +156,19 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 if (window.innerWidth < 1024) closeMobile();
                                             }}
                                             className={({ isActive }) =>
-                                                `relative flex items-center rounded-lg transition-all duration-150 group
-                                                ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
+                                                `relative flex items-center rounded-lg transition-all duration-200 group gap-3 px-3 py-2
                                                 ${isActive
-                                                    ? 'bg-gray-100 dark:bg-white/15 text-gray-900 dark:text-white'
-                                                    : 'text-gray-500 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white'
+                                                    ? 'bg-slate-100 dark:bg-white/[0.09] text-slate-900 dark:text-white font-semibold'
+                                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50/80 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-slate-100 font-normal'
                                                 }`
                                             }
                                         >
                                             {({ isActive }) => (
                                                 <>
-                                                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-white/50'}`} />
-                                                    {!isCollapsed && (
-                                                        <span className={`text-sm truncate sidebar-label ${isActive ? 'font-semibold' : 'font-medium'}`}>
-                                                            {item.name}
-                                                        </span>
-                                                    )}
-                                                    {isCollapsed && <Tooltip label={item.name} />}
+                                                    <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors duration-200 ${isActive ? 'text-slate-800 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
+                                                    <span className={`text-[13px] truncate sidebar-label ${isActive ? 'font-medium' : 'font-normal'}`}>
+                                                        {item.name}
+                                                    </span>
                                                 </>
                                             )}
                                         </NavLink>
@@ -154,20 +178,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                         </div>
                     );
                 })}
-            </div>
-
-            {/* Collapse toggle (desktop only) */}
-            <div className="hidden lg:flex items-center justify-end p-3 border-t border-gray-200 dark:border-white/10 shrink-0">
-                <button
-                    onClick={toggleCollapsed}
-                    className="w-7 h-7 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors text-gray-400 dark:text-white/60 hover:text-gray-700 dark:hover:text-white"
-                    aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                >
-                    {isCollapsed
-                        ? <ChevronRight className="w-3.5 h-3.5" />
-                        : <ChevronLeft className="w-3.5 h-3.5" />
-                    }
-                </button>
             </div>
         </div>
     );
@@ -187,10 +197,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             <aside
                 className={`
                     hidden lg:flex flex-col fixed inset-y-0 left-0 z-50
-                    bg-white dark:bg-[#060E1C]
-                    border-r border-gray-200 dark:border-white/8
-                    transition-[width] duration-300 ease-in-out
-                    ${isCollapsed ? 'w-14' : 'w-60'}
+                    bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]
+                    border-r border-gray-100 dark:border-white/[0.07]
+                    transition-all duration-300 ease-in-out
+                    ${isCollapsed ? 'w-0 -translate-x-full overflow-hidden border-r-0' : 'w-60 translate-x-0'}
                     print:hidden
                 `}
             >
@@ -202,8 +212,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ref={sidebarRef}
                 className={`
                     flex flex-col lg:hidden fixed inset-y-0 left-0 z-50 w-60 h-screen
-                    bg-white dark:bg-[#060E1C]
-                    border-r border-gray-200 dark:border-white/8
+                    bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]
+                    border-r border-gray-100 dark:border-white/[0.07]
                     transition-transform duration-300 ease-out
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
                     print:hidden

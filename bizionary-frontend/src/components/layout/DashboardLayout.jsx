@@ -18,7 +18,7 @@ const LayoutShell = () => {
     const isChatbotRoute = location.pathname.startsWith('/chatbot');
 
     return (
-        <div className="flex h-screen bg-background dark:bg-[#0b1120] overflow-hidden transition-colors duration-300">
+        <div className="flex h-screen bg-background dark:bg-[color:var(--dm-bg,#1a2535)] overflow-hidden transition-colors duration-300">
 
             {/* Persistent Sidebar */}
             <Sidebar />
@@ -28,7 +28,7 @@ const LayoutShell = () => {
                 className={`
                     flex flex-col flex-1 min-w-0 overflow-hidden
                     transition-[margin-left] duration-300 ease-in-out
-                    ${isCollapsed ? 'lg:ml-14' : 'lg:ml-60'}
+                    ${isCollapsed ? 'lg:ml-0' : 'lg:ml-60'}
                 `}
             >
                 <Topbar />

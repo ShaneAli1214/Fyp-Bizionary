@@ -58,7 +58,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-slate-50 dark:bg-[#0b1220] transition-colors duration-300 font-sans">
+        <div className="min-h-screen w-full flex bg-slate-50 dark:bg-[color:var(--dm-bg,#1a2535)] transition-colors duration-300 font-sans">
             {/* Left Column (Brand Showcase) - Visible on lg+ */}
             <div className="hidden lg:flex lg:w-[45%] bg-[#0C1A2E] relative text-white flex-col justify-between p-12 overflow-hidden select-none">
                 {/* Backdrop Pattern */}
@@ -121,7 +121,7 @@ const Login = () => {
             </div>
 
             {/* Right Column (Login Form Wrapper) */}
-            <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 md:px-12 lg:px-16 bg-white dark:bg-[#0b1220] transition-colors duration-300 relative">
+            <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 md:px-12 lg:px-16 bg-white dark:bg-[color:var(--dm-surface,#243348)] transition-colors duration-300 relative">
                 {/* Decorative background glows on mobile/tablet */}
                 <div className="absolute top-0 right-0 w-80 h-80 bg-[#F97316]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>
                 <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#1D4ED8]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>

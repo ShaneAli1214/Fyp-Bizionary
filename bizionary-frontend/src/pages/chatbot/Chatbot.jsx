@@ -369,8 +369,23 @@ const Chatbot = () => {
                         url = '/user-management';
                     }
                     
-                    const isInternal = url.startsWith('/');
-                    if (isInternal) {
+                    const isApiUrl = url.startsWith('/api/');
+                    const isInternal = url.startsWith('/') && !isApiUrl;
+                    if (isApiUrl) {
+                        const backendUrl = (api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api\/?$/, '') : '') + url;
+                        parts.push(
+                            <a
+                                key={matchIndex}
+                                href={backendUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 mx-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                {label}
+                            </a>
+                        );
+                    } else if (isInternal) {
                         parts.push(
                             <button
                                 key={matchIndex}

@@ -1,6 +1,9 @@
-/* Black & White light theme (semantic tokens)
+/* ============================================================
+   BIZIONARY THEME SYSTEM
+   Light theme: clean white with charcoal primary
+   Dark theme: ERPNext-inspired deep navy-blue palette
    Apply by adding `theme-horizon` or `theme-horizon-dark` to <html>.
-*/
+   ============================================================ */
 
 .theme-horizon {
   --color-primary: #111111;
@@ -10,9 +13,9 @@
   --color-ai-purple: #8b5cf6;
   --color-background: #F7F7F8;
   --color-background-light: #FFFFFF;
-  --color-background-dark: #0C1A2E;
+  --color-background-dark: #1a2535;
   --color-surface: #FFFFFF;
-  --color-surface-dark: #0A1628;
+  --color-surface-dark: #243348;
   --color-textMain: #1A1A1A;
   --color-textMuted: #6B7280;
   --color-border: #E5E7EB;
@@ -25,24 +28,65 @@
   --color-background-rgb: 247,247,248;
 }
 
-.theme-horizon-dark {
-  --color-primary: #E5E7EB;
-  --color-primary-dark: #D1D5DB;
-  --color-accent: #E5E7EB;
-  --color-accent-dark: #D1D5DB;
+/* ============================================================
+   DARK MODE: ERPNext-Inspired Navy Palette
+   bg:      #1a2535  – main body background (dark navy)
+   surface: #243348  – cards, panels, table rows
+   sidebar: #1a2535  – sidebar (matches bg for flat look)
+   topbar:  #1f2d42  – topbar (slightly elevated)
+   input:   #1e3050  – form inputs (deeper blue)
+   border:  rgba(255,255,255,0.07) – very subtle borders
+   text:    #d5e0ef  – near-white with blue tint
+   muted:   #7a97b8  – muted blue-grey
+   ============================================================ */
+
+.theme-horizon-dark,
+html.dark {
+  /* Core backgrounds */
+  --color-background: #1a2535;
+  --color-background-light: #1f2d42;
+  --color-background-dark: #111c2c;
+  --color-surface: #243348;
+  --color-surface-dark: #1a2535;
+
+  /* Primary accent (light in dark mode for buttons) */
+  --color-primary: #c8d8ec;
+  --color-primary-dark: #a8bdd8;
+  --color-accent: #4a7ebb;
+  --color-accent-dark: #3a6ea8;
   --color-ai-purple: #a78bfa;
-  --color-background: #0C1A2E;
-  --color-background-light: #0F2340;
-  --color-surface: #0A1628;
-  --color-surface-dark: #060E1C;
-  --color-textMain: #E2E8F0;
-  --color-textMuted: #94A3B8;
-  --color-border: #1E293B;
-  --color-success: #34D399;
-  --color-danger: #F87171;
-  --color-warning: #FCD34D;
-  --color-primary-rgb: 229,231,235;
-  --color-accent-rgb: 229,231,235;
-  --color-surface-rgb: 10,22,40;
-  --color-background-rgb: 12,26,46;
+
+  /* Typography */
+  --color-textMain: #d5e0ef;
+  --color-textMuted: #7a97b8;
+  --color-border: rgba(255,255,255,0.07);
+
+  /* Status colors — slightly more vibrant in dark */
+  --color-success: #34d399;
+  --color-danger: #f87171;
+  --color-warning: #fbbf24;
+
+  /* RGB helpers */
+  --color-primary-rgb: 200,216,236;
+  --color-accent-rgb: 74,126,187;
+  --color-surface-rgb: 36,51,72;
+  --color-background-rgb: 26,37,53;
+  --color-background-dark-rgb: 17,28,44;
+
+  /* Extra dark mode tokens */
+  --dm-bg: #1a2535;
+  --dm-bg-elevated: #1f2d42;
+  --dm-surface: #243348;
+  --dm-surface-hover: #2c3f57;
+  --dm-sidebar: #1a2535;
+  --dm-sidebar-hover: rgba(255,255,255,0.05);
+  --dm-sidebar-active: rgba(255,255,255,0.09);
+  --dm-topbar: #1f2d42;
+  --dm-input-bg: #1a2d47;
+  --dm-border: rgba(255,255,255,0.07);
+  --dm-border-strong: rgba(255,255,255,0.12);
+  --dm-text-main: #d5e0ef;
+  --dm-text-muted: #7a97b8;
+  --dm-text-subtle: #4d6880;
+  --dm-glow: rgba(74,126,187,0.15);
 }

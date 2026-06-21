@@ -376,6 +376,9 @@ The Django project root is situated in `c:\Users\Dell\Desktop\Fyp` and contains 
     *   `Account`: Chart of Accounts hierarchy.
     *   `JournalEntry` & `JournalItem`: Double-entry accounting system tracking debits and credits.
     *   `Revenue` & `Expense`: Financial registries.
+    *   `SalaryPayment`: For payroll details, linked to the `ERPUser` model.
+    *   `UtilityBill`: For tracking utility payments (Electricity, Water, Gas, etc.) including tax breakdown.
+    *   `RecurringCost`: For software subscriptions, office rent, ads, etc.
     *   `ExpenseBudget`: Category-specific budgets comparing planned vs actual spend.
     *   `InvoicePayment`: Instalment tracking against invoices to automatically calculate balance dues.
     *   `APIConfiguration`: Encrypted database model storing API keys (OpenAI/Groq) for dynamic rotation.
@@ -384,8 +387,14 @@ The Django project root is situated in `c:\Users\Dell\Desktop\Fyp` and contains 
 *   **Views (`views.py`, `views_api_config.py`):** Serializes CRUD views and connection testing routes.
 
 #### 3.2.2 `chatbot` Module
-*   **Services (`services.py`):** Contains Groq function mapping schema, system prompt templates, tool routing dispatcher (`execute_tool`), and conversational loop processor (`generate_chatbot_response`).
-*   **Views (`views.py`):** Exposes chatbot message endpoint: `/api/chatbot/ask/`.
+*   **Services (`services.py`):**
+    *   **Groq Wrapper & Schema:** Integrates function mapping definitions and LLM query orchestration.
+    *   **Fuzzy Matching Engine:** Employs `difflib.get_close_matches` when exact queries fail (cutoff of `0.4` for search queries and `0.5` for sales creation) to map user input typos to active catalog names/SKUs.
+    *   **Conversational Confirmation Flow:** Implements multi-turn state rules in system prompts to draft orders first and request explicit user confirmation before executing transactional tools.
+    *   **History Memory Compression:** Implements background summary compilation using the Groq API model; when history exceeds `10` turns, older logs are compressed into a single system recap message while preserving the latest `4` turns.
+*   **Views (`views.py`):**
+    *   Exposes chatbot message querying endpoint (`/api/chatbot/query/`).
+    *   Exposes the NLP generated document streaming view (`download_report`) to generate and export dynamic CSV spreadsheets of sales, expenses, and inventory catalog.
 
 #### 3.2.3 `dashboard` Module
 *   **Views (`views.py`):** Dynamic calculations of operational metrics (low-stock counts, pending payables, KPI totals) and database seeding scripts (`reset_system`).
@@ -751,6 +760,20 @@ The system uses **Time-Aware Column Mapping** rather than relying on static stru
 *   **No Hardcoded Months:** The parser reads date values directly from the column headers, adapting dynamically to new workbooks.
 *   **Auto-Syncing:** Ingested files are assigned a unique prefix derived from their filename. If an import is forced, the system clears old records matching the prefix before re-importing, preventing duplicate entries.
 
+### 7.4 Dynamic Expense Ledger Integration
+To support salaries, utilities, and operating overheads dynamically:
+*   **Domain-Specific Models:** `SalaryPayment`, `UtilityBill`, and `RecurringCost` are modeled independently to track field-specific inputs (e.g., payroll departments, utility tax breaks, recurring intervals).
+*   **Generic Relations:** These domain tables link back to the core central `Expense` table using Django's Generic Foreign Keys (`content_type`, `object_id`) and a `metadata` JSON field.
+*   **Status-Driven Synchronization:** Django database signals monitor saving/deletion of domain rows:
+    *   On transitions to `PAID`, they dynamically compile matching central `Expense` entries, cash flow transactions (`CashTransaction` type `OUT`), and ledger journal entries (balanced debit/credits).
+    *   On reversion to `PENDING` or `UNPAID` (or deletion), the signal logic dynamically cleans up and reverses all ledger debit/credits and cash outflows.
+
+### 7.5 Procurement Ordered Slip Lifecycle and Purchase Matching
+To keep inventory and financial statements in sync without duplicate or premature ledger entries:
+*   **Decoupled Ordered Slips:** Purchase order request slips are logged as `OrderedSlip` instances. Seeding processes do not contain static purchase records.
+*   **Dynamic Purchase Creation:** Financial `Purchase` entries are created dynamically in the database *only* when the warehouse completes receiving the inventory (i.e. the `OrderedSlip` transitions to `COMPLETED` status).
+*   **Event-Driven Stock Ledger:** The completion event dynamically triggers the stock ledger (`InventoryTransaction` type `IN`) and logs the financial payable record in the central ledger accounts automatically.
+
 ---
 
 ## 8. API Documentation
@@ -845,7 +868,7 @@ The system uses **Time-Aware Column Mapping** rather than relying on static stru
     ```
 
 ### 8.5 Ask Chatbot
-*   **Endpoint:** `POST /api/chatbot/ask/`
+*   **Endpoint:** `POST /api/chatbot/query/`
 *   **Purpose:** Sends a question to the chatbot.
 *   **Request Parameters:**
     ```json
@@ -859,6 +882,18 @@ The system uses **Time-Aware Column Mapping** rather than relying on static stru
     {
       "response": "The total value of products in stock is Rs 1,450,000 across 31 registered items."
     }
+    ```
+
+### 8.7 Download Chatbot Report
+*   **Endpoint:** `GET /api/chatbot/download-report/`
+*   **Purpose:** Streams a dynamically generated CSV spreadsheet of requested business data.
+*   **Request Parameters (Query Params):**
+    *   `type` (string, required, e.g., `sales`, `expenses`, or `inventory`)
+*   **Response Structure (200 OK):**
+    *   Returns a direct CSV file stream:
+    ```text
+    Sale ID,Customer Name,Product Name,SKU,Quantity Sold,Unit Price,Total Price,Discount,Payment Status,Payment Method,Sale Date
+    97706,AlNoor Trading,Calculator Scientific,CALCSC,4,2700.0,10800.0,0.0,PAID,CASH,2026-06-30
     ```
 
 ### 8.6 Sales by Period

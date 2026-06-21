@@ -13,7 +13,6 @@ const InventoryManagment = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
-    const [sales, setSales] = useState([]);
     const [orderedSlips, setOrderedSlips] = useState([]);
     const [registeredCompanies, setRegisteredCompanies] = useState([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -57,22 +56,19 @@ const InventoryManagment = () => {
     const fetchInventoryData = async () => {
         setLoading(true);
         try {
-            const [productsRes, salesRes, slipsRes, companiesRes] = await Promise.allSettled([
+            const [productsRes, slipsRes, companiesRes] = await Promise.allSettled([
                 api.get('products/'),
-                api.get('sales/'),
                 api.get('purchases/ordered-slips/'),
                 api.get('purchases/companies/'),
             ]);
 
             setProducts(productsRes.status === 'fulfilled' ? extractList(productsRes.value.data).map((item) => normalizeProductRecord(item)) : []);
-            setSales(salesRes.status === 'fulfilled' ? extractList(salesRes.value.data) : []);
             setOrderedSlips(slipsRes.status === 'fulfilled' ? extractList(slipsRes.value.data) : []);
             // Only keep companies that appear to be persisted (have an `id`)
             setRegisteredCompanies(companiesRes.status === 'fulfilled' ? extractList(companiesRes.value.data).filter((c) => c && (c.id || c.id === 0)) : []);
         } catch (error) {
             console.warn('Failed to fetch inventory data.', error);
             setProducts([]);
-            setSales([]);
             setOrderedSlips([]);
             setRegisteredCompanies([]);
         } finally {

@@ -402,10 +402,12 @@ const AccountsManager = () => {
     const getGrowthBadge = (growth) => {
         if (growth === undefined || growth === null) return null;
         const isPositive = growth >= 0;
-        const colorClass = isPositive ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-rose-700 bg-rose-50 border-rose-100';
+        const colorClass = isPositive 
+            ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-900/40' 
+            : 'text-rose-700 bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:text-rose-455 dark:border-rose-900/40';
         const sign = isPositive ? '+' : '';
         return (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${colorClass} inline-block mt-0.5`}>
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${colorClass} inline-block mt-1 self-start`}>
                 {sign}{growth}% vs prev period
             </span>
         );
@@ -516,55 +518,113 @@ const AccountsManager = () => {
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 print:hidden">
                 {/* Total Revenue */}
-                <div className="bg-white p-4 rounded-2xl border-l-4 border-emerald-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Revenue</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}</h4>
-                    {!loadingKpis && getGrowthBadge(kpis?.revenue_growth)}
-                    <div className="mt-auto pt-2 self-end p-2 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Revenue</span>
+                        <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}
+                        </span>
+                        {!loadingKpis && getGrowthBadge(kpis?.revenue_growth)}
+                    </div>
                 </div>
 
                 {/* Total COGS */}
-                <div className="bg-white p-4 rounded-2xl border-l-4 border-orange-400 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">COGS</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}</h4>
-                    {!loadingKpis && getGrowthBadge(kpis?.cogs_growth)}
-                    <div className="mt-auto pt-2 self-end p-2 bg-orange-50 text-orange-500 rounded-xl"><TrendingDown className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">COGS</span>
+                        <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/20 text-orange-655 dark:text-orange-400">
+                            <TrendingDown className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}
+                        </span>
+                        {!loadingKpis && getGrowthBadge(kpis?.cogs_growth)}
+                    </div>
                 </div>
 
                 {/* Gross Profit */}
-                <div className="bg-white p-4 rounded-2xl border-l-4 border-teal-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Gross Profit</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.gross_profit || 0)}</h4>
-                    {!loadingKpis && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border text-teal-700 bg-teal-50 border-teal-100 inline-block">{kpis?.gross_profit_margin?.toFixed(1)}% margin</span>}
-                    <div className="mt-auto pt-2 self-end p-2 bg-teal-50 text-teal-600 rounded-xl"><TrendingUp className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Gross Profit</span>
+                        <div className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/20 text-teal-600 dark:text-teal-400">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.gross_profit || 0)}
+                        </span>
+                        {!loadingKpis && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-teal-700 bg-teal-50 border-teal-100 dark:bg-teal-950/20 dark:text-teal-400 dark:border-teal-900/40 inline-block mt-1 self-start">
+                                {kpis?.gross_profit_margin?.toFixed(1)}% margin
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Total Expenses */}
-                <div className="bg-white p-4 rounded-2xl border-l-4 border-rose-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Expenses</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}</h4>
-                    {!loadingKpis && getGrowthBadge(kpis?.expense_growth)}
-                    <div className="mt-auto pt-2 self-end p-2 bg-rose-50 text-rose-600 rounded-xl"><TrendingDown className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Expenses</span>
+                        <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
+                            <TrendingDown className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}
+                        </span>
+                        {!loadingKpis && getGrowthBadge(kpis?.expense_growth)}
+                    </div>
                 </div>
 
                 {/* Net Profit */}
-                <div className={`bg-white p-4 rounded-2xl border-l-4 ${(!loadingKpis && kpis?.net_profit < 0) ? 'border-rose-500' : 'border-primary'} border-y border-r border-gray-100 shadow-sm flex flex-col gap-1`}>
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">{(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}</h4>
-                    {!loadingKpis && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md border text-sky-700 bg-sky-50 border-sky-100 inline-block">{kpis?.net_profit_margin?.toFixed(1)}% margin</span>}
-                    <div className={`mt-auto pt-2 self-end p-2 ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-primary'} rounded-xl`}><Wallet className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
+                        </span>
+                        <div className={`p-1.5 rounded-lg ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450' : 'bg-sky-50 dark:bg-sky-950/20 text-sky-600 dark:text-sky-400'}`}>
+                            <Wallet className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}
+                        </span>
+                        {!loadingKpis && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-sky-700 bg-sky-50 border-sky-100 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40 inline-block mt-1 self-start">
+                                {kpis?.net_profit_margin?.toFixed(1)}% margin
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Cash Flow */}
-                <div className="bg-white p-4 rounded-2xl border-l-4 border-amber-500 border-y border-r border-gray-100 shadow-sm flex flex-col gap-1">
-                    <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Net Cash Flow</p>
-                    <h4 className="text-lg font-bold text-slate-900">{loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}</h4>
-                    {!loadingKpis && getGrowthBadge(kpis?.cash_flow_growth)}
-                    <div className="mt-auto pt-2 self-end p-2 bg-amber-50 text-amber-600 rounded-xl"><FileText className="w-5 h-5" /></div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
+                    <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Net Cash Flow</span>
+                        <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400">
+                            <FileText className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-0.5">
+                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                            {loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}
+                        </span>
+                        {!loadingKpis && getGrowthBadge(kpis?.cash_flow_growth)}
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
                 <div className="flex justify-between items-center border-b border-gray-100 px-6 pt-4 print:hidden">
                     <div className="flex gap-6">
                         <button

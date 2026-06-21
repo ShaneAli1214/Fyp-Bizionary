@@ -7,7 +7,7 @@ const AccessDenied = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-[#1c2541] p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl max-w-md w-full flex flex-col items-center justify-center space-y-6 transition-colors duration-300">
+            <div className="bg-white dark:bg-[color:var(--dm-surface,#243348)] p-8 rounded-3xl border border-slate-100 dark:border-white/[0.07] shadow-xl max-w-md w-full flex flex-col items-center justify-center space-y-6 transition-colors duration-300">
                 <div className="w-16 h-16 bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
                     <ShieldAlert className="w-8 h-8" />
                 </div>

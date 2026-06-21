@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
     X, Bot, Send, Mic, MicOff, AlertCircle, RefreshCw, 
-    Trash2, HelpCircle, Volume2
+    Trash2, HelpCircle, Volume2, Download
 } from 'lucide-react';
 import { chatbotApi } from '../../services/chatbotApi';
 import api from '../../services/api';
@@ -235,8 +235,23 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                         url = '/user-management';
                     }
                     
-                    const isInternal = url.startsWith('/');
-                    if (isInternal) {
+                    const isApiUrl = url.startsWith('/api/');
+                    const isInternal = url.startsWith('/') && !isApiUrl;
+                    if (isApiUrl) {
+                        const backendUrl = (api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api\/?$/, '') : '') + url;
+                        parts.push(
+                            <a
+                                key={matchIndex}
+                                href={backendUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
+                            >
+                                <Download className="w-3.5 h-3.5 mr-1 inline-block align-middle" />
+                                {label}
+                            </a>
+                        );
+                    } else if (isInternal) {
                         parts.push(
                             <button
                                 key={matchIndex}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Menu,
     Search,
@@ -15,13 +15,28 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useSidebar } from '../../context/SidebarContext';
+import Logo from '../common/Logo';
 
 const Topbar = () => {
     const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
-    const { setMobileOpen } = useSidebar();
+    const { isCollapsed, toggleCollapsed, setMobileOpen } = useSidebar();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const getActiveWorkspaceName = () => {
+        const path = location.pathname;
+        if (path === '/') return 'Home';
+        if (path.startsWith('/accounts')) return 'Accounting';
+        if (path.startsWith('/products')) return 'Products';
+        if (path.startsWith('/inventory-managment')) return 'Stock';
+        if (path.startsWith('/sales')) return 'Selling';
+        if (path.startsWith('/ordered-slips')) return 'Buying';
+        if (path.startsWith('/chatbot')) return 'AI Chatbot';
+        if (path.startsWith('/user-management')) return 'Admin';
+        return 'Home';
+    };
 
     const isAccountant = user?.role_name === 'Accountant';
 
@@ -38,10 +53,27 @@ const Topbar = () => {
         .slice(0, 2) || 'U';
 
     return (
-        <header className="h-12 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-[#0A1628] border-b border-gray-100 dark:border-slate-800/60 shrink-0 z-30 print:hidden">
+        <header className="h-12 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-[color:var(--dm-topbar,#1f2d42)] border-b border-gray-100 dark:border-white/[0.07] shrink-0 z-30 print:hidden">
 
-            {/* Left — mobile hamburger only */}
-            <div className="flex items-center">
+            {/* Left — hamburger toggle */}
+            <div className="flex items-center gap-2">
+                {/* Desktop toggle button + Logo (only visible when sidebar is collapsed) */}
+                {isCollapsed && (
+                    <div className="hidden lg:flex items-center gap-2 mr-2">
+                        <button
+                            onClick={toggleCollapsed}
+                            className="p-1.5 text-textMuted hover:text-textMain hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                            aria-label="Open navigation"
+                        >
+                            <Menu className="w-4.5 h-4.5" />
+                        </button>
+                        <Logo className="h-6 w-auto text-gray-900 dark:text-white shrink-0" />
+                        <span className="text-sm font-black text-slate-800 dark:text-slate-250 tracking-wider uppercase">
+                            Bizionary
+                        </span>
+                    </div>
+                )}
+                {/* Mobile hamburger */}
                 <button
                     onClick={() => setMobileOpen(true)}
                     className="lg:hidden p-1.5 text-textMuted hover:text-textMain hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -49,6 +81,13 @@ const Topbar = () => {
                 >
                     <Menu className="w-5 h-5" />
                 </button>
+                
+                {/* Show page title in topbar next to hamburger when collapsed */}
+                {isCollapsed && (
+                    <span className="hidden lg:inline text-base font-bold text-slate-800 dark:text-slate-200 ml-1">
+                        {getActiveWorkspaceName()}
+                    </span>
+                )}
             </div>
 
             {/* Center — search (hidden on small screens) */}
@@ -58,7 +97,7 @@ const Topbar = () => {
                     <input
                         type="text"
                         placeholder="Search..."
-                        className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-textMain placeholder-textMuted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.1] rounded-lg text-textMain placeholder-textMuted focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-primary dark:focus:border-blue-400/50 transition-all"
                     />
                 </div>
             </div>
@@ -102,9 +141,9 @@ const Topbar = () => {
                     {/* Dropdown */}
                     <div className={`
                         absolute right-0 mt-2 w-64 sm:w-72
-                        bg-white dark:bg-[#0b1220]
+                        bg-white dark:bg-[color:var(--dm-surface,#243348)]
                         rounded-2xl shadow-2xl
-                        border border-slate-200/85 dark:border-slate-800/80
+                        border border-slate-200/80 dark:border-white/[0.08]
                         p-4 text-slate-800 dark:text-slate-200
                         z-50 flex flex-col gap-3.5
                         transition-all duration-200 origin-top-right

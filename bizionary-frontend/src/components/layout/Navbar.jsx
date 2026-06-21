@@ -154,7 +154,7 @@ const Navbar = ({ onToggleSidebar }) => {
 
                 {/* Dropdown Menu Card */}
                 <div 
-                    className={`absolute right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[#0b1220] rounded-2xl shadow-2xl border border-slate-200/85 dark:border-slate-800/80 p-4 text-slate-800 dark:text-slate-200 z-50 flex flex-col gap-3.5 transition-all duration-200 origin-top-right ${
+                    className={`absolute right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[color:var(--dm-surface,#243348)] rounded-2xl shadow-2xl border border-slate-200/85 dark:border-white/[0.08] p-4 text-slate-800 dark:text-slate-200 z-50 flex flex-col gap-3.5 transition-all duration-200 origin-top-right ${
                         isDropdownOpen 
                             ? 'scale-100 opacity-100 visible' 
                             : 'scale-95 opacity-0 invisible pointer-events-none'
