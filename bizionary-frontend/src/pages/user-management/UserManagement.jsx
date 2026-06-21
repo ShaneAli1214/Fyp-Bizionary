@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeader from '../../components/ui/PageHeader';
 import { Users, UserPlus, Shield, Building2, Search, RotateCcw, AlertCircle } from 'lucide-react';
 import { userManagementApi } from '../../services/userManagementApi';
 import UsersTable from './components/UsersTable';
@@ -148,10 +149,10 @@ const UserManagement = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-[#1C3A5A] tracking-tight">User Management</h1>
-                    <p className="text-sm text-textMuted mt-1">Manage corporate system users, role-based access control (RBAC), and departments.</p>
-                </div>
+                <PageHeader
+                    title="User Management"
+                    subtitle="Manage corporate system users, role-based access control (RBAC), and departments."
+                />
                 {activeTab === 'users' && (
                     <button 
                         onClick={handleAddUser}

@@ -1,3 +1,5 @@
+import PageHeader from '../../components/ui/PageHeader';
+import Skeleton from '../../components/ui/Skeleton';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, CheckCircle2, Clock3, Download, Package, Filter, Trash2 } from 'lucide-react';
@@ -445,10 +447,10 @@ const OrderedSlips = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-textMain">Ordered Slips</h1>
-                    <p className="text-textMuted text-sm mt-1">Generated supplier slips, partial receipts, and received stamps live here.</p>
-                </div>
+                <PageHeader
+                    title="Ordered Slips"
+                    subtitle="Generated supplier slips, partial receipts, and received stamps live here."
+                />
 
                 <button
                     onClick={() => setIsFormOpen(true)}
@@ -508,8 +510,8 @@ const OrderedSlips = () => {
             </div>
 
             {loading ? (
-                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm h-64 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                    <Skeleton.TableRows count={6} cols={5} />
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -639,8 +641,8 @@ const OrderedSlips = () => {
                 </div>
 
                 {purchasesLoading ? (
-                    <div className="h-40 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="p-6">
+                        <Skeleton.TableRows count={4} cols={5} />
                     </div>
                 ) : purchaseError ? (
                     <div className="text-center text-sm text-rose-600 py-8">{purchaseError}</div>

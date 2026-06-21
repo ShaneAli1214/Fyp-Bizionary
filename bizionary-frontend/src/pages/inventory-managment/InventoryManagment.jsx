@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../../components/ui/PageHeader';
+import Skeleton from '../../components/ui/Skeleton';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import { ArrowUpRight, AlertTriangle, CircleDollarSign, Package, Plus, Receipt, Trash2, ChevronDown } from 'lucide-react';
@@ -237,8 +239,11 @@ const InventoryManagment = () => {
 
     if (loading) {
         return (
-            <div className="min-h-[60vh] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="space-y-6 p-1">
+                <Skeleton.KPICard />
+                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                    <Skeleton.TableRows count={8} cols={5} />
+                </div>
             </div>
         );
     }
@@ -247,10 +252,10 @@ const InventoryManagment = () => {
         <div className="space-y-8">
             <div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-extrabold text-textMain dark:text-slate-100">Inventory Managment</h1>
-                        <p className="text-textMuted dark:text-slate-300 text-sm mt-1">Operational view for stock availability and incoming supply.</p>
-                    </div>
+                    <PageHeader
+                        title="Stock Management"
+                        subtitle="Operational view for stock availability and incoming supply."
+                    />
 
                     <div className="flex flex-col sm:flex-row gap-2">
                         <button

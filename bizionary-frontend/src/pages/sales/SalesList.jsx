@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import PageHeader from '../../components/ui/PageHeader';
+import Skeleton from '../../components/ui/Skeleton';
 import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
@@ -307,7 +309,9 @@ const SalesList = () => {
     return (
         <div className="space-y-6">
 
-            {/* Header Actions */}
+            <PageHeader title="Sales" subtitle="Track and manage all customer sales transactions." />
+
+            {/* Toolbar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -523,8 +527,8 @@ const SalesList = () => {
             {/* Main Table */}
             <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
-                    <div className="h-64 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="p-6">
+                        <Skeleton.TableRows count={7} cols={7} />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

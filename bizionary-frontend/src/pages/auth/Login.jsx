@@ -60,7 +60,7 @@ const Login = () => {
     return (
         <div className="min-h-screen w-full flex bg-slate-50 dark:bg-[#0b1220] transition-colors duration-300 font-sans">
             {/* Left Column (Brand Showcase) - Visible on lg+ */}
-            <div className="hidden lg:flex lg:w-[45%] bg-[#003A6B] relative text-white flex-col justify-between p-12 overflow-hidden select-none">
+            <div className="hidden lg:flex lg:w-[45%] bg-[#0C1A2E] relative text-white flex-col justify-between p-12 overflow-hidden select-none">
                 {/* Backdrop Pattern */}
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1.2px,transparent_1.2px)] [background-size:24px_24px] pointer-events-none opacity-40"></div>
                 
@@ -90,7 +90,7 @@ const Login = () => {
                     {/* Feature 1 */}
                     <div className="flex items-start gap-4">
                         <div className="bg-white/10 p-2.5 rounded-xl border border-white/5 flex items-center justify-center shrink-0 shadow-sm">
-                            <Package className="w-5 h-5 text-[#00BFA5]" />
+                            <Package className="w-5 h-5 text-[#F97316]" />
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-white">Centralized Management</h3>
@@ -100,7 +100,7 @@ const Login = () => {
                     {/* Feature 2 */}
                     <div className="flex items-start gap-4">
                         <div className="bg-white/10 p-2.5 rounded-xl border border-white/5 flex items-center justify-center shrink-0 shadow-sm">
-                            <TrendingUp className="w-5 h-5 text-[#00BFA5]" />
+                            <TrendingUp className="w-5 h-5 text-[#F97316]" />
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-white">Real-time Insights</h3>
@@ -110,7 +110,7 @@ const Login = () => {
                     {/* Feature 3 */}
                     <div className="flex items-start gap-4">
                         <div className="bg-white/10 p-2.5 rounded-xl border border-white/5 flex items-center justify-center shrink-0 shadow-sm">
-                            <ShieldCheck className="w-5 h-5 text-[#00BFA5]" />
+                            <ShieldCheck className="w-5 h-5 text-[#F97316]" />
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-white">Secure & Reliable</h3>
@@ -123,15 +123,15 @@ const Login = () => {
             {/* Right Column (Login Form Wrapper) */}
             <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 md:px-12 lg:px-16 bg-white dark:bg-[#0b1220] transition-colors duration-300 relative">
                 {/* Decorative background glows on mobile/tablet */}
-                <div className="absolute top-0 right-0 w-80 h-80 bg-[#10B981]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>
-                <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#003A6B]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#F97316]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>
+                <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#1D4ED8]/5 rounded-full blur-[100px] pointer-events-none lg:hidden"></div>
 
                 <div className="w-full max-w-md space-y-8 animate-in zoom-in-95 duration-500">
                     {/* Top logo block on Form */}
                     <div className="flex flex-col items-center text-center">
                         <div className="flex items-center gap-3">
-                            <Logo className="h-14 w-auto text-[#003A6B] dark:text-[#00BFA5]" />
-                            <span className="text-2xl font-black text-[#003A6B] dark:text-white tracking-wider uppercase">Bizionary</span>
+                            <Logo className="h-14 w-auto text-[#1D4ED8] dark:text-[#F97316]" />
+                            <span className="text-2xl font-black text-[#1D4ED8] dark:text-white tracking-wider uppercase">Bizionary</span>
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-6 tracking-tight">
                             Sign in to your account
@@ -157,7 +157,7 @@ const Login = () => {
                                         maxLength="6"
                                         value={mfaCode}
                                         onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00BFA5] focus:border-[#00BFA5] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-500 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-center font-mono font-bold tracking-widest text-lg text-slate-800 dark:text-slate-100 shadow-sm"
+                                        className="block w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-500 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-center font-mono font-bold tracking-widest text-lg text-slate-800 dark:text-slate-100 shadow-sm"
                                         placeholder="000000"
                                         required
                                     />
@@ -177,7 +177,7 @@ const Login = () => {
                                             type="text"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="block w-full pl-4 pr-12 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00BFA5] focus:border-[#00BFA5] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-550 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm text-sm"
+                                            className="block w-full pl-4 pr-12 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-550 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm text-sm"
                                             placeholder="Enter your email"
                                             required
                                         />
@@ -195,7 +195,7 @@ const Login = () => {
                                             type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="block w-full pl-4 pr-20 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00BFA5] focus:border-[#00BFA5] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-550 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm text-sm"
+                                            className="block w-full pl-4 pr-20 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all placeholder-slate-350 dark:placeholder-slate-550 bg-slate-50/50 dark:bg-slate-800/40 focus:bg-white dark:focus:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm text-sm"
                                             placeholder="Enter your password"
                                             required
                                         />
@@ -210,7 +210,7 @@ const Login = () => {
                                         </button>
                                     </div>
                                     <div className="flex justify-end pt-1">
-                                        <a href="#" className="font-bold text-xs text-[#00BFA5] hover:text-[#008B9B] hover:underline transition-colors">
+                                        <a href="#" className="font-bold text-xs text-[#F97316] hover:text-[#EA6B0A] hover:underline transition-colors">
                                             Forgot password?
                                         </a>
                                     </div>
@@ -222,7 +222,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-[#00BFA5] hover:bg-[#008B9B] active:scale-[0.985] transition-all duration-300 shadow-md shadow-[#00BFA5]/10 hover:shadow-[#008B9B]/20 focus:outline-none cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                            className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] active:scale-[0.985] transition-all duration-300 shadow-md shadow-[#1D4ED8]/20 hover:shadow-[#1E40AF]/30 focus:outline-none cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -274,7 +274,7 @@ const Login = () => {
 
                     {/* Footer text */}
                     <div className="pt-2 text-center text-xs font-semibold text-[#64748B] dark:text-[#475569]">
-                        Don't have an account? <span onClick={() => alert("Please contact your IT department or local system administrator to provision new employee access.")} className="text-[#00BFA5] hover:underline font-bold cursor-pointer transition-all">Contact your administrator</span>
+                        Don't have an account? <span onClick={() => alert("Please contact your IT department or local system administrator to provision new employee access.")} className="text-[#F97316] hover:underline font-bold cursor-pointer transition-all">Contact your administrator</span>
                     </div>
                 </div>
             </div>

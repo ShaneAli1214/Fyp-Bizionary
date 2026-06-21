@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { 
-    Moon, Sun, Monitor, User, Bell, Shield, 
+import {
+    Moon, Sun, Monitor, User, Bell, Shield,
     MonitorSmartphone, Globe, Puzzle, KeyRound, Eye, EyeOff,
     Sliders, X, Copy, Check, QrCode, LogOut, History, ShieldAlert
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
+import PageHeader from '../../components/ui/PageHeader';
 import api from '../../services/api';
 
 const SETTINGS_STORAGE_KEY = 'app-settings-preferences';
@@ -16,8 +18,8 @@ const Settings = () => {
     const isAccountant = user?.role_name === 'Accountant';
     const isAdmin = user?.role_name === 'Admin' || user?.role_level === 'ADMIN';
 
+    const { addToast } = useToast();
     const [activeSection, setActiveSection] = useState('Account Info');
-    const [toasts, setToasts] = useState([]);
 
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -77,18 +79,6 @@ const Settings = () => {
     const [setupProvisioningUri, setSetupProvisioningUri] = useState('');
     const [isFetching2FASetup, setIsFetching2FASetup] = useState(false);
 
-    // Toast Notification helper
-    const addToast = (type, message) => {
-        const id = Date.now();
-        setToasts((prev) => [...prev, { id, type, message }]);
-        setTimeout(() => {
-            setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 3500);
-    };
-
-    const dismissToast = (id) => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-    };
 
     const fetchSessions = async () => {
         try {
@@ -1026,13 +1016,10 @@ const Settings = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 text-slate-800 dark:text-slate-100">
-            {/* Custom Toast Portal Container */}
-            <ToastContainer toasts={toasts} onClose={dismissToast} />
-
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">ERP System Settings</h1>
-                <p className="text-xs text-textMuted dark:text-slate-400 mt-1">Configure your personal ERP dashboard preferences, secure credentials, and third-party integrations.</p>
-            </div>
+            <PageHeader
+                title="Settings"
+                subtitle="Configure your ERP dashboard preferences, credentials, and integrations."
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {renderLeftSidebar()}
@@ -1051,30 +1038,5 @@ const Settings = () => {
     );
 };
 
-// Internal Toast Component
-const ToastContainer = ({ toasts, onClose }) => {
-    return (
-        <div className="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none">
-            {toasts.map((toast) => (
-                <div 
-                    key={toast.id}
-                    className={`p-3.5 rounded-xl border shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-top-5 duration-200 pointer-events-auto ${
-                        toast.type === 'success' 
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-250 dark:bg-emerald-950/45 dark:text-emerald-350 dark:border-emerald-800/70' 
-                            : 'bg-rose-50 text-rose-800 border-rose-250 dark:bg-rose-950/45 dark:text-rose-350 dark:border-rose-800/70'
-                    }`}
-                >
-                    <span className="flex-1">{toast.message}</span>
-                    <button 
-                        onClick={() => onClose(toast.id)} 
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            ))}
-        </div>
-    );
-};
 
 export default Settings;

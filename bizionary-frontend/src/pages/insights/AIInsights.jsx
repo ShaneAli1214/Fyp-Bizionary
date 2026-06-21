@@ -3,6 +3,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { TrendingUp, Package, AlertCircle, Zap, Brain } from 'lucide-react';
 import { insightsApi } from '../../services/insightsApi';
 import { useAuth } from '../../context/AuthContext';
+import PageHeader from '../../components/ui/PageHeader';
 
 const NLP_PERIODS = {
     daily: { days: 1, label: 'Daily' },
@@ -313,16 +314,16 @@ const AIInsights = () => {
     if (!hasInsights) {
         return (
             <div className="space-y-6">
-                {/* Header */}
+                <PageHeader title="AI Insights" subtitle="Powered by Advanced Analytics & AI" />
+                {/* Feature Banner */}
                 <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-8 border border-primary/20">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
                             <Brain className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-textMain">AI Insights Dashboard</h1>
-                            <p className="text-textMuted mt-1">Powered by Advanced Analytics & AI</p>
-                            <p className="text-xs text-textMuted mt-1">Data source: db.sqlite3 (live)</p>
+                            <h2 className="text-xl font-bold text-textMain">AI Insights Dashboard</h2>
+                            <p className="text-textMuted mt-0.5 text-sm">Powered by Advanced Analytics & AI</p>
                         </div>
                     </div>
                 </div>

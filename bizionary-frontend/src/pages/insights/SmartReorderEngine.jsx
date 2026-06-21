@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Bot } from 'lucide-react';
+import PageHeader from '../../components/ui/PageHeader';
 import { insightsApi } from '../../services/insightsApi';
 
 const SmartReorderEngine = () => {
@@ -95,16 +96,13 @@ const SmartReorderEngine = () => {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-8 border border-primary/20">
+            <PageHeader title="Smart Reorder Engine" subtitle="Live reorder planning from sales velocity and stock coverage." />
+            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-6 border border-primary/20">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
-                        <Bot className="w-6 h-6" />
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
+                        <Bot className="w-5 h-5" />
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-bold text-textMain">Smart Reorder Engine</h1>
-                        <p className="text-textMuted mt-1">Live reorder planning from sales velocity and stock coverage.</p>
-                        <p className="text-xs text-textMuted mt-1">Data source: db.sqlite3 (live)</p>
-                    </div>
+                    <p className="text-sm text-textMuted">AI-powered reorder analysis using live stock and sales data.</p>
                 </div>
             </div>
 

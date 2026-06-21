@@ -5,6 +5,7 @@ import api from '../../services/api';
 import SalesPerformanceChart from '../../components/dashboard/SalesPerformanceChart';
 import useSalesInsights from '../../hooks/useSalesInsights';
 import { useAuth } from '../../context/AuthContext';
+import PageHeader from '../../components/ui/PageHeader';
 
 // Import action modals and forms
 import RecordModal from '../accounts/components/RecordModal';
@@ -289,11 +290,10 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            {/* Title */}
-            <div>
-                <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100">Dashboard</h1>
-                <p className="text-sm text-textMuted dark:text-slate-400 mt-1">Real-time enterprise statistics and quick operations.</p>
-            </div>
+            <PageHeader
+                title="Dashboard"
+                subtitle="Real-time enterprise statistics and quick operations."
+            />
 
             {/* Notification messages */}
             {actionMessage.text && (

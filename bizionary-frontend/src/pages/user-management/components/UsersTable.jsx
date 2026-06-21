@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Edit2, Key, Ban, UserCheck, Mail, Building, Phone, BadgeCheck, MoreVertical, ShieldAlert } from 'lucide-react';
+import Skeleton from '../../../components/ui/Skeleton';
 
 const UsersTable = ({ users, loading, onEdit, onToggleStatus, onResetPassword }) => {
     // Track which user's action dropdown is currently open
@@ -51,9 +52,8 @@ const UsersTable = ({ users, loading, onEdit, onToggleStatus, onResetPassword })
 
     if (loading) {
         return (
-            <div className="p-16 flex justify-center items-center flex-col gap-4">
-                <div className="w-10 h-10 rounded-full border-4 border-[#1C3A5A] border-t-transparent animate-spin"></div>
-                <span className="text-sm font-medium text-gray-500">Loading system users...</span>
+            <div className="p-6">
+                <Skeleton.TableRows count={7} cols={5} />
             </div>
         );
     }

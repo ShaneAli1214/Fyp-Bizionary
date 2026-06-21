@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import PageHeader from '../../components/ui/PageHeader';
+import { useToast } from '../../context/ToastContext';
 import { Wallet, TrendingUp, TrendingDown, FileText, Plus, Calendar, ShieldCheck, Download, Upload } from 'lucide-react';
 import { accountsApi } from '../../services/accountsApi';
 import { formatPKR } from '../../utils/currency';
@@ -117,6 +119,7 @@ function useFilteredFinancials(transactions, dateRange) {
 }
 
 const AccountsManager = () => {
+    const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState('revenues');
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -135,7 +138,6 @@ const AccountsManager = () => {
     const [isOperatingCostModalOpen, setIsOperatingCostModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [toastMessage, setToastMessage] = useState(null);
     const [kpis, setKpis] = useState(null);
     const [loadingKpis, setLoadingKpis] = useState(true);
 
@@ -144,10 +146,7 @@ const AccountsManager = () => {
     const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
 
     const showToast = (msg, type = 'success') => {
-        setToastMessage({ text: msg, type });
-        setTimeout(() => {
-            setToastMessage(null);
-        }, 4000);
+        addToast(type === 'success' ? 'success' : type === 'error' ? 'error' : 'info', msg);
     };
 
     useEffect(() => {
@@ -414,20 +413,11 @@ const AccountsManager = () => {
 
     return (
         <div className="space-y-6 relative">
-            {toastMessage && (
-                <div className="fixed top-6 right-6 z-50 p-4 rounded-xl border bg-white shadow-lg flex items-center gap-3 animate-in slide-in-from-top duration-300">
-                    <div className={`w-2 h-2 rounded-full ${toastMessage.type === 'error' ? 'bg-red-500' : toastMessage.type === 'info' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-                    <p className="text-xs font-semibold text-slate-900">{toastMessage.text}</p>
-                </div>
-            )}
-
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 print:hidden">
-                <div>
-                    <h1 className="text-2xl font-bold text-textMain flex items-center gap-2">
-                        Accounts & Finance
-                    </h1>
-                    <p className="text-sm text-textMuted mt-1">Upgrade general ledgers, accounts receivable, and audit compliance.</p>
-                </div>
+                <PageHeader
+                    title="Accounts & Finance"
+                    subtitle="Manage general ledgers, accounts receivable, and audit compliance."
+                />
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white border border-slate-200 rounded-2xl p-2.5 gap-3 shadow-xs">
