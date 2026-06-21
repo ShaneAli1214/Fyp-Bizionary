@@ -154,6 +154,17 @@ def ordered_slip_mark_partial(request, pk):
         ordered_slip.status = OrderedSlip.STATUS_PARTIAL if received_quantity < ordered_slip.quantity_ordered else OrderedSlip.STATUS_COMPLETED
         if ordered_slip.status == OrderedSlip.STATUS_COMPLETED:
             ordered_slip.received_at = timezone.now()
+            # Create completed Purchase record
+            Purchase.objects.create(
+                product=ordered_slip.product,
+                company_name=ordered_slip.company_name,
+                quantity_purchased=ordered_slip.quantity_ordered,
+                unit_cost=ordered_slip.unit_cost,
+                total_cost=ordered_slip.total_cost,
+                purchase_date=timezone.now().date(),
+                payment_status='PAID',
+                notes=f"Generated from Completed OrderedSlip #{ordered_slip.id}"
+            )
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
 
     log_action(request, 'UPDATE', f"Order slip #{ordered_slip.id}: marked partial receipt — {received_quantity}/{ordered_slip.quantity_ordered} units received.", module='Purchases')
@@ -171,6 +182,18 @@ def ordered_slip_mark_complete(request, pk):
         ordered_slip.status = OrderedSlip.STATUS_COMPLETED
         ordered_slip.received_at = timezone.now()
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
+        
+        # Create completed Purchase record
+        Purchase.objects.create(
+            product=ordered_slip.product,
+            company_name=ordered_slip.company_name,
+            quantity_purchased=ordered_slip.quantity_ordered,
+            unit_cost=ordered_slip.unit_cost,
+            total_cost=ordered_slip.total_cost,
+            purchase_date=timezone.now().date(),
+            payment_status='PAID',
+            notes=f"Generated from Completed OrderedSlip #{ordered_slip.id}"
+        )
 
     log_action(request, 'UPDATE', f"Order slip #{ordered_slip.id}: marked fully complete — all {ordered_slip.quantity_ordered} units received.", module='Purchases')
     return Response(OrderedSlipSerializer(ordered_slip).data)
