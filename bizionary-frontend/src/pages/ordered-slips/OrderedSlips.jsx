@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, CheckCircle2, Clock3, Download, Package, Filter, Trash2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import api from '../../services/api';
-import { accountsApi } from '../../services/accountsApi';
 import { formatPKR } from '../../utils/currency';
 import { normalizeProductCategory, CATEGORY_COMPANIES } from '../../utils/productCategories';
 import OrderSlipForm from './OrderSlipForm';
@@ -20,9 +19,9 @@ const OrderedSlips = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [partialQuantities, setPartialQuantities] = useState({});
     const [busySlipId, setBusySlipId] = useState(null);
-    const [invoices, setInvoices] = useState([]);
-    const [invoicesLoading, setInvoicesLoading] = useState(true);
-    const [invoiceError, setInvoiceError] = useState('');
+    const [purchases, setPurchases] = useState([]);
+    const [purchasesLoading, setPurchasesLoading] = useState(true);
+    const [purchaseError, setPurchaseError] = useState('');
 
     const emitInventoryRefresh = (action) => {
         window.dispatchEvent(new CustomEvent('inventoryRefreshRequested', {
@@ -49,21 +48,21 @@ const OrderedSlips = () => {
 
     useEffect(() => {
         fetchOrderedSlips();
-        fetchCustomerInvoices();
+        fetchPurchases();
     }, []);
 
-    const fetchCustomerInvoices = async () => {
+    const fetchPurchases = async () => {
         try {
-            setInvoicesLoading(true);
-            setInvoiceError('');
-            const res = await accountsApi.getInvoices('last_30_days', 1, 20);
-            const invoicePayload = res.data?.data || [];
-            setInvoices(Array.isArray(invoicePayload) ? invoicePayload : []);
+            setPurchasesLoading(true);
+            setPurchaseError('');
+            const res = await api.get('purchases/');
+            const purchasesPayload = res.data?.data || res.data || [];
+            setPurchases(Array.isArray(purchasesPayload) ? purchasesPayload : []);
         } catch (error) {
-            setInvoiceError('Failed to load customer invoices.');
-            setInvoices([]);
+            setPurchaseError('Failed to load purchase history.');
+            setPurchases([]);
         } finally {
-            setInvoicesLoading(false);
+            setPurchasesLoading(false);
         }
     };
 
@@ -634,41 +633,51 @@ const OrderedSlips = () => {
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div>
-                        <h2 className="text-lg font-bold text-textMain">Customer Invoice History</h2>
-                        <p className="text-sm text-textMuted">Showing paid and pending receivables from Accounts.</p>
+                        <h2 className="text-lg font-bold text-textMain">Supplier Purchase History</h2>
+                        <p className="text-sm text-textMuted">Showing completed procurement purchases and payment statuses.</p>
                     </div>
                 </div>
 
-                {invoicesLoading ? (
+                {purchasesLoading ? (
                     <div className="h-40 flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
-                ) : invoiceError ? (
-                    <div className="text-center text-sm text-rose-600 py-8">{invoiceError}</div>
-                ) : invoices.length === 0 ? (
-                    <div className="text-center text-sm text-textMuted py-8">No customer invoices found.</div>
+                ) : purchaseError ? (
+                    <div className="text-center text-sm text-rose-600 py-8">{purchaseError}</div>
+                ) : purchases.length === 0 ? (
+                    <div className="text-center text-sm text-textMuted py-8">No purchase history found.</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-gray-100">
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Invoice #</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Customer</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Due Date</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Purchase #</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Supplier</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Product</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
                                     <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Status</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Balance Due</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Quantity</th>
                                     <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Amount</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {invoices.map((invoice) => (
-                                    <tr key={invoice.id} className="hover:bg-slate-50/50">
-                                        <td className="px-4 py-3 text-sm font-semibold text-primary">{invoice.invoice_number}</td>
-                                        <td className="px-4 py-3 text-sm text-textMain">{invoice.client_name}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">{invoice.due_date}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{invoice.status}</td>
-                                        <td className="px-4 py-3 text-sm font-semibold text-right text-gray-700">{formatPKR(invoice.balance_due)}</td>
-                                        <td className="px-4 py-3 text-sm font-semibold text-right text-slate-900">{formatPKR(invoice.amount)}</td>
+                                {purchases.map((purchase) => (
+                                    <tr key={purchase.id} className="hover:bg-slate-50/50">
+                                        <td className="px-4 py-3 text-sm font-semibold text-primary">PO-{String(purchase.id).padStart(5, '0')}</td>
+                                        <td className="px-4 py-3 text-sm text-textMain">{purchase.company_name}</td>
+                                        <td className="px-4 py-3 text-sm text-textMain">{purchase.product_name}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">{purchase.purchase_date}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                                                purchase.payment_status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                purchase.payment_status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                'bg-rose-50 text-rose-700 border-rose-100'
+                                            }`}>
+                                                {purchase.payment_status}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-right text-gray-700">{purchase.quantity_purchased}</td>
+                                        <td className="px-4 py-3 text-sm font-semibold text-right text-slate-900">{formatPKR(purchase.total_cost)}</td>
                                     </tr>
                                 ))}
                             </tbody>

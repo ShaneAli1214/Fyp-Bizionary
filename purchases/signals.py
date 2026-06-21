@@ -67,34 +67,24 @@ def purchase_post_save(sender, instance, created, **kwargs):
         )
 
     else:
-        # Update: if payment_status changed to PAID, create the cash outflow
-        # (Handles case: Purchase created as UNPAID, later marked PAID)
-        try:
-            old_status = sender.objects.get(pk=instance.pk).payment_status
-        except Exception:
-            old_status = None
-
-        if old_status != 'PAID' and instance.payment_status == 'PAID':
-            already_paid = CashTransaction.objects.filter(
+        # Update: if payment_status is PAID, ensure we have a cash outflow.
+        # If it is UNPAID/PARTIAL, ensure we delete any existing cash outflow.
+        if instance.payment_status == 'PAID':
+            CashTransaction.objects.update_or_create(
                 source_type='purchase',
                 source_id=instance.id,
                 txn_type=CashTransaction.TYPE_OUT,
-            ).exists()
-            if not already_paid:
-                CashTransaction.objects.create(
-                    txn_type=CashTransaction.TYPE_OUT,
-                    amount=instance.total_cost,
-                    source_type='purchase',
-                    source_id=instance.id,
-                    date=instance.purchase_date,
-                    description=f'Payment for Purchase #{instance.id}',
-                )
-        elif old_status == 'PAID' and instance.payment_status != 'PAID':
-            # Reverse cash outflow if marked unpaid/pending
+                defaults={
+                    'amount': instance.total_cost,
+                    'date': instance.purchase_date,
+                    'description': f'Payment for Purchase #{instance.id} (Updated)',
+                }
+            )
+        else:
             CashTransaction.objects.filter(
                 source_type='purchase',
                 source_id=instance.id,
-                txn_type=CashTransaction.TYPE_OUT,
+                txn_type=CashTransaction.TYPE_OUT
             ).delete()
 
         AuditLog.objects.create(

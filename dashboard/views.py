@@ -1063,7 +1063,7 @@ def sales_by_period(request):
         
         # Define category mapping and color mapping
         CATEGORY_MAPPING = {
-            'Electronics & Applications': 'electronics_appliances',
+            'Electronics & Appliances': 'electronics_appliances',
             'Grocery & Food Items': 'grocery_food_items',
             'Clothing & Textiles': 'clothing_textiles',
             'Pharmaceuticals & Health': 'pharmaceuticals_health',

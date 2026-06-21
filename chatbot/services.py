@@ -524,7 +524,7 @@ def execute_tool(name, arguments):
                     "supplier": p.company_name,
                     "po_reference": f"PO-{str(p.id).zfill(4)}",
                     "product_name": p.product.name if p.product else "Unknown",
-                    "quantity": p.quantity_ordered,
+                    "quantity": p.quantity_purchased,
                     "total_cost": float(p.total_cost),
                     "status": p.payment_status,
                     "purchase_date": str(p.purchase_date)
