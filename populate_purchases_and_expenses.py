@@ -43,8 +43,8 @@ def populate_suppliers():
         name = sheet.cell(row=r, column=2).value
         if not name:
             continue
-        category = sheet.cell(row=r, column=7).value
-        email = sheet.cell(row=r, column=4).value
+        category = sheet.cell(row=r, column=3).value
+        email = sheet.cell(row=r, column=6).value
         phone = sheet.cell(row=r, column=5).value
         
         supplier, created = SupplierCompany.objects.get_or_create(
