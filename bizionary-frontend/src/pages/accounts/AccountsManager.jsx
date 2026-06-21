@@ -635,15 +635,6 @@ const AccountsManager = () => {
                         </button>
                     </div>
 
-                    <div className="pb-4 flex items-center gap-1.5 text-xs font-semibold text-textMuted">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>
-                            Filter: 
-                            <span className="text-primary ml-1.5 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 font-bold">
-                                {formatDateLabel(dateRange.startDate)} - {formatDateLabel(dateRange.endDate)}
-                            </span>
-                        </span>
-                    </div>
                 </div>
 
                 <div className="p-6 flex-1 bg-slate-50/30 print:p-0 print:bg-transparent">

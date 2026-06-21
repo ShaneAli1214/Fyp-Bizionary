@@ -5,7 +5,6 @@ const AppsStrip = ({ compact }) => {
     const navigate = useNavigate();
     const apps = [
         { label: 'Dashboard', path: '/', desc: 'Home overview' },
-        { label: 'AI Insights', path: '/insights', desc: 'Analytics' },
         { label: 'Smart Reorder', path: '/smart-reorder', desc: 'Reorder engine' },
         { label: 'Products', path: '/products', desc: 'Catalog' },
         { label: 'Sales', path: '/sales', desc: 'Orders & reports' },

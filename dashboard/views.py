@@ -707,13 +707,56 @@ def sales_performance(request):
         parsed_start_date = None
         parsed_end_date = None
 
+        # Parse dynamic month parameter (format: YYYY-MM) to compute start and end dates automatically
+        month_param = request.query_params.get('month', '').strip()
+        if month_param and '-' in month_param:
+            try:
+                parts = month_param.split('-')
+                year_val = int(parts[0])
+                month_val = int(parts[1])
+                parsed_start_date = date_type(year_val, month_val, 1)
+                if month_val == 12:
+                    next_month = date_type(year_val + 1, 1, 1)
+                else:
+                    next_month = date_type(year_val, month_val + 1, 1)
+                parsed_end_date = next_month - timedelta(days=1)
+                start_date = parsed_start_date.isoformat()
+                end_date = parsed_end_date.isoformat()
+            except ValueError:
+                pass
+
         if (timeframe in ('30days', 'last30', '30d') or range_filter == 'last30') and not start_date and not end_date:
             from accounts.services import AccountsService
             parsed_start_date, parsed_end_date = AccountsService.get_date_filter('last_30_days')
             start_date = parsed_start_date.isoformat()
             end_date = parsed_end_date.isoformat()
 
-        queryset = Sale.objects.all()
+        queryset = Sale.objects.select_related('product').all()
+
+        # Filter by search term
+        search = request.query_params.get('search', '').strip()
+        if search:
+            query = Q(product__name__icontains=search) | Q(customer_name__icontains=search)
+            if search.isdigit():
+                query |= Q(id=int(search))
+            queryset = queryset.filter(query)
+
+        # Filter by category
+        category = request.query_params.get('category', 'ALL')
+        if category and category.strip().upper() != 'ALL':
+            category_clean = category.strip()
+            category_mapping = {
+                'tech': 'Electronics & Appliances',
+                'grocery': 'Grocery & Food Items',
+                'clothing': 'Clothing & Textiles',
+                'stationary': 'Stationery & Office Supplies',
+                'medicines': 'Pharmaceuticals & Health',
+            }
+            db_category = category_mapping.get(category_clean.lower(), category_clean)
+            queryset = queryset.filter(
+                Q(product__category__iexact=db_category) |
+                Q(product__category__iexact=category_clean)
+            )
         
         if year_filter:
             queryset = queryset.filter(sale_date__year=year_filter)
@@ -752,6 +795,13 @@ def sales_performance(request):
                 total_sales=Count('id'),
                 revenue=Sum('total_price')
             ).order_by('period_date')
+        elif period == 'weekly':
+            performance_data = queryset.annotate(
+                period_date=TruncWeek('sale_date')
+            ).values('period_date').annotate(
+                total_sales=Count('id'),
+                revenue=Sum('total_price')
+            ).order_by('period_date')
         elif period == 'monthly':
             # Group by month
             performance_data = queryset.annotate(
@@ -762,7 +812,7 @@ def sales_performance(request):
             ).order_by('period_date')
         else:
             return Response(
-                {'error': "Invalid period. Use 'daily' or 'monthly'."},
+                {'error': "Invalid period. Use 'daily', 'weekly', or 'monthly'."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -788,15 +838,65 @@ def sales_performance(request):
                     'revenue': day_values['revenue']
                 })
                 cursor += timedelta(days=1)
+        elif period == 'weekly' and parsed_start_date and parsed_end_date:
+            # find Monday of the week containing parsed_start_date
+            start_monday = parsed_start_date - timedelta(days=parsed_start_date.weekday())
+            aggregated_by_week = {}
+            for item in performance_data:
+                if not item['period_date']:
+                    continue
+                key = item['period_date'].date() if hasattr(item['period_date'], 'date') else item['period_date']
+                aggregated_by_week[key] = {
+                    'total_sales': item['total_sales'],
+                    'revenue': item['revenue'] or Decimal('0.00')
+                }
+
+            cursor = start_monday
+            while cursor <= parsed_end_date:
+                week_values = aggregated_by_week.get(cursor, {'total_sales': 0, 'revenue': Decimal('0.00')})
+                result.append({
+                    'period': cursor.strftime('%Y-%m-%d'),
+                    'total_sales': week_values['total_sales'],
+                    'revenue': week_values['revenue']
+                })
+                cursor += timedelta(days=7)
         else:
             for item in performance_data:
                 result.append({
-                    'period': item['period_date'].strftime('%Y-%m-%d') if period == 'daily' and item['period_date'] else item['period_date'].strftime('%Y-%m') if item['period_date'] else 'N/A',
+                    'period': item['period_date'].strftime('%Y-%m-%d') if period in ('daily', 'weekly') and item['period_date'] else item['period_date'].strftime('%Y-%m') if item['period_date'] else 'N/A',
                     'total_sales': item['total_sales'],
                     'revenue': item['revenue']
                 })
 
-        return Response(result, status=status.HTTP_200_OK)
+        # Get list of unique available months in database
+        available_months = []
+        try:
+            unique_months_qs = Sale.objects.annotate(
+                month_date=TruncMonth('sale_date')
+            ).values('month_date').annotate(
+                count=Count('id')
+            ).order_by('-month_date')
+            
+            seen_months = set()
+            for item in unique_months_qs:
+                m_date = item['month_date']
+                if not m_date:
+                    continue
+                key = m_date.strftime('%Y-%m')
+                if key not in seen_months:
+                    seen_months.add(key)
+                    available_months.append({
+                        'key': key,
+                        'label': m_date.strftime('%B %Y')
+                    })
+        except Exception:
+            available_months = []
+
+        response_data = {
+            'chartData': result,
+            'availableMonths': available_months
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response(
@@ -874,6 +974,55 @@ def reset_system(request):
         sync_result = SalesImportService.sync_monthly_sales_files(force=True)
         if not sync_result['success']:
             raise Exception(f"Failed to sync sales files: {sync_result.get('error')}")
+
+        # 4b. Seed additional historical sales for January - April 2026
+        import random
+        products = list(Product.objects.filter(status='ACTIVE'))
+        if not products:
+            products = list(Product.objects.all())
+        if products:
+            customers = ["Ahmed Khan", "Fatima Ahmed", "Muhammad Hassan", "Sara Ali", "Bilal Siddiqui", "Zainab Malik", "Tariq Mahmood", "Aisha Umar"]
+            payment_methods = ["CASH", "CARD", "BANK_TRANSFER"]
+            historical_months = [1, 2, 3, 4]  # Jan, Feb, Mar, Apr
+            year = 2026
+            
+            for month in historical_months:
+                num_sales = random.randint(18, 25)
+                for i in range(num_sales):
+                    product = random.choice(products)
+                    customer = random.choice(customers)
+                    pm = random.choice(payment_methods)
+                    qty = random.randint(1, 8)
+                    day = random.randint(1, 28)
+                    
+                    sale_date = date(year, month, day)
+                    unit_price = product.unit_price
+                    total_price = unit_price * qty
+                    
+                    invoice_num = f"HISTORICAL-RESET-{year}-{month:02d}-{day:02d}-{product.sku}-{i}"
+                    
+                    Sale.objects.create(
+                        product=product,
+                        customer_name=customer,
+                        quantity_sold=qty,
+                        line_items=[{
+                            'product': product.id,
+                            'product_name': product.name,
+                            'product_code': product.sku,
+                            'quantity_sold': qty,
+                            'unit_price': str(unit_price),
+                            'total_price': str(total_price),
+                        }],
+                        unit_price=unit_price,
+                        total_price=total_price,
+                        discount=Decimal('0.00'),
+                        invoice_number=invoice_num,
+                        notes=f"Generated historical reset sales transaction for {month}/2026",
+                        payment_status='PAID',
+                        payment_method=pm,
+                        sale_date=sale_date
+                    )
+
 
         # 5. Seed invoices (billing app)
         from product_catalog.master_data import INVOICES_DATA
@@ -1305,5 +1454,424 @@ def sales_by_period(request):
     except Exception as e:
         return Response(
             {'error': f'Failed to compile sales insights: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+def accountant_sales_analytics(request):
+    """
+    Specifically tailored sales insights for Accountant role.
+    Computes:
+      - Total Invoiced Revenue (Gross Revenue from invoices or sales, by day/week/month/custom)
+      - Accounts Receivable (AR aging analysis of unpaid/partially paid invoices: 30, 60, 90, 90+ days)
+      - Output Tax / GST Breakdowns (output tax on sales & invoices)
+      - Sales Returns & Credit Notes tracking
+      - Cost of Goods Sold (COGS) vs Gross Profit Margins based on snapshots of cost_price
+    """
+    try:
+        from sales.models import SaleReturn, Sale
+        from invoices.models import Invoice as BillingInvoice
+        from datetime import date as date_type, timedelta
+        from django.utils import timezone
+        
+        period = request.query_params.get('period', 'monthly').lower().strip()
+        start_date_str = request.query_params.get('start_date', None)
+        end_date_str = request.query_params.get('end_date', None)
+        month_param = request.query_params.get('month', '').strip()
+        
+        today = timezone.localdate()
+        parsed_start_date = None
+        parsed_end_date = None
+        
+        # Calculate month date bounds
+        if month_param and '-' in month_param:
+            try:
+                parts = month_param.split('-')
+                year_val = int(parts[0])
+                month_val = int(parts[1])
+                parsed_start_date = date_type(year_val, month_val, 1)
+                if month_val == 12:
+                    next_month = date_type(year_val + 1, 1, 1)
+                else:
+                    next_month = date_type(year_val, month_val + 1, 1)
+                parsed_end_date = next_month - timedelta(days=1)
+            except ValueError:
+                pass
+                
+        if not parsed_start_date:
+            if start_date_str:
+                parsed_start_date = parse_date(start_date_str)
+            if end_date_str:
+                parsed_end_date = parse_date(end_date_str)
+                
+        # Default fallback dates if none provided
+        if not parsed_start_date or not parsed_end_date:
+            if period == 'monthly':
+                # Show last 6 months
+                parsed_start_date = today - timedelta(days=180)
+                parsed_end_date = today
+            elif period == 'weekly':
+                # Show last 8 weeks
+                parsed_start_date = today - timedelta(weeks=8)
+                parsed_end_date = today
+            else:
+                # Show last 30 days
+                parsed_start_date = today - timedelta(days=30)
+                parsed_end_date = today
+
+        # 1. Query Sales and Invoices in range
+        sales_qs = Sale.objects.filter(sale_date__gte=parsed_start_date, sale_date__lte=parsed_end_date).select_related('product')
+        invoices_qs = BillingInvoice.objects.filter(invoice_date__gte=parsed_start_date, invoice_date__lte=parsed_end_date)
+        returns_qs = SaleReturn.objects.filter(return_date__gte=parsed_start_date, return_date__lte=parsed_end_date).select_related('product', 'sale')
+
+        # 2. Aggregations (Gross Invoiced, COGS, Profit, Returns, GST Tax)
+        gross_sales = sales_qs.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        gross_invoices = invoices_qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+        
+        # Calculate Cost of Goods Sold (COGS) on POS Sales
+        cogs_expr = ExpressionWrapper(F('quantity_sold') * F('unit_cost_price'), output_field=DecimalField())
+        total_cogs = sales_qs.annotate(cogs=cogs_expr).aggregate(total=Sum('cogs'))['total'] or Decimal('0.00')
+        
+        # Output Tax (GST) Calculations
+        # 18% tax calculated on sales + actual tax amount on invoices
+        sales_tax_output = (gross_sales * Decimal('0.18')).quantize(Decimal('0.01'))
+        invoices_tax_output = invoices_qs.aggregate(total=Sum('tax_amount'))['total'] or Decimal('0.00')
+        total_gst_collected = sales_tax_output + invoices_tax_output
+        
+        # Returns Summary
+        total_refunded = returns_qs.aggregate(total=Sum('refund_amount'))['total'] or Decimal('0.00')
+        total_returns_count = returns_qs.count()
+
+        # Gross Profit calculations (integrating costs directly with sales)
+        # Billed Revenue = Gross POS Sales + Gross Invoices
+        total_revenue_billed = gross_sales + gross_invoices
+        # Adjust for returns: refunds directly deduct from revenue
+        net_revenue = max(total_revenue_billed - total_refunded, Decimal('0.00'))
+        
+        # Profit margin
+        gross_profit = max(gross_sales - total_cogs, Decimal('0.00'))
+        profit_margin = (gross_profit / gross_sales * 100) if gross_sales > 0 else Decimal('0.00')
+
+        # 3. Time-Series data points for dynamic Recharts graph
+        # Group by period (daily, weekly, monthly)
+        chart_points = []
+        if period == 'daily':
+            # Group by day
+            sales_daily = sales_qs.annotate(p_date=TruncDay('sale_date')).values('p_date').annotate(val=Sum('total_price'), cg=Sum(cogs_expr)).order_by('p_date')
+            invoices_daily = invoices_qs.annotate(p_date=TruncDay('invoice_date')).values('p_date').annotate(val=Sum('total_amount')).order_by('p_date')
+            returns_daily = returns_qs.annotate(p_date=TruncDay('return_date')).values('p_date').annotate(val=Sum('refund_amount')).order_by('p_date')
+            
+            # Map daily data points
+            daily_map = {}
+            cursor = parsed_start_date
+            while cursor <= parsed_end_date:
+                daily_map[cursor] = {'revenue': Decimal('0.00'), 'cogs': Decimal('0.00'), 'profit': Decimal('0.00')}
+                cursor += timedelta(days=1)
+                
+            for item in sales_daily:
+                d = item['p_date']
+                if d in daily_map:
+                    daily_map[d]['revenue'] += item['val'] or Decimal('0.00')
+                    daily_map[d]['cogs'] += item['cg'] or Decimal('0.00')
+            for item in invoices_daily:
+                d = item['p_date']
+                if d in daily_map:
+                    daily_map[d]['revenue'] += item['val'] or Decimal('0.00')
+            for item in returns_daily:
+                d = item['p_date']
+                if d in daily_map:
+                    # refund reduces revenue
+                    daily_map[d]['revenue'] -= item['val'] or Decimal('0.00')
+
+            for d, vals in sorted(daily_map.items()):
+                prof = max(vals['revenue'] - vals['cogs'], Decimal('0.00'))
+                chart_points.append({
+                    'period': d.strftime('%Y-%m-%d'),
+                    'revenue': float(vals['revenue']),
+                    'cogs': float(vals['cogs']),
+                    'profit': float(prof)
+                })
+                
+        elif period == 'weekly':
+            # Group by week
+            sales_weekly = sales_qs.annotate(p_date=TruncWeek('sale_date')).values('p_date').annotate(val=Sum('total_price'), cg=Sum(cogs_expr)).order_by('p_date')
+            invoices_weekly = invoices_qs.annotate(p_date=TruncWeek('invoice_date')).values('p_date').annotate(val=Sum('total_amount')).order_by('p_date')
+            returns_weekly = returns_qs.annotate(p_date=TruncWeek('return_date')).values('p_date').annotate(val=Sum('refund_amount')).order_by('p_date')
+            
+            weekly_map = {}
+            # Start at Monday of start week
+            start_monday = parsed_start_date - timedelta(days=parsed_start_date.weekday())
+            cursor = start_monday
+            while cursor <= parsed_end_date:
+                weekly_map[cursor] = {'revenue': Decimal('0.00'), 'cogs': Decimal('0.00'), 'profit': Decimal('0.00')}
+                cursor += timedelta(days=7)
+                
+            for item in sales_weekly:
+                d = item['p_date']
+                if d in weekly_map:
+                    weekly_map[d]['revenue'] += item['val'] or Decimal('0.00')
+                    weekly_map[d]['cogs'] += item['cg'] or Decimal('0.00')
+            for item in invoices_weekly:
+                d = item['p_date']
+                if d in weekly_map:
+                    weekly_map[d]['revenue'] += item['val'] or Decimal('0.00')
+            for item in returns_weekly:
+                d = item['p_date']
+                if d in weekly_map:
+                    weekly_map[d]['revenue'] -= item['val'] or Decimal('0.00')
+                    
+            for d, vals in sorted(weekly_map.items()):
+                prof = max(vals['revenue'] - vals['cogs'], Decimal('0.00'))
+                chart_points.append({
+                    'period': d.strftime('%Y-%m-%d'),
+                    'revenue': float(vals['revenue']),
+                    'cogs': float(vals['cogs']),
+                    'profit': float(prof)
+                })
+                
+        else: # monthly
+            # Group by month
+            sales_monthly = sales_qs.annotate(p_date=TruncMonth('sale_date')).values('p_date').annotate(val=Sum('total_price'), cg=Sum(cogs_expr)).order_by('p_date')
+            invoices_monthly = invoices_qs.annotate(p_date=TruncMonth('invoice_date')).values('p_date').annotate(val=Sum('total_amount')).order_by('p_date')
+            returns_monthly = returns_qs.annotate(p_date=TruncMonth('return_date')).values('p_date').annotate(val=Sum('refund_amount')).order_by('p_date')
+            
+            monthly_map = {}
+            cursor = parsed_start_date.replace(day=1)
+            while cursor <= parsed_end_date:
+                monthly_map[cursor] = {'revenue': Decimal('0.00'), 'cogs': Decimal('0.00'), 'profit': Decimal('0.00')}
+                if cursor.month == 12:
+                    cursor = cursor.replace(year=cursor.year + 1, month=1)
+                else:
+                    cursor = cursor.replace(month=cursor.month + 1)
+                    
+            for item in sales_monthly:
+                d = item['p_date']
+                if d in monthly_map:
+                    monthly_map[d]['revenue'] += item['val'] or Decimal('0.00')
+                    monthly_map[d]['cogs'] += item['cg'] or Decimal('0.00')
+            for item in invoices_monthly:
+                d = item['p_date']
+                if d in monthly_map:
+                    monthly_map[d]['revenue'] += item['val'] or Decimal('0.00')
+            for item in returns_monthly:
+                d = item['p_date']
+                if d in monthly_map:
+                    monthly_map[d]['revenue'] -= item['val'] or Decimal('0.00')
+                    
+            for d, vals in sorted(monthly_map.items()):
+                prof = max(vals['revenue'] - vals['cogs'], Decimal('0.00'))
+                chart_points.append({
+                    'period': d.strftime('%Y-%m'),
+                    'revenue': float(vals['revenue']),
+                    'cogs': float(vals['cogs']),
+                    'profit': float(prof)
+                })
+
+        # 4. Accounts Receivable (AR) & Aging Report
+        # Retrieve all pending/unpaid invoices (both unpaid and partially paid)
+        unpaid_invoices_qs = BillingInvoice.objects.exclude(status='PAID').order_by('due_date')
+        
+        ar_total_outstanding = Decimal('0.00')
+        ar_aging_buckets = {
+            'current': Decimal('0.00'),
+            '1_30_days': Decimal('0.00'),
+            '31_60_days': Decimal('0.00'),
+            '61_90_days': Decimal('0.00'),
+            '90_plus_days': Decimal('0.00')
+        }
+        
+        outstanding_invoices_list = []
+        for inv in unpaid_invoices_qs:
+            bal = inv.balance_due
+            ar_total_outstanding += bal
+            
+            # Aging math
+            if inv.due_date >= today:
+                tier = 'current'
+                days_overdue = 0
+            else:
+                days_overdue = (today - inv.due_date).days
+                if days_overdue <= 30:
+                    tier = '1_30_days'
+                elif days_overdue <= 60:
+                    tier = '31_60_days'
+                elif days_overdue <= 90:
+                    tier = '61_90_days'
+                else:
+                    tier = '90_plus_days'
+                    
+            ar_aging_buckets[tier] += bal
+            
+            outstanding_invoices_list.append({
+                'id': inv.id,
+                'invoice_number': inv.invoice_number,
+                'customer_name': inv.customer_name,
+                'total_amount': float(inv.total_amount),
+                'amount_paid': float(inv.amount_paid),
+                'balance_due': float(bal),
+                'due_date': inv.due_date.isoformat(),
+                'days_overdue': days_overdue,
+                'aging_tier': tier.replace('_', ' ').capitalize(),
+                'status': inv.status
+            })
+
+        # Include PENDING Sales as credit (Udhari) outstanding in AR
+        pending_sales_qs = Sale.objects.filter(payment_status='PENDING').order_by('sale_date')
+        for sale in pending_sales_qs:
+            bal = sale.total_price
+            ar_total_outstanding += bal
+            
+            days_overdue = (today - sale.sale_date).days
+            if days_overdue <= 0:
+                tier = 'current'
+            elif days_overdue <= 30:
+                tier = '1_30_days'
+            elif days_overdue <= 60:
+                tier = '31_60_days'
+            elif days_overdue <= 90:
+                tier = '61_90_days'
+            else:
+                tier = '90_plus_days'
+                
+            ar_aging_buckets[tier] += bal
+            
+            outstanding_invoices_list.append({
+                'id': f"sale-{sale.id}",
+                'invoice_number': sale.invoice_number or f"SL-{str(sale.id).zfill(4)}",
+                'customer_name': sale.customer_name,
+                'total_amount': float(sale.total_price),
+                'amount_paid': 0.0,
+                'balance_due': float(bal),
+                'due_date': sale.sale_date.isoformat(),
+                'days_overdue': max(days_overdue, 0),
+                'aging_tier': tier.replace('_', ' ').capitalize(),
+                'status': 'PENDING'
+            })
+
+        # 5. GST / Sales Tax Details list
+        tax_details = []
+        for inv in invoices_qs:
+            if inv.tax_amount > 0:
+                tax_details.append({
+                    'type': 'Invoice',
+                    'reference': inv.invoice_number,
+                    'customer_name': inv.customer_name,
+                    'date': inv.invoice_date.isoformat(),
+                    'subtotal': float(inv.subtotal),
+                    'tax_amount': float(inv.tax_amount),
+                    'total_amount': float(inv.total_amount)
+                })
+        for sale in sales_qs:
+            # 18% GST output tax calculation on direct sales
+            tax_amt = (sale.total_price * Decimal('0.18')).quantize(Decimal('0.01'))
+            sub_amt = sale.total_price - tax_amt
+            tax_details.append({
+                'type': 'POS Sale',
+                'reference': sale.invoice_number or f"SL-{str(sale.id).zfill(4)}",
+                'customer_name': sale.customer_name,
+                'date': sale.sale_date.isoformat(),
+                'subtotal': float(sub_amt),
+                'tax_amount': float(tax_amt),
+                'total_amount': float(sale.total_price)
+            })
+
+        # 6. Sales Returns list
+        returns_list = []
+        for ret in returns_qs:
+            returns_list.append({
+                'id': ret.id,
+                'sale_id': ret.sale.id,
+                'sale_invoice': ret.sale.invoice_number or f"SL-{str(ret.sale.id).zfill(4)}",
+                'customer_name': ret.sale.customer_name,
+                'product_name': ret.product.name,
+                'product_code': ret.product.sku,
+                'quantity_returned': ret.quantity_returned,
+                'refund_amount': float(ret.refund_amount),
+                'return_date': ret.return_date.isoformat(),
+                'reason': ret.reason or ''
+            })
+
+        # 7. COGS & Profitability Details
+        profitability_details = []
+        for sale in sales_qs:
+            cogs = sale.quantity_sold * sale.unit_cost_price
+            prof = sale.total_price - cogs
+            margin = (prof / sale.total_price * 100) if sale.total_price > 0 else Decimal('0.00')
+            profitability_details.append({
+                'reference': sale.invoice_number or f"SL-{str(sale.id).zfill(4)}",
+                'product_name': sale.product.name if not sale.line_items else f"{len(sale.line_items)} items",
+                'quantity_sold': sale.quantity_sold,
+                'unit_price': float(sale.unit_price),
+                'unit_cost_price': float(sale.unit_cost_price),
+                'revenue': float(sale.total_price),
+                'cogs': float(cogs),
+                'profit': float(prof),
+                'margin': float(margin)
+            })
+
+        # Get list of unique available months in database
+        available_months = []
+        try:
+            unique_months_qs = Sale.objects.annotate(
+                month_date=TruncMonth('sale_date')
+            ).values('month_date').annotate(
+                count=Count('id')
+            ).order_by('-month_date')
+            
+            seen_months = set()
+            for item in unique_months_qs:
+                m_date = item['month_date']
+                if not m_date:
+                    continue
+                key = m_date.strftime('%Y-%m')
+                if key not in seen_months:
+                    seen_months.add(key)
+                    available_months.append({
+                        'key': key,
+                        'label': m_date.strftime('%B %Y')
+                    })
+        except Exception:
+            pass
+
+        response_data = {
+            'summary': {
+                'total_revenue_billed': float(total_revenue_billed),
+                'gross_sales': float(gross_sales),
+                'gross_invoices': float(gross_invoices),
+                'total_cogs': float(total_cogs),
+                'gross_profit': float(gross_profit),
+                'profit_margin': float(profit_margin),
+                'total_gst_collected': float(total_gst_collected),
+                'sales_tax_output': float(sales_tax_output),
+                'invoices_tax_output': float(invoices_tax_output),
+                'total_refunded': float(total_refunded),
+                'total_returns_count': total_returns_count,
+                'net_revenue': float(net_revenue),
+                'ar_total_outstanding': float(ar_total_outstanding),
+                'date_range': {
+                    'start_date': parsed_start_date.isoformat(),
+                    'end_date': parsed_end_date.isoformat()
+                }
+            },
+            'ar_aging_buckets': {
+                'current': float(ar_aging_buckets['current']),
+                '1_30_days': float(ar_aging_buckets['1_30_days']),
+                '31_60_days': float(ar_aging_buckets['31_60_days']),
+                '61_90_days': float(ar_aging_buckets['61_90_days']),
+                '90_plus_days': float(ar_aging_buckets['90_plus_days'])
+            },
+            'chartData': chart_points,
+            'outstanding_invoices': outstanding_invoices_list,
+            'tax_details': tax_details,
+            'returns_list': returns_list,
+            'profitability_details': profitability_details,
+            'availableMonths': available_months
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to compile accountant sales view metrics: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

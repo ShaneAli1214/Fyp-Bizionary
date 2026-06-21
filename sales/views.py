@@ -339,3 +339,117 @@ def sync_excel_sales(request):
     except Exception as e:
         return Response({'error': f"Failed to sync sales files: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+from django.db.models import Sum
+from .models import SaleReturn
+from .serializers import SaleReturnSerializer
+
+@api_view(['GET', 'POST'])
+def sale_return_list(request):
+    if request.method == 'GET':
+        returns = SaleReturn.objects.select_related('sale', 'product').all()
+        
+        # Server-side search
+        search = request.GET.get('search', '').strip()
+        if search:
+            returns = returns.filter(
+                Q(product__name__icontains=search) |
+                Q(reason__icontains=search) |
+                Q(sale__customer_name__icontains=search)
+            )
+            
+        serializer = SaleReturnSerializer(returns, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    elif request.method == 'POST':
+        sale_id = request.data.get('sale')
+        product_id = request.data.get('product')
+        quantity_returned = request.data.get('quantity_returned')
+        refund_amount = request.data.get('refund_amount')
+        return_date = request.data.get('return_date')
+        reason = request.data.get('reason', '')
+        
+        if not all([sale_id, product_id, quantity_returned, return_date]):
+            return Response({'error': 'sale, product, quantity_returned, and return_date are required fields.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            sale = Sale.objects.get(pk=sale_id)
+            product = Product.objects.get(pk=product_id)
+            
+            qty_ret = int(quantity_returned)
+            if qty_ret <= 0:
+                return Response({'error': 'quantity_returned must be a positive integer.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Verify quantity returned does not exceed quantity sold
+            already_returned = SaleReturn.objects.filter(sale=sale, product=product).aggregate(total=Sum('quantity_returned'))['total'] or 0
+            
+            qty_sold = 0
+            if sale.line_items:
+                for item in sale.line_items:
+                    if int(item.get('product') or 0) == product.id:
+                        qty_sold += int(item.get('quantity_sold') or 0)
+            else:
+                if sale.product_id == product.id:
+                    qty_sold = sale.quantity_sold
+            
+            if qty_ret + already_returned > qty_sold:
+                return Response({'error': f'Cannot return {qty_ret} units. Already returned {already_returned} of {qty_sold} sold.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Default refund amount if not supplied
+            ref_amt = refund_amount
+            if ref_amt is None or str(ref_amt).strip() == '':
+                unit_price = Decimal('0.00')
+                if sale.line_items:
+                    for item in sale.line_items:
+                        if int(item.get('product') or 0) == product.id:
+                            unit_price = Decimal(str(item.get('unit_price') or 0))
+                else:
+                    unit_price = sale.unit_price
+                ref_amt = qty_ret * unit_price
+            else:
+                ref_amt = Decimal(str(ref_amt))
+                
+            with transaction.atomic():
+                sale_return = SaleReturn(
+                    sale=sale,
+                    product=product,
+                    quantity_returned=qty_ret,
+                    refund_amount=ref_amt,
+                    return_date=return_date,
+                    reason=reason
+                )
+                sale_return.save()
+                
+                log_action(request, 'CREATE', f"Sale return #{sale_return.id} recorded for Sale #{sale.id}.", module='Sales')
+                
+                # Deduct returned qty from sold quantity of product in sale record to sync cost calculations
+                # Note: signals automatically restore inventory stock_quantity, but we keep Sale record updated
+                
+                serializer = SaleReturnSerializer(sale_return)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                
+        except (Sale.DoesNotExist, Product.DoesNotExist):
+            return Response({'error': 'Invalid sale or product ID.'}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({'error': 'Invalid quantity or amount format.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': f'Failed to save sale return: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'DELETE'])
+def sale_return_detail(request, pk):
+    sale_return = get_object_or_404(SaleReturn, pk=pk)
+    
+    if request.method == 'GET':
+        serializer = SaleReturnSerializer(sale_return)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    elif request.method == 'DELETE':
+        try:
+            with transaction.atomic():
+                log_action(request, 'DELETE', f"Sale return #{sale_return.id} deleted.", module='Sales')
+                sale_return.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'error': f'Failed to delete sale return: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

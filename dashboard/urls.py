@@ -41,6 +41,9 @@ urlpatterns = [
     # Sales by period (with category breakdown and Recharts-compatible formats)
     path('sales-by-period/', views.sales_by_period, name='sales-by-period'),
 
+    # Accountant-tailored sales view analytics
+    path('accountant-sales/', views.accountant_sales_analytics, name='accountant-sales'),
+
     # Reset system and seed real data
     path('reset-system/', views.reset_system, name='reset-system'),
 ]

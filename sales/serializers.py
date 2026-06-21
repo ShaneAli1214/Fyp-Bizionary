@@ -157,3 +157,16 @@ class SaleSerializer(serializers.ModelSerializer):
             validated_data['total_price'] = new_qty * new_unit_price
 
         return super().update(instance, validated_data)
+
+
+from .models import SaleReturn
+
+class SaleReturnSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_code = serializers.CharField(source='product.sku', read_only=True)
+    sale_invoice_number = serializers.CharField(source='sale.invoice_number', read_only=True)
+    
+    class Meta:
+        model = SaleReturn
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at', 'updated_at')

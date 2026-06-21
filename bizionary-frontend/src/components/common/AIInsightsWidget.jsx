@@ -3,7 +3,7 @@ import { TrendingUp, AlertTriangle, Package, Zap, Eye, EyeOff, RefreshCw, X } fr
 import { insightsApi } from '../../services/insightsApi';
 import useClickOutside from '../../hooks/useClickOutside';
 
-const AIInsightsWidget = () => {
+const AIInsightsWidget = ({ isOpen, onClose }) => {
     const [insights, setInsights] = useState(null);
     const [pricingSuggestions, setPricingSuggestions] = useState([]);
     const [demandAlerts, setDemandAlerts] = useState([]);
@@ -16,7 +16,6 @@ const AIInsightsWidget = () => {
     const [topPeriod, setTopPeriod] = useState('daily');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isVisible, setIsVisible] = useState(false);
     const [lastUpdated, setLastUpdated] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isScrolling, setIsScrolling] = useState(false);
@@ -25,10 +24,10 @@ const AIInsightsWidget = () => {
     const panelRef = useRef(null);
 
     useClickOutside(panelRef, () => {
-        if (isVisible) {
-            setIsVisible(false);
+        if (isOpen) {
+            onClose();
         }
-    }, isVisible);
+    }, isOpen);
 
     // Scroll listener to auto-hide the floating button while scrolling
     useEffect(() => {
@@ -235,24 +234,14 @@ const AIInsightsWidget = () => {
         return () => { cancelled = true; };
     }, [topPeriod]);
 
-    if (!isVisible) {
-        return (
-            <button
-                onClick={() => setIsVisible(true)}
-                className={`fixed z-40 flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-white/20 hover:from-emerald-600 hover:to-teal-700 active:scale-95 transition-all duration-300 ease-in-out print:hidden ${isScrolling ? 'opacity-0 translate-y-10 scale-0 pointer-events-none' : 'opacity-100 translate-y-0 scale-100'} w-9 h-9 bottom-[76px] right-6 sm:w-9 sm:h-9 sm:bottom-[82px] sm:right-8 lg:w-10 lg:h-10 lg:bottom-[86px] lg:right-8`}
-                title="Show AI Insights"
-            >
-                <Zap className="w-4.5 h-4.5 sm:w-5 sm:h-5 fill-emerald-300/40 text-emerald-300 animate-pulse pointer-events-none" />
-            </button>
-        );
-    }
+    if (!isOpen) return null;
 
     return (
         <>
             {/* Backdrop to dismiss on click outside */}
             <div 
                 className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs transition-opacity duration-300 print:hidden"
-                onClick={() => setIsVisible(false)}
+                onClick={onClose}
             />
             
             {/* Slide-out Sidebar Panel */}
@@ -285,7 +274,7 @@ const AIInsightsWidget = () => {
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                         <button
-                            onClick={() => setIsVisible(false)}
+                            onClick={onClose}
                             className="bg-white/10 hover:bg-white/20 rounded-xl p-2 transition-all text-white font-bold"
                             title="Minimize Insights"
                         >

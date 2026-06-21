@@ -146,6 +146,21 @@
   animation: fadeInUp 0.3s ease-out;
 }
 
+@keyframes customFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-fade-in {
+  animation: customFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Apps strip and tabs (SAP-like) */
 .apps-strip { background-color: var(--color-surface); }
 .apps-cards { -webkit-overflow-scrolling: touch; }

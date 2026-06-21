@@ -1,15 +1,70 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import SaleForm from './SaleForm';
 import SalesCharts from './SalesCharts';
 import SaleSlipModal from './SaleSlipModal';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
+import { useAuth } from '../../context/AuthContext';
 
 const MemoizedSalesCharts = React.memo(SalesCharts);
 
+// Magnetic Button helper for fluid pull effects
+const MagneticButton = ({ children, onClick, disabled, className }) => {
+    const buttonRef = useRef(null);
+    const [coords, setCoords] = useState({ x: 0, y: 0 });
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handleMouseMove = (e) => {
+        if (!buttonRef.current || disabled) return;
+        const rect = buttonRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const distanceX = e.clientX - centerX;
+        const distanceY = e.clientY - centerY;
+        
+        // Define active magnetic radius
+        const radius = 80;
+        const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+        
+        if (distance < radius) {
+            setIsHovered(true);
+            const pullFactor = 0.35;
+            const maxPull = 12;
+            const pullX = Math.max(-maxPull, Math.min(maxPull, distanceX * pullFactor));
+            const pullY = Math.max(-maxPull, Math.min(maxPull, distanceY * pullFactor));
+            setCoords({ x: pullX, y: pullY });
+        } else {
+            handleMouseLeave();
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+        setCoords({ x: 0, y: 0 });
+    };
+
+    return (
+        <button
+            ref={buttonRef}
+            disabled={disabled}
+            onClick={onClick}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+                transform: `translate(${coords.x}px, ${coords.y}px) ${isHovered ? 'translateY(-4px)' : 'translateY(0px)'}`,
+                transition: isHovered ? 'transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1)' : 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            }}
+            className={`${className} group relative`}
+        >
+            {children}
+        </button>
+    );
+};
+
 const SalesList = () => {
+
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -268,29 +323,30 @@ const SalesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full sm:w-auto">
+                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-xl border border-gray-100 bg-surface">
                         <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         <select
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="w-full sm:w-44 pl-9 pr-3 py-2 border border-gray-100 rounded-xl text-sm bg-surface text-textMain outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full sm:w-44 pl-9 pr-10 py-2 bg-transparent text-textMain outline-none rounded-xl cursor-pointer appearance-none text-sm font-bold"
                         >
                             <option value="ALL">All Categories</option>
                             {categoryOptions.map((item) => (
                                 <option key={item.value} value={item.value}>{item.label}</option>
                             ))}
                         </select>
+                        <ChevronDown className="h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     </div>
                     <button
                         onClick={openBulkModal}
-                        className="flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-textMain rounded-xl hover:border-primary hover:text-primary text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-gray-200 text-textMain hover:border-primary hover:text-primary rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Upload className="h-4 w-4 mr-2" />
                         Bulk Upload
                     </button>
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20 w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-white rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         New Sale
@@ -461,7 +517,7 @@ const SalesList = () => {
 
             {/* Charts */}
             <div className="bg-surface p-4 rounded-2xl border border-gray-100 shadow-sm">
-                <MemoizedSalesCharts />
+                <MemoizedSalesCharts categoryFilter={categoryFilter} searchTerm={debouncedSearch} />
             </div>
 
             {/* Main Table */}
@@ -551,21 +607,21 @@ const SalesList = () => {
                         <span className="text-xs text-gray-500 font-semibold">
                             Showing page {pagination.current_page} of {pagination.num_pages} ({pagination.count} records)
                         </span>
-                        <div className="flex gap-2">
-                            <button
+                        <div className="flex gap-3">
+                            <MagneticButton
                                 disabled={pagination.current_page <= 1}
                                 onClick={() => setPage(prev => prev - 1)}
-                                className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                                className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
-                                Previous
-                            </button>
-                            <button
+                                <ChevronLeft className="h-4 w-4 transition-transform duration-300 ease-out group-hover:-translate-x-[3px]" />
+                            </MagneticButton>
+                            <MagneticButton
                                 disabled={pagination.current_page >= pagination.num_pages}
                                 onClick={() => setPage(prev => prev + 1)}
-                                className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                                className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
-                                Next
-                            </button>
+                                <ChevronRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-[3px]" />
+                            </MagneticButton>
                         </div>
                     </div>
                 )}

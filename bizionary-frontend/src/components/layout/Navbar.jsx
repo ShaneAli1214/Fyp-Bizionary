@@ -56,7 +56,6 @@ const Navbar = ({ onToggleSidebar }) => {
         { label: 'Products', path: '/products', icon: Package },
         { label: 'Stock', path: '/inventory-managment', icon: Boxes },
         { label: 'Sales', path: '/sales', icon: ShoppingCart },
-        { label: 'AI Insights', path: '/insights', icon: TrendingUp },
         { label: 'Create Order', path: '/ordered-slips', icon: ClipboardList },
         { label: 'AI Chatbot', path: '/chatbot', icon: Bot },
         { label: 'Admin', path: '/user-management', icon: Lock }

@@ -540,21 +540,30 @@ const Dashboard = () => {
 
             {/* Sales performance chart at bottom */}
             {!isInventoryManager && (
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <div className="flex flex-wrap justify-between items-center mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
+                <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 chart-fade-in">
+                    <div className="flex flex-wrap justify-between items-center mb-4 pb-4 border-b border-slate-200/50 dark:border-slate-800/50 gap-3">
                         <div>
                             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Sales Performance Insights</h3>
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Visual representation of real-time sales & category statistics.</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            {selectedPeriod === 'monthly' && selectedData?.availableMonths && selectedData.availableMonths.length > 0 && (
+                            {selectedData?.availableMonths && selectedData.availableMonths.length > 0 && (
                                 <div className="flex items-center gap-1.5">
                                     <span>Month:</span>
                                     <select
-                                        value={selectedMonth}
-                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                        value={selectedPeriod === 'monthly' ? selectedMonth : ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val) {
+                                                setSelectedPeriod('monthly');
+                                                setSelectedMonth(val);
+                                            }
+                                        }}
                                         className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                                     >
+                                        {selectedPeriod !== 'monthly' && (
+                                            <option value="">Select Month...</option>
+                                        )}
                                         {selectedData.availableMonths.map((m) => (
                                             <option key={m.key} value={m.key}>
                                                 {m.label}

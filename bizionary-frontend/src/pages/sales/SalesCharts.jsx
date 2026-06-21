@@ -52,8 +52,40 @@ const SalesTooltip = ({ active, payload, label }) => {
   );
 };
 
-const SalesCharts = ({ className }) => {
-  const [dailyPerformance, setDailyPerformance] = useState([]);
+// Elastic out spring animation easing function
+const springEasing = (t) => {
+  if (t === 0 || t === 1) return t;
+  const p = 0.3;
+  return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+};
+
+const formatPeriodLabel = (periodStr, mode) => {
+  if (!periodStr || periodStr === 'N/A') return periodStr;
+  if (mode === 'daily') {
+    return formatDayLabel(periodStr);
+  }
+  if (mode === 'weekly') {
+    return `Wk of ${formatDayLabel(periodStr)}`;
+  }
+  if (mode === 'monthly') {
+    const parts = periodStr.split('-');
+    if (parts.length === 2) {
+      const year = parts[0];
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNames[monthIndex]} ${year}`;
+      }
+    }
+  }
+  return periodStr;
+};
+
+const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
+  const [chartData, setChartData] = useState([]);
+  const [availableMonths, setAvailableMonths] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('daily');
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,18 +94,33 @@ const SalesCharts = ({ className }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get('dashboard/sales-performance/', {
-          params: {
-            period: 'daily',
-            timeframe: '30days',
-          },
-        });
-        if (!cancelled) {
-          setDailyPerformance(Array.isArray(res.data) ? res.data : []);
+        const params = {
+          period: selectedPeriod,
+          category: categoryFilter,
+          search: searchTerm,
+        };
+
+        if (selectedPeriod !== 'monthly' && selectedMonth) {
+          params.month = selectedMonth;
+        }
+
+        const res = await api.get('dashboard/sales-performance/', { params });
+        
+        if (!cancelled && res.data) {
+          const fetchedChartData = Array.isArray(res.data.chartData) ? res.data.chartData : [];
+          const fetchedMonths = Array.isArray(res.data.availableMonths) ? res.data.availableMonths : [];
+          
+          setChartData(fetchedChartData);
+          setAvailableMonths(fetchedMonths);
+
+          // If no month is selected, default to the most recent month in availableMonths
+          if (fetchedMonths.length > 0 && !selectedMonth) {
+            setSelectedMonth(fetchedMonths[0].key);
+          }
         }
       } catch (error) {
         if (!cancelled) {
-          setDailyPerformance([]);
+          setChartData([]);
         }
       } finally {
         if (!cancelled) {
@@ -87,68 +134,151 @@ const SalesCharts = ({ className }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [categoryFilter, searchTerm, selectedPeriod, selectedMonth]);
 
-  if (loading) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">Loading charts...</div>;
-  if (!dailyPerformance || dailyPerformance.length === 0) return <div className="h-64 flex items-center justify-center text-sm text-textMuted">No last 30 days sales data</div>;
+  const amplitudeFactor = React.useMemo(() => {
+    if (chartData.length === 0) return 0.2;
+    const maxVal = Math.max(...chartData.map(d => Number(d.revenue || 0)));
+    const factor = Math.min(1, maxVal / 100000);
+    return 0.3 + factor * 0.6; // beautiful normalized breathing amplitude range [0.3, 0.9]
+  }, [chartData]);
 
-  const compData = dailyPerformance.map((row, idx) => {
+  const compData = chartData.map((row, idx) => {
     return {
       period: row.period,
-      label: formatDayLabel(row.period),
+      label: formatPeriodLabel(row.period, selectedPeriod),
       revenue: Number(row.revenue || 0),
-      previousRevenue: Number(dailyPerformance[idx - 1]?.revenue || 0),
+      previousRevenue: Number(chartData[idx - 1]?.revenue || 0),
     };
   });
 
   return (
     <div className={className}>
-      <div className="mb-4 text-sm font-bold text-textMain tracking-tight">Sales Performance — Last 30 Days</div>
-      <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart data={compData} margin={{ top: 10, right: 12, left: -10, bottom: 10 }}>
-          <defs>
-            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis
-            dataKey="label"
-            interval={4}
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
-            tickMargin={10}
-            height={30}
-          />
-          <YAxis 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
-            tickFormatter={formatCompactPKR} 
-          />
-          <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#f1f5f9', strokeWidth: 1 }} />
-          <Area 
-            type="monotone" 
-            dataKey="revenue" 
-            name="Revenue" 
-            stroke="#4f46e5" 
-            strokeWidth={2.5} 
-            fill="url(#colorRevenue)" 
-            activeDot={<CustomActiveDot />} 
-          />
-          <Line 
-            type="monotone" 
-            dataKey="previousRevenue" 
-            name="Previous Day Revenue" 
-            stroke="#cbd5e1" 
-            strokeWidth={1.5} 
-            strokeDasharray="4 4" 
-            dot={false} 
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+      {/* Premium Chart Filter Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-gray-100 gap-4">
+        <div>
+          <div className="text-sm font-bold text-textMain tracking-tight">Sales Performance</div>
+          <p className="text-xs text-textMuted mt-0.5">Track revenue and growth dynamics over custom periods.</p>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Month Selector dropdown */}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-textMuted">
+            <span>Month:</span>
+            <select
+              value={selectedMonth}
+              disabled={selectedPeriod === 'monthly'}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs text-textMain"
+            >
+              {availableMonths.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
+                </option>
+              ))}
+              {availableMonths.length === 0 && (
+                <option value="">No months available</option>
+              )}
+            </select>
+          </div>
+
+          {/* Period Toggle Tabs */}
+          <div className="flex bg-gray-100 p-1 rounded-xl">
+            {['daily', 'weekly', 'monthly'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPeriod(p)}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all capitalize ${
+                  selectedPeriod === p
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-textMuted hover:text-textMain'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="h-64 flex items-center justify-center text-sm text-textMuted">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2" />
+          Loading chart data...
+        </div>
+      ) : chartData.length === 0 ? (
+        <div className="h-64 flex items-center justify-center text-sm text-textMuted">
+          No sales data found for the selected filter combination.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={350}>
+          <ComposedChart data={compData} margin={{ top: 10, right: 12, left: -10, bottom: 10 }}>
+            <defs>
+              <style>{`
+                @keyframes chartBreathe {
+                  0%, 100% { opacity: 0.7; }
+                  50% { opacity: 1.0; }
+                }
+                .chart-area-breathe {
+                  animation: chartBreathe 6s ease-in-out infinite;
+                }
+              `}</style>
+              <linearGradient id="strokeRevenueGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#4F46E5" />
+                <stop offset="50%" stopColor="#8b5cf6" />
+                <stop offset="100%" stopColor="#06B6D4" />
+              </linearGradient>
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.45 * amplitudeFactor} />
+                <stop offset="50%" stopColor="#8b5cf6" stopOpacity={0.2 * amplitudeFactor} />
+                <stop offset="100%" stopColor="#06B6D4" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis
+              dataKey="label"
+              interval={selectedPeriod === 'daily' ? 4 : 0}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+              tickMargin={10}
+              height={30}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
+              tickFormatter={formatCompactPKR} 
+            />
+            <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#f1f5f9', strokeWidth: 1 }} />
+            <Area 
+              type="monotone" 
+              dataKey="revenue" 
+              name="Revenue" 
+              stroke="url(#strokeRevenueGradient)" 
+              strokeWidth={3} 
+              fill="url(#colorRevenue)" 
+              activeDot={<CustomActiveDot />} 
+              isAnimationActive={true}
+              animationDuration={800}
+              animationEasing={springEasing}
+              className="chart-area-breathe"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="previousRevenue" 
+              name={selectedPeriod === 'daily' ? "Previous Day Revenue" : selectedPeriod === 'weekly' ? "Previous Week Revenue" : "Previous Month Revenue"} 
+              stroke="#cbd5e1" 
+              strokeWidth={1.5} 
+              strokeDasharray="4 4" 
+              dot={false} 
+              isAnimationActive={true}
+              animationDuration={800}
+              animationEasing={springEasing}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
