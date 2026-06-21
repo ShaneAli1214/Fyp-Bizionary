@@ -123,22 +123,7 @@ def populate_purchases_and_ordered_slips():
             
         due_date = datetime.combine(date_obj + timedelta(days=2), datetime.min.time())
         
-        # Create OrderedSlip
-        OrderedSlip.objects.create(
-            product=product,
-            company_name=str(supplier_name).strip(),
-            company_email='',
-            quantity_ordered=qty_ordered,
-            quantity_received=qty_received,
-            unit_cost=unit_cost,
-            total_cost=total_cost,
-            status=os_status,
-            email_status=OrderedSlip.EMAIL_SENT if os_status == OrderedSlip.STATUS_COMPLETED else OrderedSlip.EMAIL_PENDING,
-            due_date=due_date,
-            received_at=received_at,
-            notes=f"Imported from Excel: {po_num}"
-        )
-        os_count += 1
+        # OrderedSlip creation skipped as requested
         
         # If status is Received, also create a Purchase record
         if status_str == 'Received':
