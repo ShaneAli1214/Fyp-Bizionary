@@ -4,10 +4,16 @@ import { accountsApi } from '../../services/accountsApi';
 import { formatPKR } from '../../utils/currency';
 import RevenuesTab from './components/RevenuesTab';
 import ExpensesTab from './components/ExpensesTab';
+import SalaryPaymentsTab from './components/SalaryPaymentsTab';
+import UtilityBillsTab from './components/UtilityBillsTab';
+import OperatingCostsTab from './components/OperatingCostsTab';
 import InvoicesTab from './components/InvoicesTab';
 import COATreeTab from './components/COATreeTab';
 import FinancialReportsTab from './components/FinancialReportsTab';
 import RecordModal from './components/RecordModal';
+import SalaryPaymentModal from './components/SalaryPaymentModal';
+import UtilityBillModal from './components/UtilityBillModal';
+import OperatingCostModal from './components/OperatingCostModal';
 
 const parseLocalDate = (val) => {
     if (!val) return null;
@@ -124,6 +130,9 @@ const AccountsManager = () => {
     const [sliderDuration, setSliderDuration] = useState(30);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
+    const [isUtilityModalOpen, setIsUtilityModalOpen] = useState(false);
+    const [isOperatingCostModalOpen, setIsOperatingCostModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [toastMessage, setToastMessage] = useState(null);
@@ -268,12 +277,28 @@ const AccountsManager = () => {
 
     const handleAddRecord = () => {
         setSelectedRecord(null);
-        setIsModalOpen(true);
+        if (activeTab === 'salaries') {
+            setIsSalaryModalOpen(true);
+        } else if (activeTab === 'utilities') {
+            setIsUtilityModalOpen(true);
+        } else if (activeTab === 'operating-costs') {
+            setIsOperatingCostModalOpen(true);
+        } else {
+            setIsModalOpen(true);
+        }
     };
 
     const handleEditRecord = (record) => {
         setSelectedRecord(record);
-        setIsModalOpen(true);
+        if (activeTab === 'salaries') {
+            setIsSalaryModalOpen(true);
+        } else if (activeTab === 'utilities') {
+            setIsUtilityModalOpen(true);
+        } else if (activeTab === 'operating-costs') {
+            setIsOperatingCostModalOpen(true);
+        } else {
+            setIsModalOpen(true);
+        }
     };
 
     const handleReconcile = async () => {
@@ -567,6 +592,27 @@ const AccountsManager = () => {
                             {activeTab === 'expenses' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
+                            onClick={() => setActiveTab('salaries')}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'salaries' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Salaries
+                            {activeTab === 'salaries' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('utilities')}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'utilities' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Utility Bills
+                            {activeTab === 'utilities' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('operating-costs')}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'operating-costs' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Operating Costs
+                            {activeTab === 'operating-costs' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
+                        </button>
+                        <button
                             onClick={() => setActiveTab('invoices')}
                             className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'invoices' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
                         >
@@ -634,6 +680,33 @@ const AccountsManager = () => {
                                     />
                                 )
                             )}
+                            {activeTab === 'salaries' && (
+                                <SalaryPaymentsTab 
+                                    onEdit={handleEditRecord} 
+                                    triggerRefresh={triggerRefresh}
+                                    startDate={toISODateString(dateRange.startDate)}
+                                    endDate={toISODateString(dateRange.endDate)}
+                                    refreshTrigger={refreshTrigger}
+                                />
+                            )}
+                            {activeTab === 'utilities' && (
+                                <UtilityBillsTab 
+                                    onEdit={handleEditRecord} 
+                                    triggerRefresh={triggerRefresh}
+                                    startDate={toISODateString(dateRange.startDate)}
+                                    endDate={toISODateString(dateRange.endDate)}
+                                    refreshTrigger={refreshTrigger}
+                                />
+                            )}
+                            {activeTab === 'operating-costs' && (
+                                <OperatingCostsTab 
+                                    onEdit={handleEditRecord} 
+                                    triggerRefresh={triggerRefresh}
+                                    startDate={toISODateString(dateRange.startDate)}
+                                    endDate={toISODateString(dateRange.endDate)}
+                                    refreshTrigger={refreshTrigger}
+                                />
+                            )}
                             {activeTab === 'invoices' && (
                                 filteredInvoices.length === 0 ? (
                                     <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
@@ -670,6 +743,33 @@ const AccountsManager = () => {
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 recordType={activeTab === 'invoices' ? 'invoices' : activeTab} 
+                record={selectedRecord}
+                triggerRefresh={triggerRefresh}
+            />
+            <SalaryPaymentModal
+                isOpen={isSalaryModalOpen}
+                onClose={() => {
+                    setIsSalaryModalOpen(false);
+                    setSelectedRecord(null);
+                }}
+                record={selectedRecord}
+                triggerRefresh={triggerRefresh}
+            />
+            <UtilityBillModal
+                isOpen={isUtilityModalOpen}
+                onClose={() => {
+                    setIsUtilityModalOpen(false);
+                    setSelectedRecord(null);
+                }}
+                record={selectedRecord}
+                triggerRefresh={triggerRefresh}
+            />
+            <OperatingCostModal
+                isOpen={isOperatingCostModalOpen}
+                onClose={() => {
+                    setIsOperatingCostModalOpen(false);
+                    setSelectedRecord(null);
+                }}
                 record={selectedRecord}
                 triggerRefresh={triggerRefresh}
             />
