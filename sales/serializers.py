@@ -10,8 +10,40 @@ class SaleSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_code = serializers.CharField(source='product.sku', read_only=True)
     product_category = serializers.CharField(source='product.category', read_only=True)
-    remaining_stock = serializers.IntegerField(source='product.stock_quantity', read_only=True)
+    remaining_stock = serializers.SerializerMethodField()
     line_items = serializers.JSONField(required=False)
+
+    def get_remaining_stock(self, obj):
+        from products.models import InventoryTransaction
+        from django.db.models import Q
+
+        if not obj.product_id:
+            return None
+
+        # Find the inventory transaction for this sale
+        sale_txn = InventoryTransaction.objects.filter(
+            product_id=obj.product_id,
+            reference_type='sale',
+            reference_id=obj.id
+        ).first()
+
+        if not sale_txn:
+            return obj.product.stock_quantity
+
+        # Sum up all transactions for this product that occurred on or before this transaction
+        prev_txns = InventoryTransaction.objects.filter(
+            product_id=obj.product_id
+        ).filter(
+            Q(date__lt=sale_txn.date) | Q(date=sale_txn.date, id__lte=sale_txn.id)
+        )
+
+        balance = 0
+        for t in prev_txns:
+            if t.txn_type == 'IN':
+                balance += t.quantity
+            else:
+                balance -= t.quantity
+        return balance
 
     class Meta:
         model = Sale

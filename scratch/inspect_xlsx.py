@@ -1,15 +1,11 @@
-import openpyxl
+import os
 
-wb = openpyxl.load_workbook("AlNoor_Financial_Summary_April_2026.xlsx")
-print("Sheets:", wb.sheetnames)
-
-for sheetname in wb.sheetnames:
-    ws = wb[sheetname]
-    found = False
-    for r in range(1, ws.max_row + 1):
-        for c in range(1, ws.max_column + 1):
-            val = ws.cell(row=r, column=c).value
-            if val and any(word in str(val).lower() for word in ["hardware", "automobile"]):
-                print(f"Found in sheet '{sheetname}', row {r}, col {c} ({openpyxl.utils.get_column_letter(c)}{r}): {val}")
-                found = True
-wb.close()
+print("--- Listing all .xlsx files recursively ---")
+for root, dirs, files in os.walk("."):
+    # Skip .venv and .git
+    if ".venv" in root or ".git" in root or "node_modules" in root:
+        continue
+    for f in files:
+        if f.endswith(".xlsx"):
+            path = os.path.join(root, f)
+            print(f"Path: {path:60} | Size: {os.path.getsize(path)} bytes")
