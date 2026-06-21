@@ -8,6 +8,8 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from datetime import date
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 class Account(models.Model):
@@ -256,6 +258,10 @@ class Expense(models.Model):
         blank=True,
         related_name='expenses'
     )
+    content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    source_object = GenericForeignKey('content_type', 'object_id')
+    metadata = models.JSONField(null=True, blank=True, help_text="Metadata JSON for specific expense details")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -601,3 +607,179 @@ class InvoicePayment(models.Model):
         elif total_paid > Decimal('0.00'):
             invoice.status = 'PENDING'
         invoice.save(update_fields=['balance_due', 'status', 'updated_at'])
+
+
+class SalaryPayment(models.Model):
+    """
+    Model to track employee salary payments.
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+    ]
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+        ('CREDIT_CARD', 'Credit Card'),
+    ]
+    
+    employee = models.ForeignKey(
+        'user_management.ERPUser',
+        on_delete=models.PROTECT,
+        related_name='salary_payments',
+        help_text="Employee receiving the salary"
+    )
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Base/Net salary amount paid"
+    )
+    pay_period_start = models.DateField(help_text="Start date of pay period")
+    pay_period_end = models.DateField(help_text="End date of pay period")
+    payment_date = models.DateField(help_text="Date when salary was paid", null=True, blank=True)
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        default='BANK_TRANSFER'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'salary_payments'
+        ordering = ['-pay_period_end', '-created_at']
+
+    def __str__(self):
+        return f"Salary: {self.employee.get_full_name() or self.employee.username} - Rs.{self.amount} ({self.pay_period_end})"
+
+
+class UtilityBill(models.Model):
+    """
+    Model to track utility bills (electricity, water, internet, etc.).
+    """
+    UTILITY_TYPE_CHOICES = [
+        ('ELECTRICITY', 'Electricity'),
+        ('WATER', 'Water'),
+        ('GAS', 'Gas'),
+        ('INTERNET', 'Internet/Phone'),
+        ('OTHER', 'Other Utilities'),
+    ]
+    STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PAID', 'Paid'),
+        ('OVERDUE', 'Overdue'),
+    ]
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+        ('CREDIT_CARD', 'Credit Card'),
+    ]
+
+    utility_type = models.CharField(
+        max_length=50,
+        choices=UTILITY_TYPE_CHOICES,
+        default='ELECTRICITY'
+    )
+    bill_number = models.CharField(max_length=100, blank=True, null=True, help_text="Bill reference/invoice number")
+    billing_period_start = models.DateField(help_text="Billing period start date", null=True, blank=True)
+    billing_period_end = models.DateField(help_text="Billing period end date", null=True, blank=True)
+    due_date = models.DateField(help_text="Due date for payment")
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Bill amount (inclusive of taxes)"
+    )
+    tax_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Tax component in the bill"
+    )
+    payment_date = models.DateField(help_text="Date when bill was paid", null=True, blank=True)
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        default='CASH'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='UNPAID'
+    )
+    notes = models.TextField(blank=True, null=True)
+    receipt = models.CharField(max_length=500, blank=True, null=True, help_text="Link or path to bill receipt/document")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'utility_bills'
+        ordering = ['-due_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.get_utility_type_display()} Bill - Rs.{self.amount} (Due: {self.due_date})"
+
+
+class RecurringCost(models.Model):
+    """
+    Model to track other recurring operational costs (rent, subscriptions, etc.).
+    """
+    COST_TYPE_CHOICES = [
+        ('RENT', 'Rent'),
+        ('SUBSCRIPTION', 'Software Subscription'),
+        ('MARKETING_CAMPAIGN', 'Marketing/Ads Campaign'),
+        ('MAINTENANCE', 'Office Maintenance'),
+        ('INSURANCE', 'Insurance'),
+        ('OTHER', 'Other Operating Cost'),
+    ]
+    STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PAID', 'Paid'),
+    ]
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+        ('CREDIT_CARD', 'Credit Card'),
+    ]
+
+    cost_type = models.CharField(
+        max_length=50,
+        choices=COST_TYPE_CHOICES,
+        default='RENT'
+    )
+    name = models.CharField(max_length=255, help_text="Name of the cost (e.g., Office Rent, Adobe Creative Suite)")
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Cost amount"
+    )
+    due_date = models.DateField(help_text="Due date for payment")
+    payment_date = models.DateField(help_text="Date when cost was paid", null=True, blank=True)
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        default='BANK_TRANSFER'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='UNPAID'
+    )
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'recurring_operational_costs'
+        ordering = ['-due_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_cost_type_display()}) - Rs.{self.amount} (Due: {self.due_date})"

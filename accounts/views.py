@@ -11,8 +11,11 @@ from django.core.paginator import Paginator
 from datetime import date
 from functools import wraps
 
-from .models import Revenue, Expense, Invoice
-from .serializers import RevenueSerializer, ExpenseSerializer, InvoiceSerializer
+from .models import Revenue, Expense, Invoice, SalaryPayment, UtilityBill, RecurringCost
+from .serializers import (
+    RevenueSerializer, ExpenseSerializer, InvoiceSerializer,
+    SalaryPaymentSerializer, UtilityBillSerializer, RecurringCostSerializer
+)
 from .services import AccountsService
 from user_management.views import log_action
 
@@ -768,3 +771,219 @@ def invoice_payment_list(request, invoice_pk):
         }, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ==================== SALARY PAYMENT ENDPOINTS ====================
+
+@api_view(['GET', 'POST'])
+@check_accounts_permission
+def salary_payment_list_create(request):
+    """
+    GET /api/accounts/salaries/
+    POST /api/accounts/salaries/
+    """
+    if request.method == 'GET':
+        queryset = SalaryPayment.objects.all()
+        serializer = SalaryPaymentSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'POST':
+        serializer = SalaryPaymentSerializer(data=request.data)
+        if serializer.is_valid():
+            salary = serializer.save()
+            log_action(request, 'CREATE', f"Salary payment record for employee ID {salary.employee_id} (PKR {salary.amount}) created.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
+def salary_payment_detail(request, pk):
+    """
+    GET /api/accounts/salaries/<id>/
+    PUT /api/accounts/salaries/<id>/
+    DELETE /api/accounts/salaries/<id>/
+    """
+    salary = get_object_or_404(SalaryPayment, pk=pk)
+    
+    if request.method == 'GET':
+        serializer = SalaryPaymentSerializer(salary)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'PUT':
+        serializer = SalaryPaymentSerializer(salary, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            log_action(request, 'UPDATE', f"Salary payment record for employee ID {salary.employee_id} (PKR {salary.amount}) updated.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    elif request.method == 'DELETE':
+        log_action(request, 'DELETE', f"Salary payment record for employee ID {salary.employee_id} (PKR {salary.amount}) deleted.", module='Accounts')
+        salary.delete()
+        return Response({
+            'success': True,
+            'message': 'Salary payment deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+
+# ==================== UTILITY BILL ENDPOINTS ====================
+
+@api_view(['GET', 'POST'])
+@check_accounts_permission
+def utility_bill_list_create(request):
+    """
+    GET /api/accounts/utilities/
+    POST /api/accounts/utilities/
+    """
+    if request.method == 'GET':
+        queryset = UtilityBill.objects.all()
+        serializer = UtilityBillSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'POST':
+        serializer = UtilityBillSerializer(data=request.data)
+        if serializer.is_valid():
+            bill = serializer.save()
+            log_action(request, 'CREATE', f"Utility bill record of type {bill.utility_type} (PKR {bill.amount}) created.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
+def utility_bill_detail(request, pk):
+    """
+    GET /api/accounts/utilities/<id>/
+    PUT /api/accounts/utilities/<id>/
+    DELETE /api/accounts/utilities/<id>/
+    """
+    bill = get_object_or_404(UtilityBill, pk=pk)
+    
+    if request.method == 'GET':
+        serializer = UtilityBillSerializer(bill)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'PUT':
+        serializer = UtilityBillSerializer(bill, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            log_action(request, 'UPDATE', f"Utility bill record of type {bill.utility_type} (PKR {bill.amount}) updated.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    elif request.method == 'DELETE':
+        log_action(request, 'DELETE', f"Utility bill record of type {bill.utility_type} (PKR {bill.amount}) deleted.", module='Accounts')
+        bill.delete()
+        return Response({
+            'success': True,
+            'message': 'Utility bill deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+
+# ==================== RECURRING COST ENDPOINTS ====================
+
+@api_view(['GET', 'POST'])
+@check_accounts_permission
+def recurring_cost_list_create(request):
+    """
+    GET /api/accounts/recurring-costs/
+    POST /api/accounts/recurring-costs/
+    """
+    if request.method == 'GET':
+        queryset = RecurringCost.objects.all()
+        serializer = RecurringCostSerializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'POST':
+        serializer = RecurringCostSerializer(data=request.data)
+        if serializer.is_valid():
+            cost = serializer.save()
+            log_action(request, 'CREATE', f"Recurring cost record '{cost.name}' (PKR {cost.amount}) created.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@check_accounts_permission
+def recurring_cost_detail(request, pk):
+    """
+    GET /api/accounts/recurring-costs/<id>/
+    PUT /api/accounts/recurring-costs/<id>/
+    DELETE /api/accounts/recurring-costs/<id>/
+    """
+    cost = get_object_or_404(RecurringCost, pk=pk)
+    
+    if request.method == 'GET':
+        serializer = RecurringCostSerializer(cost)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    elif request.method == 'PUT':
+        serializer = RecurringCostSerializer(cost, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            log_action(request, 'UPDATE', f"Recurring cost record '{cost.name}' (PKR {cost.amount}) updated.", module='Accounts')
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    elif request.method == 'DELETE':
+        log_action(request, 'DELETE', f"Recurring cost record '{cost.name}' (PKR {cost.amount}) deleted.", module='Accounts')
+        cost.delete()
+        return Response({
+            'success': True,
+            'message': 'Recurring cost deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)

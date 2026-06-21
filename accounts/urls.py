@@ -52,6 +52,18 @@ urlpatterns = [
 
     # ==================== Invoice Payments ====================
     path('invoices/<int:invoice_pk>/payments/', views.invoice_payment_list, name='invoice-payments'),
+
+    # ==================== Salary Payments ====================
+    path('salaries/', views.salary_payment_list_create, name='salary-payment-list-create'),
+    path('salaries/<int:pk>/', views.salary_payment_detail, name='salary-payment-detail'),
+
+    # ==================== Utility Bills ====================
+    path('utilities/', views.utility_bill_list_create, name='utility-bill-list-create'),
+    path('utilities/<int:pk>/', views.utility_bill_detail, name='utility-bill-detail'),
+
+    # ==================== Recurring Costs ====================
+    path('recurring-costs/', views.recurring_cost_list_create, name='recurring-cost-list-create'),
+    path('recurring-costs/<int:pk>/', views.recurring_cost_detail, name='recurring-cost-detail'),
 ]
 
 """
