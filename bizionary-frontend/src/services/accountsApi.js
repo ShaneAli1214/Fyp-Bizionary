@@ -35,6 +35,30 @@ export const accountsApi = {
     deleteExpense: (id) => api.delete(`accounts/expenses/${id}/`),
     voidExpense: (id, reason) => api.post(`accounts/expenses/${id}/void/`, { reason }),
 
+    // Salaries
+    getSalaries: (dateRange, startDate, endDate, page = 1) => 
+        api.get(buildUrl('accounts/salaries/', dateRange, startDate, endDate, [`page=${page}`])),
+    getSalary: (id) => api.get(`accounts/salaries/${id}/`),
+    createSalary: (data) => api.post('accounts/salaries/', data),
+    updateSalary: (id, data) => api.put(`accounts/salaries/${id}/`, data),
+    deleteSalary: (id) => api.delete(`accounts/salaries/${id}/`),
+
+    // Utilities
+    getUtilities: (dateRange, startDate, endDate, page = 1) => 
+        api.get(buildUrl('accounts/utilities/', dateRange, startDate, endDate, [`page=${page}`])),
+    getUtility: (id) => api.get(`accounts/utilities/${id}/`),
+    createUtility: (data) => api.post('accounts/utilities/', data),
+    updateUtility: (id, data) => api.put(`accounts/utilities/${id}/`, data),
+    deleteUtility: (id) => api.delete(`accounts/utilities/${id}/`),
+
+    // Recurring Costs
+    getRecurringCosts: (dateRange, startDate, endDate, page = 1) => 
+        api.get(buildUrl('accounts/recurring-costs/', dateRange, startDate, endDate, [`page=${page}`])),
+    getRecurringCost: (id) => api.get(`accounts/recurring-costs/${id}/`),
+    createRecurringCost: (data) => api.post('accounts/recurring-costs/', data),
+    updateRecurringCost: (id, data) => api.put(`accounts/recurring-costs/${id}/`, data),
+    deleteRecurringCost: (id) => api.delete(`accounts/recurring-costs/${id}/`),
+
     // Invoices
     getInvoices: (dateRange, page = 1, pageSize = 10, startDate, endDate) => 
         api.get(buildUrl('accounts/invoices/', dateRange, startDate, endDate, [`page=${page}`, `page_size=${pageSize}`])),
