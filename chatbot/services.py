@@ -59,6 +59,53 @@ REAL-TIME DATABASE OVERVIEW (To see details, use the available tools):
         return f"\nReal-time database business context currently unavailable: {str(e)}\n"
 
 
+def compress_history(history):
+    if not history or len(history) <= 10:
+        return history
+        
+    keep_count = 4
+    compress_messages = history[:-keep_count]
+    keep_messages = history[-keep_count:]
+    
+    try:
+        from groq import Groq
+        api_key = _get_groq_api_key()
+        if not api_key:
+            return history
+            
+        client = Groq(api_key=api_key)
+        model = _get_groq_model()
+        
+        summary_prompt = (
+            "Summarize the following conversation history between the User and the AI Assistant in a concise, "
+            "one-paragraph summary (maximum 120 words). Focus only on key actions, requested details, and resolved facts:\n\n"
+        )
+        for msg in compress_messages:
+            role_name = "User" if msg.get('role') == 'user' else "Assistant"
+            summary_prompt += f"{role_name}: {msg.get('content', '')}\n"
+            
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": summary_prompt}],
+            temperature=0.3,
+            max_tokens=200
+        )
+        summary_text = response.choices[0].message.content.strip()
+        print(f"[Chatbot Memory Compression] Compressed {len(compress_messages)} messages into: {summary_text}")
+        
+        compressed = [
+            {
+                "role": "system",
+                "content": f"Summary of earlier conversation: {summary_text}"
+            }
+        ]
+        compressed.extend(keep_messages)
+        return compressed
+    except Exception as e:
+        print(f"[Chatbot Memory Compression] Error compressing history: {e}")
+        return history[-6:]
+
+
 def build_chat_messages(user_message, history=None):
     dynamic_context = _get_dynamic_business_context(user_message)
     
@@ -196,6 +243,15 @@ IMPORTANT:
                 '  `[AI Insights](route:/insights)`\n'
                 '  `[Smart Reorder](route:/smart-reorder)`\n'
                 '- NEVER output generic hyperlinks. Always use the `route:` prefix inside standard markdown links for ERP pages.\n\n'
+                'ANSWER RULES FOR REPORTS AND EXPORTS:\n'
+                '- If the user asks for a report download or export (like sales, expenses, or inventory report), ALWAYS call `generate_report` with the correct report_type.\n'
+                '- In your response, present the download URL returned by the tool as a standard link button in markdown: `[Download <type> Report](url)` where url is the download_url returned by the tool.\n\n'
+                'CONVERSATIONAL SALE RECORDING RULES:\n'
+                '- When the user asks to record, create, register, add, or make a sale, you MUST NOT execute the `create_sale` tool immediately.\n'
+                '- Instead, first search for the product details using `search_products` to confirm its availability, unit price, and stock.\n'
+                '- Present a drafted sale summary to the user including Product Name, Quantity, Unit Price, Total Price (applying any discount), Payment Method, and Customer Name.\n'
+                '- Ask the user: "Would you like to confirm recording this sale? Please reply with \'Confirm\' to proceed."\n'
+                '- ONLY execute the `create_sale` tool in the subsequent turn if the user explicitly replies with "Confirm", "Yes", "Go ahead", or similar confirmation. If they cancel or do not confirm, do not create the sale.\n\n'
                 'IMPORTANT ON TOOL USE:\n'
                 '- You have tools available to query the database. Always call the appropriate tool when asked about products, stock levels, invoices, or payables.\n'
                 '- Do NOT call `search_products` with comparison queries (like "stock less than 15" or "unpaid invoices"). Use the dedicated tools (`get_stock_alerts` or `get_unpaid_invoices`) instead.\n'
@@ -205,9 +261,12 @@ IMPORTANT:
         }
     ]
 
-    if history:
-        # Limit history to the last 6 messages to save Groq daily tokens
-        messages.extend(history[-6:])
+    processed_history = history
+    if history and len(history) > 10:
+        processed_history = compress_history(history)
+
+    if processed_history:
+        messages.extend(processed_history)
 
     messages.append({'role': 'user', 'content': user_message})
     return messages
@@ -416,7 +475,85 @@ CHATBOT_TOOLS = [
                 "required": ["metric"]
             }
         }
-    }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_sale",
+            "description": "Create a new sales transaction in the database. Use this when the user requests to record, register, create, add, or make a sale.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product_name_or_sku": {
+                        "type": "string",
+                        "description": "The name or SKU of the product to sell (e.g. 'Pepsi 1.5L')."
+                    },
+                    "customer_name": {
+                        "type": "string",
+                        "description": "The name of the customer buying the product. Default is 'Walk-in Customer'."
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "description": "The number of units sold. Must be at least 1."
+                    },
+                    "payment_status": {
+                        "type": "string",
+                        "enum": ["PAID", "PENDING", "FAILED"],
+                        "description": "Status of the payment. Default is 'PAID'."
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "enum": ["CASH", "CARD", "EASYPAY_JAZZCASH", "BANK_TRANSFER", "OTHER"],
+                        "description": "Method of payment. Default is 'CASH'."
+                    },
+                    "discount": {
+                        "type": "number",
+                        "description": "Discount amount applied to the sale in Rs. Default is 0.00."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Optional notes or comments about the sale."
+                    }
+                },
+                "required": ["product_name_or_sku", "quantity"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_report",
+            "description": "Generate a downloadable CSV report link for sales, expenses, or inventory stock.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "report_type": {
+                        "type": "string",
+                        "enum": ["sales", "expenses", "inventory"],
+                        "description": "The type of report to generate (sales, expenses, or inventory)."
+                    }
+                },
+                "required": ["report_type"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_sales_by_category",
+            "description": "Get sales analytics broken down by product category. Returns total quantity sold, total revenue, and number of transactions for each category. Optionally filter by a specific category name. Use this when the user asks about sales per category, total units sold in a specific category (e.g. 'Electronics', 'Books'), or revenue by category.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "Optional. Filter results to a specific category name (e.g. 'Electronics & Appliances', 'Books'). Leave empty to get all categories."
+                    }
+                },
+                "required": []
+            }
+        }
+    },
 ]
 
 
@@ -430,6 +567,22 @@ def execute_tool(name, arguments):
             products = Product.objects.filter(
                 Q(name__icontains=query) | Q(sku__icontains=query) | Q(category__icontains=query)
             ).order_by('name')[:30]
+            if not products.exists():
+                # Try fuzzy matching using difflib
+                import difflib
+                all_products = Product.objects.all()
+                name_map = {p.name: p for p in all_products}
+                sku_map = {p.sku: p for p in all_products}
+                choices = list(name_map.keys()) + list(sku_map.keys())
+                close_matches = difflib.get_close_matches(query.strip(), choices, n=5, cutoff=0.4)
+                if close_matches:
+                    matched_ids = []
+                    for m in close_matches:
+                        p_obj = name_map.get(m) or sku_map.get(m)
+                        if p_obj and p_obj.id not in matched_ids:
+                            matched_ids.append(p_obj.id)
+                    products = Product.objects.filter(id__in=matched_ids)
+            
             if not products.exists():
                 return "No products found matching query."
             return json.dumps([
@@ -743,6 +896,210 @@ def execute_tool(name, arguments):
             else:
                 return f"Error: Unsupported metric '{metric}' for charts."
             
+        elif name == "create_sale":
+            from decimal import Decimal
+            product_query = arguments.get("product_name_or_sku", "")
+            qty = arguments.get("quantity", 1)
+            customer = arguments.get("customer_name", "Walk-in Customer")
+            pay_status = arguments.get("payment_status", "PAID").upper()
+            pay_method = arguments.get("payment_method", "CASH").upper()
+            discount_val = Decimal(str(arguments.get("discount", 0.00)))
+            notes_val = arguments.get("notes", "")
+
+            from django.db import transaction
+            from products.models import Product, InventoryTransaction
+            from sales.models import Sale
+            from django.db.models import Q
+            from django.utils import timezone
+
+            # Find the product
+            product = Product.objects.filter(
+                Q(sku__iexact=product_query.strip()) | Q(name__iexact=product_query.strip())
+            ).first()
+
+            if not product:
+                # Try partial match if exact match fails
+                product = Product.objects.filter(
+                    Q(sku__icontains=product_query.strip()) | Q(name__icontains=product_query.strip())
+                ).first()
+
+            if not product:
+                # Try fuzzy matching using difflib
+                import difflib
+                all_products = Product.objects.all()
+                name_map = {p.name: p for p in all_products}
+                sku_map = {p.sku: p for p in all_products}
+                choices = list(name_map.keys()) + list(sku_map.keys())
+                close_matches = difflib.get_close_matches(product_query.strip(), choices, n=1, cutoff=0.5)
+                if close_matches:
+                    matched_choice = close_matches[0]
+                    product = name_map.get(matched_choice) or sku_map.get(matched_choice)
+
+            if not product:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Product '{product_query}' not found. Please provide a valid product name or SKU."
+                })
+
+            # Check stock
+            if product.stock_quantity < qty:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Insufficient stock. Product '{product.name}' has only {product.stock_quantity} units available, but {qty} were requested."
+                })
+
+            try:
+                with transaction.atomic():
+                    # Create Sale (which triggers sale_post_save signals automatically!)
+                    sale = Sale.objects.create(
+                        product=product,
+                        customer_name=customer,
+                        quantity_sold=qty,
+                        unit_price=product.unit_price,
+                        unit_cost_price=product.cost_price,
+                        total_price=product.unit_price * qty - discount_val,
+                        discount=discount_val,
+                        payment_status=pay_status,
+                        payment_method=pay_method,
+                        sale_date=timezone.now().date(),
+                        notes=notes_val or "Created via AI Chatbot"
+                    )
+
+                return json.dumps({
+                    "success": True,
+                    "message": f"Sale #{sale.id} created successfully.",
+                    "sale": {
+                        "id": sale.id,
+                        "product_name": product.name,
+                        "customer_name": sale.customer_name,
+                        "quantity_sold": sale.quantity_sold,
+                        "unit_price": float(sale.unit_price),
+                        "total_price": float(sale.total_price),
+                        "discount": float(sale.discount),
+                        "payment_status": sale.payment_status,
+                        "payment_method": sale.payment_method,
+                        "sale_date": str(sale.sale_date)
+                    }
+                })
+            except Exception as e:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Failed to save sale transaction: {str(e)}"
+                })
+            
+        elif name == "generate_report":
+            report_type = arguments.get("report_type", "sales").lower()
+            if report_type not in ["sales", "expenses", "inventory", "stock"]:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Unsupported report type '{report_type}'. Allowed types are 'sales', 'expenses', or 'inventory'."
+                })
+            
+            url_type = "inventory" if report_type == "stock" else report_type
+            download_url = f"/api/chatbot/download-report/?type={url_type}"
+            
+            return json.dumps({
+                "success": True,
+                "report_type": report_type,
+                "download_url": download_url,
+                "message": f"Successfully generated a download link for the {report_type} report. Please present this link in markdown format [Download {report_type.capitalize()} Report]({download_url}) to the user so they can click it to download."
+            })
+            
+        elif name == "get_sales_by_category":
+            from products.models import Product
+            from sales.models import Sale
+            from django.db.models import Sum, Count, F, Q
+            import difflib
+
+            category_filter = arguments.get("category", "").strip()
+
+            # Fuzzy-match the category name if provided
+            all_categories = list(
+                Product.objects.values_list('category', flat=True).distinct()
+            )
+
+            if category_filter:
+                # Try exact (case-insensitive) first
+                exact_match = next(
+                    (c for c in all_categories if c.lower() == category_filter.lower()), None
+                )
+                if exact_match:
+                    matched_category = exact_match
+                else:
+                    close = difflib.get_close_matches(
+                        category_filter, all_categories, n=1, cutoff=0.4
+                    )
+                    matched_category = close[0] if close else None
+
+                if not matched_category:
+                    return json.dumps({
+                        "success": False,
+                        "error": f"Category '{category_filter}' not found. Available categories: {', '.join(all_categories)}"
+                    })
+
+                filter_categories = [matched_category]
+            else:
+                filter_categories = all_categories
+
+            results = []
+            for cat in filter_categories:
+                # Get all products in this category
+                cat_product_ids = list(
+                    Product.objects.filter(category=cat).values_list('id', flat=True)
+                )
+
+                if not cat_product_ids:
+                    continue
+
+                # Aggregate Sale rows for these products
+                agg = Sale.objects.filter(
+                    product__in=cat_product_ids
+                ).aggregate(
+                    total_qty=Sum('quantity_sold'),
+                    total_revenue=Sum('total_price'),
+                    total_transactions=Count('id', distinct=True)
+                )
+
+                total_qty = agg['total_qty'] or 0
+                total_revenue = agg['total_revenue'] or 0
+                total_txn = agg['total_transactions'] or 0
+
+                # Top 5 products in this category by qty sold
+                top_products = (
+                    Sale.objects.filter(product__in=cat_product_ids)
+                    .values('product__name')
+                    .annotate(qty_sold=Sum('quantity_sold'), revenue=Sum('total_price'))
+                    .order_by('-qty_sold')[:5]
+                )
+
+                results.append({
+                    "category": cat,
+                    "total_quantity_sold": total_qty,
+                    "total_revenue": round(float(total_revenue), 2),
+                    "total_transactions": total_txn,
+                    "top_products": [
+                        {
+                            "name": p['product__name'],
+                            "quantity_sold": p['qty_sold'],
+                            "revenue": round(float(p['revenue']), 2)
+                        }
+                        for p in top_products
+                    ]
+                })
+
+            if not results:
+                return json.dumps({
+                    "success": True,
+                    "message": "No sales data found for the requested category.",
+                    "data": []
+                })
+
+            return json.dumps({
+                "success": True,
+                "data": results,
+                "categories_queried": len(results)
+            })
+
         else:
             return f"Error: Tool '{name}' is not supported."
     except Exception as e:
