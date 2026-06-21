@@ -136,7 +136,7 @@ class ERPUser(AbstractUser):
     two_factor_secret = models.CharField(max_length=255, null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
     password_expires_at = models.DateTimeField(null=True, blank=True)
-    requires_password_change = models.BooleanField(default=True)
+    requires_password_change = models.BooleanField(default=False)
     
     # Activity Tracking
     last_activity = models.DateTimeField(null=True, blank=True)
