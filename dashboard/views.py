@@ -931,18 +931,8 @@ def reset_system(request):
                 description=binv.notes or f"Client invoice {binv.invoice_number}"
             )
 
-        # 7. Seed purchase orders (so stock batches are populated)
-        # Create a few purchases
-        for i, (sku, product) in enumerate(list(product_map.items())[:3]):
-            Purchase.objects.create(
-                product=product,
-                company_name=suppliers[i % len(suppliers)]["name"],
-                quantity_purchased=50,
-                unit_cost=product.cost_price,
-                total_cost=product.cost_price * Decimal("50.00"),
-                purchase_date=date.today() - timedelta(days=5),
-                payment_status="PAID"
-            )
+        # 7. Seed purchase orders (skipped as requested)
+        pass
 
         return Response({'success': True, 'message': 'System reset and populated with ERP real data successfully.'}, status=status.HTTP_200_OK)
     except Exception as e:

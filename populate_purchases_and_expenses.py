@@ -125,26 +125,8 @@ def populate_purchases_and_ordered_slips():
         
         # OrderedSlip creation skipped as requested
         
-        # If status is Received, also create a Purchase record
-        if status_str == 'Received':
-            if payment_status_str == 'Paid':
-                pay_status = 'PAID'
-            elif payment_status_str == 'Unpaid':
-                pay_status = 'UNPAID'
-            else:
-                pay_status = 'PARTIAL'
-                
-            Purchase.objects.create(
-                product=product,
-                company_name=str(supplier_name).strip(),
-                quantity_purchased=qty_ordered,
-                unit_cost=unit_cost,
-                total_cost=total_cost,
-                purchase_date=date_obj,
-                payment_status=pay_status,
-                notes=f"Imported from Excel: {po_num}"
-            )
-            p_count += 1
+        # Purchase creation skipped as requested
+        pass
             
     print(f"Created {os_count} OrderedSlips and {p_count} Purchases.")
     wb.close()
