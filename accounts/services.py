@@ -460,6 +460,13 @@ class AccountsService:
             'cash_flow_growth': calc_growth(curr_cf_net, prev_cf_net),
             # Inventory
             'inventory_value': float(inv_value),
+            # Previous values
+            'prev_revenue': float(prev_rev),
+            'prev_cogs': float(prev_cogs),
+            'prev_gross_profit': float(prev_gp),
+            'prev_expense': float(prev_exp),
+            'prev_net_profit': float(prev_np),
+            'prev_cash_flow': float(prev_cf_net),
             # Meta
             'start_date': start_date.isoformat() if start_date else None,
             'end_date': end_date.isoformat() if end_date else None,

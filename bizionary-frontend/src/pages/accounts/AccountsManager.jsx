@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PageHeader from '../../components/ui/PageHeader';
 import { useToast } from '../../context/ToastContext';
-import { Wallet, TrendingUp, TrendingDown, FileText, Plus, Calendar, ShieldCheck, Download, Upload } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, FileText, Plus, Calendar, ShieldCheck, Download, Upload, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { accountsApi } from '../../services/accountsApi';
 import { formatPKR } from '../../utils/currency';
 import RevenuesTab from './components/RevenuesTab';
@@ -399,8 +399,30 @@ const AccountsManager = () => {
         }
     };
 
-    const getGrowthBadge = (growth) => {
-        if (growth === undefined || growth === null) return null;
+    const calculateGrowth = (current, previous) => {
+        if (previous === undefined || previous === null) return null;
+        const prevVal = Number(previous);
+        if (isNaN(prevVal) || prevVal === 0) return null;
+        const currVal = Number(current) || 0;
+        return ((currVal - prevVal) / prevVal) * 100;
+    };
+
+    const calculateMargin = (profit, revenue) => {
+        const revVal = Number(revenue) || 0;
+        const profVal = Number(profit) || 0;
+        if (revVal === 0) return 0;
+        return (profVal / revVal) * 100;
+    };
+
+    const getGrowthBadge = (current, previous) => {
+        const growth = calculateGrowth(current, previous);
+        if (growth === null) {
+            return (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-slate-500 bg-slate-50 border-slate-100 dark:bg-slate-950/20 dark:text-slate-400 dark:border-slate-900/40 inline-block mt-1 self-start">
+                    N/A vs prev period
+                </span>
+            );
+        }
         const isPositive = growth >= 0;
         const colorClass = isPositive 
             ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-900/40' 
@@ -408,9 +430,40 @@ const AccountsManager = () => {
         const sign = isPositive ? '+' : '';
         return (
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${colorClass} inline-block mt-1 self-start`}>
-                {sign}{growth}% vs prev period
+                {sign}{growth.toFixed(1)}% vs prev period
             </span>
         );
+    };
+
+    const renderTrendIcon = (current, previous, isCostType = false) => {
+        const currVal = Number(current) || 0;
+        const prevVal = Number(previous) || 0;
+
+        if (currVal > prevVal) {
+            const colorClass = isCostType
+                ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
+                : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400';
+            return (
+                <div className={`p-1.5 rounded-lg ${colorClass}`}>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                </div>
+            );
+        } else if (currVal < prevVal) {
+            const colorClass = isCostType
+                ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-455';
+            return (
+                <div className={`p-1.5 rounded-lg ${colorClass}`}>
+                    <ArrowDownRight className="w-3.5 h-3.5" />
+                </div>
+            );
+        } else {
+            return (
+                <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400 dark:text-slate-500">
+                    <Minus className="w-3.5 h-3.5" />
+                </div>
+            );
+        }
     };
 
     return (
@@ -521,15 +574,19 @@ const AccountsManager = () => {
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Revenue</span>
-                        <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.total_revenue, kpis?.prev_revenue)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.revenue_growth)}
+                        {!loadingKpis && getGrowthBadge(kpis?.total_revenue, kpis?.prev_revenue)}
                     </div>
                 </div>
 
@@ -537,15 +594,19 @@ const AccountsManager = () => {
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">COGS</span>
-                        <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/20 text-orange-655 dark:text-orange-400">
-                            <TrendingDown className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <TrendingDown className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.total_cogs, kpis?.prev_cogs, true)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.cogs_growth)}
+                        {!loadingKpis && getGrowthBadge(kpis?.total_cogs, kpis?.prev_cogs)}
                     </div>
                 </div>
 
@@ -553,9 +614,13 @@ const AccountsManager = () => {
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Gross Profit</span>
-                        <div className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/20 text-teal-600 dark:text-teal-400">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.gross_profit, kpis?.prev_gross_profit)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -563,7 +628,7 @@ const AccountsManager = () => {
                         </span>
                         {!loadingKpis && (
                             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-teal-700 bg-teal-50 border-teal-100 dark:bg-teal-950/20 dark:text-teal-400 dark:border-teal-900/40 inline-block mt-1 self-start">
-                                {kpis?.gross_profit_margin?.toFixed(1)}% margin
+                                {calculateMargin(kpis?.gross_profit, kpis?.total_revenue).toFixed(1)}% margin
                             </span>
                         )}
                     </div>
@@ -573,15 +638,19 @@ const AccountsManager = () => {
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Expenses</span>
-                        <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
-                            <TrendingDown className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <TrendingDown className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.total_expense, kpis?.prev_expense, true)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.expense_growth)}
+                        {!loadingKpis && getGrowthBadge(kpis?.total_expense, kpis?.prev_expense)}
                     </div>
                 </div>
 
@@ -591,9 +660,13 @@ const AccountsManager = () => {
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                             {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
                         </span>
-                        <div className={`p-1.5 rounded-lg ${(!loadingKpis && kpis?.net_profit < 0) ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450' : 'bg-sky-50 dark:bg-sky-950/20 text-sky-600 dark:text-sky-400'}`}>
-                            <Wallet className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <Wallet className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.net_profit, kpis?.prev_net_profit)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -601,7 +674,7 @@ const AccountsManager = () => {
                         </span>
                         {!loadingKpis && (
                             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-sky-700 bg-sky-50 border-sky-100 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40 inline-block mt-1 self-start">
-                                {kpis?.net_profit_margin?.toFixed(1)}% margin
+                                {calculateMargin(kpis?.net_profit, kpis?.total_revenue).toFixed(1)}% margin
                             </span>
                         )}
                     </div>
@@ -611,15 +684,19 @@ const AccountsManager = () => {
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Net Cash Flow</span>
-                        <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400">
-                            <FileText className="w-3.5 h-3.5" />
-                        </div>
+                        {loadingKpis ? (
+                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                                <FileText className="w-3.5 h-3.5" />
+                            </div>
+                        ) : (
+                            renderTrendIcon(kpis?.cash_flow, kpis?.prev_cash_flow)
+                        )}
                     </div>
                     <div className="flex flex-col mt-0.5">
                         <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.cash_flow_growth)}
+                        {!loadingKpis && getGrowthBadge(kpis?.cash_flow, kpis?.prev_cash_flow)}
                     </div>
                 </div>
             </div>

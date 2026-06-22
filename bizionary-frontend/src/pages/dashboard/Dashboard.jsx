@@ -31,6 +31,67 @@ import RecordModal from '../accounts/components/RecordModal';
 import ProductForm from '../products/ProductForm';
 import OrderSlipForm from '../ordered-slips/OrderSlipForm';
 
+// ─── Comparison helpers ──────────────────────────────────────────────────────
+
+/**
+ * Returns the percentage change between current and previous values.
+ * Returns null when previous is zero or missing (caller must handle gracefully).
+ */
+const calcPctChange = (current, previous) => {
+    const c = parseFloat(current) || 0;
+    const p = parseFloat(previous) || 0;
+    if (!p) return null;
+    return ((c - p) / p) * 100;
+};
+
+/**
+ * Returns (numerator / denominator) * 100.
+ * Returns null when the denominator is zero or missing.
+ */
+const calcMargin = (numerator, denominator) => {
+    const n = parseFloat(numerator) || 0;
+    const d = parseFloat(denominator) || 0;
+    if (!d) return null;
+    return (n / d) * 100;
+};
+
+/**
+ * Sub-text ribbon rendered inside each card's bottom row.
+ *
+ * type="change"  → "+X% vs prev" badge (green = good, red = bad)
+ * type="margin"  → "X% margin" badge (blue, neutral)
+ *
+ * inverse=true  → reverses good/bad colour logic (e.g. rising costs = bad)
+ */
+const DeltaBadge = ({ pct, type = 'change', label, inverse = false }) => {
+    if (pct === null || pct === undefined) return null;
+
+    if (type === 'margin') {
+        return (
+            <span className="inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400">
+                {pct.toFixed(1)}% {label ?? 'margin'}
+            </span>
+        );
+    }
+
+    const abs = Math.abs(pct).toFixed(1);
+    const good = inverse ? pct < 0 : pct > 0;
+    const bad  = inverse ? pct > 0 : pct < 0;
+    const arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→';
+
+    return (
+        <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+            good ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' :
+            bad  ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'           :
+                   'bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400'
+        }`}>
+            {arrow} {abs}% vs prev
+        </span>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -97,6 +158,9 @@ const Dashboard = () => {
     const [revenuePeriod, setRevenuePeriod] = useState('daily');
     const [revenueData, setRevenueData] = useState({ revenue: '0.00', transaction_count: 0, start_date: '', end_date: '', label: '' });
     const [revenueLoading, setRevenueLoading] = useState(false);
+    // Previous-period snapshots for comparison metrics (null = backend doesn't support it yet)
+    const [prevKpis, setPrevKpis] = useState(null);
+    const [prevRevenueData, setPrevRevenueData] = useState(null);
     const [recentInvoices, setRecentInvoices] = useState([]);
     const [loadingInvoices, setLoadingInvoices] = useState(false);
 
@@ -148,13 +212,34 @@ const Dashboard = () => {
         }
     };
 
+    // Fetch the previous-period KPI snapshot for comparison deltas.
+    // Silently ignored if the backend endpoint doesn't support it.
+    const fetchPrevKpis = async () => {
+        try {
+            const res = await api.get('dashboard/kpis/?period=previous');
+            if (res.data) setPrevKpis(res.data);
+        } catch {
+            setPrevKpis(null);
+        }
+    };
+
     const fetchRevenue = async (period) => {
         setRevenueLoading(true);
         try {
-            const res = await api.get(`dashboard/revenue-by-period/?period=${period}`);
-            if (res.data) {
-                setRevenueData(res.data);
+            // Fetch current and previous period in parallel.
+            // offset=1 asks the backend for the immediately preceding equivalent window.
+            const [currRes, prevRes] = await Promise.allSettled([
+                api.get(`dashboard/revenue-by-period/?period=${period}`),
+                api.get(`dashboard/revenue-by-period/?period=${period}&offset=1`),
+            ]);
+            if (currRes.status === 'fulfilled' && currRes.value.data) {
+                setRevenueData(currRes.value.data);
             }
+            setPrevRevenueData(
+                prevRes.status === 'fulfilled' && prevRes.value.data
+                    ? prevRes.value.data
+                    : null
+            );
         } catch (error) {
             console.warn('Failed to fetch revenue by period', error);
         } finally {
@@ -164,6 +249,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchKPIs();
+        fetchPrevKpis();
         fetchDropdownOptions();
         fetchRevenue('daily');
         if (isAccountant) {
@@ -299,6 +385,48 @@ const Dashboard = () => {
         setTimeout(() => setActionMessage({ type: '', text: '' }), 5000);
     };
 
+    // ── Derived comparison metrics ───────────────────────────────────────────
+
+    // Gross profit: revenue minus cost of goods purchased.
+    // Falls back to explicit backend field when available.
+    const grossProfit = useMemo(() => {
+        if (kpis.gross_profit !== undefined) return parseFloat(kpis.gross_profit) || 0;
+        return (parseFloat(kpis.total_revenue) || 0) - (parseFloat(kpis.total_purchases_value) || 0);
+    }, [kpis]);
+
+    // Net profit: use explicit backend field when available; otherwise mirrors gross profit
+    // until the backend exposes operating-expense data.
+    const netProfit = useMemo(() => {
+        if (kpis.net_profit !== undefined) return parseFloat(kpis.net_profit) || 0;
+        return grossProfit;
+    }, [kpis, grossProfit]);
+
+    const grossMarginPct = useMemo(() =>
+        calcMargin(grossProfit, kpis.total_revenue),
+    [grossProfit, kpis.total_revenue]);
+
+    const netMarginPct = useMemo(() =>
+        calcMargin(netProfit, kpis.total_revenue),
+    [netProfit, kpis.total_revenue]);
+
+    // Previous-period equivalents for the profit cards.
+    const prevGrossProfit = useMemo(() => {
+        if (!prevKpis) return null;
+        if (prevKpis.gross_profit !== undefined) return parseFloat(prevKpis.gross_profit) || 0;
+        return (parseFloat(prevKpis.total_revenue) || 0) - (parseFloat(prevKpis.total_purchases_value) || 0);
+    }, [prevKpis]);
+
+    // % change helpers for each KPI card.
+    const revenueChangePct   = calcPctChange(revenueData.revenue,         prevRevenueData?.revenue);
+    const ordersChangePct    = calcPctChange(kpis.total_orders,           prevKpis?.total_orders);
+    const productsChangePct  = calcPctChange(kpis.total_products,         prevKpis?.total_products);
+    const stockChangePct     = calcPctChange(kpis.total_stock_batches,    prevKpis?.total_stock_batches);
+    const slipsChangePct     = calcPctChange(kpis.total_ordered_slips,    prevKpis?.total_ordered_slips);
+    const grossProfitChgPct  = calcPctChange(grossProfit,                 prevGrossProfit);
+    const netProfitChgPct    = calcPctChange(netProfit,                   prevGrossProfit); // same base until net_profit field exists
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (loading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
@@ -365,16 +493,24 @@ const Dashboard = () => {
                             ))}
                         </div>
 
-                        {/* Meta row: transaction count + period label */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold">
+                        {/* Meta row: transaction count + comparison ribbons */}
+                        <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold shrink-0">
                                 {revenueData.transaction_count.toLocaleString()} sale{revenueData.transaction_count !== 1 ? 's' : ''}
                             </span>
-                            {revenueData.label && (
-                                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-md">
-                                    {revenueData.label}
-                                </span>
-                            )}
+                            <div className="flex items-center gap-1 flex-wrap justify-end">
+                                {/* % change vs previous equivalent period */}
+                                {revenueChangePct !== null
+                                    ? <DeltaBadge pct={revenueChangePct} />
+                                    : revenueData.label && (
+                                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-md">
+                                            {revenueData.label}
+                                        </span>
+                                    )
+                                }
+                                {/* Gross profit margin */}
+                                <DeltaBadge pct={grossMarginPct} type="margin" label="margin" />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -424,9 +560,12 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
                             <span>Catalog items</span>
-                            <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-1 transition-transform">
-                                View <ArrowRight className="w-3 h-3" />
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <DeltaBadge pct={productsChangePct} />
+                                <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-1 transition-transform">
+                                    View <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -450,9 +589,68 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
                             <span>Purchase orders</span>
-                            <span className="flex items-center gap-0.5 text-purple-600 dark:text-purple-400 font-bold group-hover:translate-x-1 transition-transform">
-                                View <ArrowRight className="w-3 h-3" />
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <DeltaBadge pct={slipsChangePct} />
+                                <span className="flex items-center gap-0.5 text-purple-600 dark:text-purple-400 font-bold group-hover:translate-x-1 transition-transform">
+                                    View <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Gross Profit */}
+                {isAccountant && (
+                    <div className="bg-white dark:bg-slate-900 p-4.5 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[128px]">
+                        <div className="flex items-start justify-between">
+                            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Gross Profit</span>
+                            <div className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/20 text-violet-600 dark:text-violet-400">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className={`text-2xl font-bold tracking-tight ${
+                                grossProfit >= 0
+                                    ? 'text-slate-800 dark:text-slate-100'
+                                    : 'text-rose-600 dark:text-rose-400'
+                            }`}>
+                                {formatPKR(grossProfit)}
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
+                            <span>Revenue − COGS</span>
+                            <div className="flex items-center gap-1.5">
+                                <DeltaBadge pct={grossProfitChgPct} />
+                                <DeltaBadge pct={grossMarginPct} type="margin" label="margin" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Net Profit */}
+                {isAccountant && (
+                    <div className="bg-white dark:bg-slate-900 p-4.5 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[128px]">
+                        <div className="flex items-start justify-between">
+                            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Net Profit</span>
+                            <div className="p-1.5 rounded-lg bg-cyan-50 dark:bg-cyan-950/20 text-cyan-600 dark:text-cyan-400">
+                                <Coins className="w-3.5 h-3.5" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className={`text-2xl font-bold tracking-tight ${
+                                netProfit >= 0
+                                    ? 'text-slate-800 dark:text-slate-100'
+                                    : 'text-rose-600 dark:text-rose-400'
+                            }`}>
+                                {formatPKR(netProfit)}
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
+                            <span>After deductions</span>
+                            <div className="flex items-center gap-1.5">
+                                <DeltaBadge pct={netProfitChgPct} />
+                                <DeltaBadge pct={netMarginPct} type="margin" label="margin" />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -478,9 +676,12 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
                             <span>Transactions</span>
-                            <span className="flex items-center gap-0.5 text-teal-600 dark:text-teal-400 font-bold group-hover:translate-x-1 transition-transform">
-                                View <ArrowRight className="w-3 h-3" />
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <DeltaBadge pct={ordersChangePct} />
+                                <span className="flex items-center gap-0.5 text-teal-600 dark:text-teal-400 font-bold group-hover:translate-x-1 transition-transform">
+                                    View <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -551,9 +752,12 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
                             <span>Warehouse batches</span>
-                            <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-1 transition-transform">
-                                View <ArrowRight className="w-3 h-3" />
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <DeltaBadge pct={stockChangePct} />
+                                <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-1 transition-transform">
+                                    View <ArrowRight className="w-3 h-3" />
+                                </span>
+                            </div>
                         </div>
                     </div>
                 )}

@@ -99,12 +99,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]">
+        <div className="flex flex-col h-full bg-white dark:bg-[color:var(--dm-sidebar,#171717)]">
             {/* Header: logo + toggle */}
-            <div className="h-12 flex items-center border-b border-gray-100 dark:border-white/8 shrink-0 px-4 justify-between select-none bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]">
+            <div className="h-12 flex items-center border-b border-gray-100 dark:border-[#242424] shrink-0 px-4 justify-between select-none bg-white dark:bg-[color:var(--dm-sidebar,#171717)]">
                 <div className="flex items-center gap-2">
                     <Logo className="h-6 w-auto text-gray-900 dark:text-white shrink-0" />
-                    <span className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-wider uppercase sidebar-label">
+                    <span className="text-sm font-black text-gray-900 dark:text-[#d9d9d9] tracking-wider uppercase sidebar-label">
                         Bizionary
                     </span>
                 </div>
@@ -112,7 +112,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {/* Hamburger button (toggles sidebar on desktop) */}
                     <button
                         onClick={toggleCollapsed}
-                        className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-gray-400 hover:text-gray-700 dark:text-[#999999] dark:hover:text-[#d9d9d9] hover:bg-gray-100 dark:hover:bg-[#292929] rounded-lg transition-colors cursor-pointer"
                         aria-label="Collapse sidebar"
                     >
                         <Menu className="w-4.5 h-4.5" />
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {mobileOpen && (
                         <button
                             onClick={closeMobile}
-                            className="text-gray-400 dark:text-white/60 hover:text-gray-700 dark:hover:text-white p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors lg:hidden cursor-pointer"
+                            className="text-gray-400 dark:text-[#999999] hover:text-gray-700 dark:hover:text-[#d9d9d9] p-1 hover:bg-gray-100 dark:hover:bg-[#292929] rounded-lg transition-colors lg:hidden cursor-pointer"
                             aria-label="Close menu"
                         >
                             <X className="w-4 h-4" />
@@ -139,8 +139,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                     return (
                         <div key={group.label} className="mb-2.5">
                             {!isCollapsed && (
-                                <div className="sidebar-group-label px-4 pt-2 pb-1 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">
-                                    <ChevronDown className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                                <div className="sidebar-group-label px-4 pt-2 pb-1 flex items-center gap-1.5 text-[10px] font-bold text-gray-400 dark:text-[#7a7a7a] uppercase tracking-wider select-none">
+                                    <ChevronDown className="w-3 h-3 text-gray-300 dark:text-[#7a7a7a] shrink-0" />
                                     <span>{group.label}</span>
                                 </div>
                             )}
@@ -158,15 +158,15 @@ const Sidebar = ({ isOpen, onClose }) => {
                                             className={({ isActive }) =>
                                                 `relative flex items-center rounded-lg transition-all duration-200 group gap-3 px-3 py-2
                                                 ${isActive
-                                                    ? 'bg-slate-100 dark:bg-white/[0.09] text-slate-900 dark:text-white font-semibold'
-                                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50/80 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-slate-100 font-normal'
+                                                    ? 'bg-gray-100 dark:bg-[#292929] dm-nav-active text-gray-900 dark:text-[#f8f8f8]'
+                                                    : 'text-gray-500 dark:text-[#999999] hover:bg-gray-50 dark:hover:bg-[#242424] hover:text-gray-900 dark:hover:text-[#d9d9d9]'
                                                 }`
                                             }
                                         >
                                             {({ isActive }) => (
                                                 <>
-                                                    <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors duration-200 ${isActive ? 'text-slate-800 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
-                                                    <span className={`text-[13px] truncate sidebar-label ${isActive ? 'font-medium' : 'font-normal'}`}>
+                                                    <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gray-800 dark:text-[#76bef9]' : 'text-gray-400 dark:text-[#7a7a7a] group-hover:text-gray-600 dark:group-hover:text-[#999999]'}`} />
+                                                    <span className={`text-[13px] truncate sidebar-label ${isActive ? 'font-semibold' : 'font-normal'}`}>
                                                         {item.name}
                                                     </span>
                                                 </>
@@ -197,8 +197,8 @@ const Sidebar = ({ isOpen, onClose }) => {
             <aside
                 className={`
                     hidden lg:flex flex-col fixed inset-y-0 left-0 z-50
-                    bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]
-                    border-r border-gray-100 dark:border-white/[0.07]
+                    bg-white dark:bg-[color:var(--dm-sidebar,#171717)]
+                    border-r border-gray-100 dark:border-[#242424]
                     transition-all duration-300 ease-in-out
                     ${isCollapsed ? 'w-0 -translate-x-full overflow-hidden border-r-0' : 'w-60 translate-x-0'}
                     print:hidden
@@ -212,8 +212,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ref={sidebarRef}
                 className={`
                     flex flex-col lg:hidden fixed inset-y-0 left-0 z-50 w-60 h-screen
-                    bg-white dark:bg-[color:var(--dm-sidebar,#1a2535)]
-                    border-r border-gray-100 dark:border-white/[0.07]
+                    bg-white dark:bg-[color:var(--dm-sidebar,#171717)]
+                    border-r border-gray-100 dark:border-[#242424]
                     transition-transform duration-300 ease-out
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
                     print:hidden

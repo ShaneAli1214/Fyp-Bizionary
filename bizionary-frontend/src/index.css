@@ -36,41 +36,52 @@
 }
 
 /* ============================================================
-   DARK MODE ROOT OVERRIDES (ERPNext-inspired navy palette)
+   DARK MODE ROOT OVERRIDES (Frappe/ERPNext exact palette)
+   bg:      #171717  – gray-950 (neutral dark, no blue tint)
+   surface: #1f1f1f  – gray-900 (cards, panels, topbar)
+   input:   #292929  – gray-700 (Frappe control-bg)
+   border:  #242424  – gray-800 (Frappe outline-gray-1)
+   text:    #d9d9d9  – gray-100 (Frappe ink-gray-8)
+   muted:   #999999  – gray-300 (Frappe ink-gray-6)
    ============================================================ */
 .dark {
-  --color-background: #1a2535;
-  --color-background-light: #1f2d42;
-  --color-surface: #243348;
-  --color-surface-dark: #1a2535;
-  --color-primary: #c8d8ec;
-  --color-primary-dark: #a8bdd8;
-  --color-accent: #4a7ebb;
-  --color-accent-dark: #3a6ea8;
-  --color-textMain: #d5e0ef;
-  --color-textMuted: #7a97b8;
-  --color-border: rgba(255,255,255,0.07);
+  --color-background: #171717;
+  --color-background-light: #1f1f1f;
+  --color-surface: #1f1f1f;
+  --color-surface-dark: #171717;
+  --color-primary: #76bef9;
+  --color-primary-dark: #349bef;
+  --color-accent: #349bef;
+  --color-accent-dark: #2480cc;
+  --color-textMain: #d9d9d9;
+  --color-textMuted: #999999;
+  --color-border: #242424;
   --color-success: #34d399;
   --color-danger: #f87171;
   --color-warning: #fbbf24;
-  --color-primary-rgb: 200,216,236;
-  --color-surface-rgb: 36,51,72;
-  --color-background-rgb: 26,37,53;
+  --color-primary-rgb: 118,190,249;
+  --color-surface-rgb: 31,31,31;
+  --color-background-rgb: 23,23,23;
   --color-success-rgb: 52,211,153;
 
-  /* Extra dark mode design tokens */
-  --dm-bg: #1a2535;
-  --dm-bg-elevated: #1f2d42;
-  --dm-surface: #243348;
-  --dm-surface-hover: #2c3f57;
-  --dm-sidebar: #1a2535;
-  --dm-topbar: #1f2d42;
-  --dm-input-bg: #1a2d47;
-  --dm-border: rgba(255,255,255,0.07);
-  --dm-border-strong: rgba(255,255,255,0.12);
-  --dm-text-main: #d5e0ef;
-  --dm-text-muted: #7a97b8;
-  --dm-glow: rgba(74,126,187,0.15);
+  /* Semantic dark mode design tokens */
+  --dm-bg:              #171717;
+  --dm-bg-elevated:     #1f1f1f;
+  --dm-surface:         #1f1f1f;
+  --dm-surface-hover:   #292929;
+  --dm-surface-elevated:#242424;
+  --dm-sidebar:         #171717;
+  --dm-topbar:          #1f1f1f;
+  --dm-input-bg:        #292929;
+  --dm-border:          #242424;
+  --dm-border-strong:   #383838;
+  --dm-text-main:       #d9d9d9;
+  --dm-text-muted:      #999999;
+  --dm-text-subtle:     #7a7a7a;
+  --dm-nav-active-bg:   #292929;
+  --dm-nav-hover-bg:    #242424;
+  --dm-nav-accent:      #76bef9;
+  --dm-glow:            rgba(118,190,249,0.15);
 }
 
 /* ============================================================
@@ -102,79 +113,87 @@
 
 /* bg-white → dark surface */
 .dark .bg-white {
-  background-color: var(--dm-surface, #243348) !important;
+  background-color: var(--dm-surface, #1f1f1f) !important;
 }
 
 /* Borders */
 .dark .border-gray-100,
 .dark .border-gray-200 {
-  border-color: var(--dm-border, rgba(255,255,255,0.07)) !important;
+  border-color: var(--dm-border, #242424) !important;
 }
 
 .dark .border-gray-300,
 .dark .border-slate-200 {
-  border-color: var(--dm-border-strong, rgba(255,255,255,0.12)) !important;
+  border-color: var(--dm-border-strong, #383838) !important;
 }
 
 /* Text */
 .dark .text-slate-900,
 .dark .text-black,
 .dark .text-gray-900 {
-  color: var(--dm-text-main, #d5e0ef) !important;
+  color: var(--dm-text-main, #d9d9d9) !important;
 }
 
 .dark .text-slate-700,
 .dark .text-gray-700 {
-  color: #a8bdd6 !important;
+  color: #afafaf !important;
 }
 
 .dark .text-slate-600,
 .dark .text-gray-600 {
-  color: #8fadc8 !important;
+  color: #999999 !important;
 }
 
 .dark .text-slate-500,
 .dark .text-gray-500,
 .dark .text-slate-400,
 .dark .text-gray-400 {
-  color: var(--dm-text-muted, #7a97b8) !important;
+  color: var(--dm-text-muted, #999999) !important;
 }
 
-/* Slate-800 surfaces */
+/* Slate-800 → elevated surface */
 .dark .bg-slate-800,
 .dark .bg-gray-800 {
-  background-color: #1f2d42 !important;
+  background-color: var(--dm-bg-elevated, #1f1f1f) !important;
 }
 
+/* Slate-900 → page background */
 .dark .bg-slate-900,
 .dark .bg-gray-900 {
-  background-color: #1a2535 !important;
+  background-color: var(--dm-bg, #171717) !important;
 }
 
-/* Slate-700 elements */
+/* Slate-700 → surface hover */
 .dark .bg-slate-700,
 .dark .bg-gray-700 {
-  background-color: #243348 !important;
+  background-color: var(--dm-surface-hover, #292929) !important;
 }
 
-/* Very light surfaces (bg-gray-50, bg-slate-50) → very subtle dark */
+/* Very light surfaces → barely-there dark */
 .dark .bg-gray-50,
 .dark .bg-slate-50 {
-  background-color: rgba(255,255,255,0.03) !important;
+  background-color: var(--dm-surface, #1f1f1f) !important;
 }
 
-/* Gray-100 backgrounds */
+/* Gray-100 → subtle elevated */
 .dark .bg-gray-100,
 .dark .bg-slate-100 {
-  background-color: rgba(255,255,255,0.06) !important;
+  background-color: var(--dm-surface-hover, #292929) !important;
 }
 
 /* ============================================================
    DARK MODE SIDEBAR
    ============================================================ */
 .dark-sidebar {
-  background-color: var(--dm-sidebar, #1a2535) !important;
-  border-color: var(--dm-border, rgba(255,255,255,0.07)) !important;
+  background-color: var(--dm-sidebar, #171717) !important;
+  border-color: var(--dm-border, #242424) !important;
+}
+
+/* ============================================================
+   DARK MODE NAV ACCENT (left-border active indicator)
+   ============================================================ */
+.dark .dm-nav-active {
+  box-shadow: inset 2px 0 0 rgba(118, 190, 249, 0.70);
 }
 
 /* ============================================================
@@ -210,7 +229,7 @@
 }
 
 .dark .sidebar-group-label {
-  color: rgba(255, 255, 255, 0.3);
+  color: #7a7a7a;
 }
 
 /* ============================================================
@@ -272,17 +291,17 @@ button.bg-primary:hover,
   color: #ffffff !important;
 }
 
-/* Dark mode: light button, dark text */
+/* Dark mode: Frappe blue button */
 .dark .bg-primary,
 .dark button.bg-primary {
-  background-color: #4a7ebb !important;
+  background-color: #1c6ec4 !important;
   color: #ffffff !important;
 }
 
 .dark .bg-primary:hover,
 .dark button.bg-primary:hover,
 .dark .hover\:bg-primaryDark:hover {
-  background-color: #3a6ea8 !important;
+  background-color: #0c59a2 !important;
   color: #ffffff !important;
 }
 
@@ -330,33 +349,34 @@ table tbody tr:hover td {
 
 /* Dark mode table */
 .dark table tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid var(--dm-border, #242424) !important;
 }
 
 .dark table tbody tr:hover,
 .dark table tbody tr.hover\:bg-slate-50:hover,
 .dark table tbody tr.hover\:bg-gray-50\/40:hover,
 .dark table tbody tr.hover\:bg-slate-50\/50:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  border-bottom-color: rgba(74, 126, 187, 0.2) !important;
+  background-color: var(--dm-nav-hover-bg, #242424) !important;
+  border-bottom-color: var(--dm-border-strong, #383838) !important;
 }
 
 .dark table tbody tr:hover td {
-  color: var(--dm-text-main, #d5e0ef) !important;
+  color: var(--dm-text-main, #d9d9d9) !important;
 }
 
 /* Dark mode table headers */
 .dark thead th,
 .dark th {
-  background-color: rgba(26,37,53,0.8) !important;
-  color: var(--dm-text-muted, #7a97b8) !important;
-  border-bottom-color: var(--dm-border, rgba(255,255,255,0.07)) !important;
+  background-color: var(--dm-bg, #171717) !important;
+  color: var(--dm-text-muted, #999999) !important;
+  border-bottom-color: var(--dm-border, #242424) !important;
+  letter-spacing: 0.04em;
 }
 
 /* Dark mode table cells */
 .dark td {
-  color: var(--dm-text-main, #d5e0ef) !important;
-  border-color: rgba(255,255,255,0.04) !important;
+  color: var(--dm-text-main, #d9d9d9) !important;
+  border-color: var(--dm-border, #242424) !important;
 }
 
 /* ============================================================
@@ -408,9 +428,9 @@ textarea:focus {
 .dark input[type="date"],
 .dark select,
 .dark textarea {
-  background-color: var(--dm-input-bg, #1a2d47) !important;
-  border-color: var(--dm-border-strong, rgba(255,255,255,0.12)) !important;
-  color: var(--dm-text-main, #d5e0ef) !important;
+  background-color: var(--dm-input-bg, #292929) !important;
+  border-color: var(--dm-border-strong, #383838) !important;
+  color: var(--dm-text-main, #d9d9d9) !important;
   color-scheme: dark;
 }
 
@@ -421,8 +441,8 @@ textarea:focus {
 .dark input[type="tel"]::placeholder,
 .dark input[type="date"]::placeholder,
 .dark textarea::placeholder {
-  color: var(--dm-text-muted, #7a97b8) !important;
-  opacity: 0.7;
+  color: var(--dm-text-subtle, #7a7a7a) !important;
+  opacity: 1;
 }
 
 .dark input[type="text"]:hover,
@@ -433,7 +453,7 @@ textarea:focus {
 .dark input[type="date"]:hover,
 .dark select:hover,
 .dark textarea:hover {
-  border-color: rgba(74, 126, 187, 0.4) !important;
+  border-color: rgba(118,190,249,0.35) !important;
 }
 
 .dark input[type="text"]:focus,
@@ -444,15 +464,15 @@ textarea:focus {
 .dark input[type="date"]:focus,
 .dark select:focus,
 .dark textarea:focus {
-  border-color: #4a7ebb !important;
+  border-color: var(--dm-nav-accent, #76bef9) !important;
   outline: none !important;
-  box-shadow: 0 0 0 2px rgba(74, 126, 187, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(118,190,249,0.15) !important;
 }
 
 /* Dark select options */
 .dark select option {
-  background-color: #243348;
-  color: #d5e0ef;
+  background-color: #292929;
+  color: #d9d9d9;
 }
 
 /* ============================================================
@@ -465,7 +485,7 @@ textarea:focus {
 
 /* Override inline-written card backgrounds common pattern in components */
 .dark [class*="bg-white"][class*="rounded"] {
-  background-color: var(--dm-surface, #243348) !important;
+  background-color: var(--dm-surface, #1f1f1f) !important;
 }
 
 /* Shadow adjustments in dark mode */
@@ -493,7 +513,7 @@ textarea:focus {
    DARK MODE MODAL / OVERLAY
    ============================================================ */
 .dark [class*="bg-white"][class*="shadow"] {
-  background-color: var(--dm-surface, #243348) !important;
+  background-color: var(--dm-surface-elevated, #242424) !important;
 }
 
 /* ============================================================
