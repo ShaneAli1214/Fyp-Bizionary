@@ -14,7 +14,6 @@ const InventoryManagment = () => {
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     const [orderedSlips, setOrderedSlips] = useState([]);
-    const [registeredCompanies, setRegisteredCompanies] = useState([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
@@ -56,21 +55,17 @@ const InventoryManagment = () => {
     const fetchInventoryData = async () => {
         setLoading(true);
         try {
-            const [productsRes, slipsRes, companiesRes] = await Promise.allSettled([
+            const [productsRes, slipsRes] = await Promise.allSettled([
                 api.get('products/'),
                 api.get('purchases/ordered-slips/'),
-                api.get('purchases/companies/'),
             ]);
 
             setProducts(productsRes.status === 'fulfilled' ? extractList(productsRes.value.data).map((item) => normalizeProductRecord(item)) : []);
             setOrderedSlips(slipsRes.status === 'fulfilled' ? extractList(slipsRes.value.data) : []);
-            // Only keep companies that appear to be persisted (have an `id`)
-            setRegisteredCompanies(companiesRes.status === 'fulfilled' ? extractList(companiesRes.value.data).filter((c) => c && (c.id || c.id === 0)) : []);
         } catch (error) {
             console.warn('Failed to fetch inventory data.', error);
             setProducts([]);
             setOrderedSlips([]);
-            setRegisteredCompanies([]);
         } finally {
             setLoading(false);
         }
@@ -144,21 +139,7 @@ const InventoryManagment = () => {
         }
     };
 
-    const handleDeleteCompany = async (companyId) => {
-        const confirmed = window.confirm('Delete this company? This will remove it from the dropdown lists.');
-        if (!confirmed) {
-            return;
-        }
 
-        try {
-            setFormError('');
-            await api.delete(`purchases/companies/${companyId}/`);
-            await fetchInventoryData();
-            setFormSuccess('Company deleted successfully.');
-        } catch (error) {
-            setFormError(formatApiError(error, 'Failed to delete company.'));
-        }
-    };
 
     useEffect(() => {
         fetchInventoryData();
@@ -435,36 +416,7 @@ const InventoryManagment = () => {
 
             {/* Inventory Stock Table removed */}
 
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-lg font-bold text-textMain">Registered Companies</h2>
-                        <p className="text-xs text-textMuted mt-1">Delete saved company records from the dropdown source.</p>
-                    </div>
-                </div>
 
-                <div className="divide-y divide-gray-100">
-                    {registeredCompanies.length === 0 && (
-                        <div className="px-6 py-8 text-center text-textMuted text-sm">No saved companies found.</div>
-                    )}
-
-                    {registeredCompanies.map((company) => (
-                        <div key={company.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50/70 transition-colors">
-                            <div>
-                                <p className="text-sm font-bold text-textMain">{company.name}</p>
-                                <p className="text-xs text-textMuted mt-0.5">{company.categoryId || company.category || 'Uncategorized'}</p>
-                            </div>
-                            <button
-                                onClick={() => handleDeleteCompany(company.id)}
-                                className="inline-flex items-center px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
 
             <OrderSlipForm
                 isOpen={isFormOpen}
