@@ -10,25 +10,25 @@ const AccountNode = ({ node, level = 0, expandedNodes, toggleExpand }) => {
     // Color scheme based on account type
     const getTypeColor = (type) => {
         switch(type) {
-            case 'ASSET': return 'text-emerald-700 bg-emerald-50 border-emerald-100';
-            case 'LIABILITY': return 'text-rose-750 bg-rose-50 border-rose-100';
+            case 'ASSET': return 'text-status-success bg-status-success/10 border-emerald-100';
+            case 'LIABILITY': return 'text-rose-750 bg-status-info/10 border-rose-100';
             case 'EQUITY': return 'text-violet-750 bg-violet-50 border-violet-100';
-            case 'REVENUE': return 'text-blue-750 bg-blue-50 border-blue-100';
+            case 'REVENUE': return 'text-blue-750 bg-active-pill/20 border-blue-100';
             case 'EXPENSE': return 'text-amber-750 bg-amber-50 border-amber-100';
-            default: return 'text-slate-650 bg-slate-50 border-slate-100';
+            default: return 'text-slate-650 bg-page border-card';
         }
     };
 
     return (
         <div className="select-none">
             <div 
-                className={`flex items-center justify-between p-2.5 my-1 rounded-xl transition-all border border-transparent hover:border-slate-200/60 hover:bg-slate-50/85 cursor-pointer`}
+                className={`flex items-center justify-between p-2.5 my-1 rounded-xl transition-all border border-transparent hover:border-card/60 hover:bg-page/85 cursor-pointer`}
                 style={{ marginLeft: `${level * 24}px` }}
                 onClick={() => isGroup && toggleExpand(node.id)}
             >
                 <div className="flex items-center gap-2.5">
                     {isGroup ? (
-                        <button className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors">
+                        <button className="text-secondary hover:text-primary p-0.5 rounded transition-colors">
                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </button>
                     ) : (
@@ -42,13 +42,13 @@ const AccountNode = ({ node, level = 0, expandedNodes, toggleExpand }) => {
                             <Folder className="w-4 h-4 text-primary/80" />
                         )
                     ) : (
-                        <FileText className="w-4 h-4 text-slate-400" />
+                        <FileText className="w-4 h-4 text-secondary" />
                     )}
 
-                    <span className="text-[10px] font-bold font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold font-mono text-secondary bg-page px-1.5 py-0.5 rounded">
                         {node.code}
                     </span>
-                    <span className={`text-sm font-bold ${isGroup ? 'text-slate-800' : 'text-slate-600'}`}>
+                    <span className={`text-sm font-bold ${isGroup ? 'text-primary' : 'text-secondary'}`}>
                         {node.name}
                     </span>
                 </div>
@@ -57,7 +57,7 @@ const AccountNode = ({ node, level = 0, expandedNodes, toggleExpand }) => {
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(node.account_type)}`}>
                         {node.account_type}
                     </span>
-                    <span className={`text-sm font-bold font-mono ${node.balance < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                    <span className={`text-sm font-bold font-mono ${node.balance < 0 ? 'text-status-info' : 'text-primary'}`}>
                         {formatPKR(node.balance)}
                     </span>
                 </div>
@@ -162,18 +162,18 @@ const COATreeTab = ({ refreshTrigger, dateRange, startDate, endDate }) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-center bg-card p-3 rounded-2xl border border-card shadow-sm">
                 <div className="flex gap-2">
                     <button 
                         onClick={expandAll}
-                        className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 bg-page hover:bg-active-pill text-primary px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                     >
                         <Eye className="w-3.5 h-3.5" />
                         Expand All
                     </button>
                     <button 
                         onClick={collapseAll}
-                        className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 bg-page hover:bg-active-pill text-primary px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                     >
                         <EyeOff className="w-3.5 h-3.5" />
                         Collapse All
@@ -181,7 +181,7 @@ const COATreeTab = ({ refreshTrigger, dateRange, startDate, endDate }) => {
                 </div>
                 <button 
                     onClick={fetchTree}
-                    className="flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all cursor-pointer"
+                    className="flex items-center justify-center p-1.5 bg-page hover:bg-active-pill text-secondary rounded-xl transition-all cursor-pointer"
                 >
                     <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -190,14 +190,14 @@ const COATreeTab = ({ refreshTrigger, dateRange, startDate, endDate }) => {
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-3">
                     <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-sm text-slate-500 font-bold">Compiling Chart of Accounts ledger balances...</p>
+                    <p className="text-sm text-secondary font-bold">Compiling Chart of Accounts ledger balances...</p>
                 </div>
             ) : activeTreeData.length === 0 ? (
-                <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+                <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">
                     No matching database records found for this period.
                 </div>
             ) : (
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-1">
+                <div className="bg-card p-6 rounded-2xl border border-card shadow-sm space-y-1">
                     {activeTreeData.map(node => (
                         <AccountNode 
                             key={node.id} 

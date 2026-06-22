@@ -42,13 +42,13 @@ const AIChatbotWidget = () => {
         <div className="fixed bottom-6 right-6 z-[100]">
             {/* Chat Popover */}
             <div
-                className={`absolute bottom-full right-0 mb-4 w-72 sm:w-80 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
+                className={`absolute bottom-full right-0 mb-4 w-72 sm:w-80 bg-card rounded-xl border border-card shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
                     }`}
             >
                 {/* Header Phase 5 AI Gradient */}
-                <div className="ai-gradient p-4 text-white">
+                <div className="ai-gradient p-4 text-card">
                     <div className="flex items-center gap-3">
-                        <div className="bg-white/20 p-2 rounded-lg">
+                        <div className="bg-card/20 p-2 rounded-lg">
                             <Bot className="w-5 h-5" />
                         </div>
                         <div>
@@ -66,8 +66,8 @@ const AIChatbotWidget = () => {
                         {messages.map(msg => (
                             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[85%] rounded-lg px-3 py-2 text-xs ${msg.sender === 'user'
-                                        ? 'bg-primary text-white rounded-br-none'
-                                        : 'bg-gray-100 text-textMain rounded-bl-none'
+                                        ? 'bg-primary text-card rounded-br-none'
+                                        : 'bg-page text-textMain rounded-bl-none'
                                     }`}>
                                     {msg.text}
                                 </div>
@@ -83,7 +83,7 @@ const AIChatbotWidget = () => {
                                 <button
                                     key={idx}
                                     onClick={() => handlePresetClick(q)}
-                                    className="w-full text-left p-2 rounded-lg bg-slate-50 text-[11px] text-textMain hover:bg-slate-100 transition-colors border border-slate-100"
+                                    className="w-full text-left p-2 rounded-lg bg-page text-[11px] text-textMain hover:bg-page transition-colors border border-card"
                                 >
                                     "{q}"
                                 </button>
@@ -94,14 +94,14 @@ const AIChatbotWidget = () => {
                     {/* Input Area */}
                     <form onSubmit={handleSend} className="flex gap-2 items-center shrink-0">
                         <input
-                            className="flex-1 bg-slate-100 border-none rounded-lg text-xs py-2 px-3 focus:ring-1 focus:ring-primary outline-none text-textMain placeholder-textMuted"
+                            className="flex-1 bg-page border-none rounded-lg text-xs py-2 px-3 focus:ring-1 focus:ring-primary outline-none text-textMain placeholder-textMuted"
                             placeholder="Type a message..."
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                         />
                         <button
                             type="submit"
-                            className="bg-primary text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primaryDark transition-colors shrink-0 disabled:opacity-50"
+                            className="bg-primary text-card w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primaryDark transition-colors shrink-0 disabled:opacity-50"
                             disabled={!inputValue.trim()}
                         >
                             <Send className="w-4 h-4 ml-0.5" />
@@ -113,10 +113,10 @@ const AIChatbotWidget = () => {
             {/* Glowing Floating Button */}
             <button
                 onClick={toggleChat}
-                className="w-14 h-14 ai-gradient rounded-full text-white shadow-xl ai-glow flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+                className="w-14 h-14 ai-gradient rounded-full text-card shadow-xl ai-glow flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
             >
                 <Bot className="w-7 h-7" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-success border-2 border-white rounded-full"></div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-success border-2 border-card rounded-full"></div>
             </button>
         </div>
     );

@@ -37,18 +37,18 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
 
     if (expenses.length === 0) {
         return (
-            <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+            <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">
                 No matching database records found for this period.
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-gray-100">
+                        <tr className="bg-page border-b border-card">
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Vendor</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
@@ -62,42 +62,42 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {paginatedExpenses.map((item) => (
-                            <tr key={item.id} className={`hover:bg-slate-50/50 transition-colors group ${item.voided ? 'bg-slate-50/50 opacity-60' : ''}`}>
+                            <tr key={item.id} className={`hover:bg-page/50 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
                                 <td className="px-6 py-4 text-sm font-medium text-textMain">
                                     <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-4 h-4 text-gray-400" />
+                                        <Calendar className="w-4 h-4 text-secondary" />
                                         {item.date}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm font-bold text-textMain">
                                     <div className="flex items-center gap-1.5">
-                                        <Store className="w-4 h-4 text-gray-400" />
+                                        <Store className="w-4 h-4 text-secondary" />
                                         {item.vendor || 'N/A'}
                                     </div>
-                                    {item.voided && <span className="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
+                                    {item.voided && <span className="ml-2 bg-status-info/20 text-status-info text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-secondary">
                                     <div className="flex items-center gap-1.5">
-                                        <Tag className="w-3.5 h-3.5 text-gray-400" />
+                                        <Tag className="w-3.5 h-3.5 text-secondary" />
                                         {item.category_display || item.category}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-secondary">
                                     <div className="truncate max-w-xs text-xs text-textMuted" title={item.description}>
                                         {item.description || '-'}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-secondary">
                                     <div className="flex items-center gap-1.5">
-                                        <CreditCard className="w-3.5 h-3.5 text-gray-400" />
+                                        <CreditCard className="w-3.5 h-3.5 text-secondary" />
                                         {getPaymentMethodDisplay(item.payment_method)}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-right text-gray-500">
+                                <td className="px-6 py-4 text-sm text-right text-secondary">
                                     {item.tax_amount > 0 ? formatPKR(item.tax_amount) : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <span className={`text-sm font-bold bg-rose-50 px-2 py-1 rounded inline-block ${item.voided ? 'text-gray-500 line-through bg-gray-100' : 'text-rose-600'}`}>
+                                    <span className={`text-sm font-bold bg-status-info/10 px-2 py-1 rounded inline-block ${item.voided ? 'text-secondary line-through bg-page' : 'text-status-info'}`}>
                                         {formatPKR(item.amount)}
                                     </span>
                                 </td>
@@ -119,14 +119,14 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                                         <>
                                             <button 
                                                 onClick={() => onEdit(item)}
-                                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-secondary hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Edit"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => handleVoidClick(item.id)}
-                                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-secondary hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Void"
                                             >
                                                 <Ban className="w-4 h-4" />
@@ -146,22 +146,22 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
             </div>
 
             {numPages > 1 && (
-                <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-slate-50/50">
-                    <span className="text-xs text-gray-500 font-semibold">
+                <div className="flex justify-between items-center px-6 py-4 border-t border-card bg-page/50">
+                    <span className="text-xs text-secondary font-semibold">
                         Showing page {page} of {numPages} ({expenses.length} records)
                     </span>
                     <div className="flex gap-2">
                         <button
                             disabled={page <= 1}
                             onClick={() => setPage(prev => prev - 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Previous
                         </button>
                         <button
                             disabled={page >= numPages}
                             onClick={() => setPage(prev => prev + 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Next
                         </button>

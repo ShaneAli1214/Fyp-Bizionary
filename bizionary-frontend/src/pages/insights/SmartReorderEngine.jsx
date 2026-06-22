@@ -76,17 +76,17 @@ const SmartReorderEngine = () => {
 
     if (error) {
         return (
-            <div className="rounded-3xl bg-red-50 p-8 border border-red-200">
+            <div className="rounded-3xl bg-status-info/10 p-8 border border-card">
                 <div className="flex items-center gap-3 mb-4">
-                    <AlertCircle className="w-6 h-6 text-red-600" />
+                    <AlertCircle className="w-6 h-6 text-status-info" />
                     <div>
                         <h3 className="font-semibold text-red-900">Error Loading Smart Reorder Engine</h3>
-                        <p className="text-sm text-red-700 mt-1">{error}</p>
+                        <p className="text-sm text-status-info mt-1">{error}</p>
                     </div>
                 </div>
                 <button
                     onClick={fetchSmartReorder}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    className="px-4 py-2 bg-status-info text-card rounded-lg hover:bg-red-700 transition"
                 >
                     Retry
                 </button>
@@ -97,9 +97,9 @@ const SmartReorderEngine = () => {
     return (
         <div className="space-y-6">
             <PageHeader title="Smart Reorder Engine" subtitle="Live reorder planning from sales velocity and stock coverage." />
-            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-6 border border-primary/20">
+            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-accent/20 p-6 border border-primary/20">
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-card shrink-0">
                         <Bot className="w-5 h-5" />
                     </div>
                     <p className="text-sm text-textMuted">AI-powered reorder analysis using live stock and sales data.</p>
@@ -107,7 +107,7 @@ const SmartReorderEngine = () => {
             </div>
 
             {data && (
-                <div className="rounded-3xl bg-white p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="rounded-3xl bg-card p-5 shadow-sm border border-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="text-sm text-textMuted">
                         <span className="font-semibold text-textMain">To Reorder:</span> {data.total_products_to_reorder} / {data.total_products_evaluated}
                         <span className="mx-2">|</span>
@@ -119,7 +119,7 @@ const SmartReorderEngine = () => {
                 </div>
             )}
 
-            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                 <h3 className="text-lg font-bold text-textMain mb-2">All Products Planning</h3>
                 <p className="text-sm text-textMuted mb-4">Showing all products with demand, stock, reorder quantity, and urgency.</p>
                 {allProductsPlanning.length === 0 ? (
@@ -129,7 +129,7 @@ const SmartReorderEngine = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm min-w-[920px]">
                             <thead>
-                                <tr className="border-b border-gray-200">
+                                <tr className="border-b border-card">
                                     <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Demand</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Current</th>
@@ -141,7 +141,7 @@ const SmartReorderEngine = () => {
                             </thead>
                             <tbody>
                                 {paginatedProducts.map((item) => (
-                                    <tr key={`reorder-${item.product_id}`} className="border-b border-gray-100 hover:bg-gray-50">
+                                    <tr key={`reorder-${item.product_id}`} className="border-b border-card hover:bg-page">
                                         <td className="py-3 text-textMain font-medium">{item.product_name}</td>
                                         <td className="text-center py-3 text-textMain">{item.demand_band}</td>
                                         <td className="text-center py-3 text-textMain">{item.current_stock}</td>
@@ -164,7 +164,7 @@ const SmartReorderEngine = () => {
                                 type="button"
                                 onClick={goToPreviousPage}
                                 disabled={currentPage === 1}
-                                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-textMain disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 rounded-lg border border-card text-sm text-textMain disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Previous
                             </button>
@@ -176,8 +176,8 @@ const SmartReorderEngine = () => {
                                     onClick={() => setCurrentPage(page)}
                                     className={`px-3 py-1.5 rounded-lg border text-sm font-semibold ${
                                         currentPage === page
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'border-gray-200 text-textMain hover:bg-gray-50'
+                                            ? 'bg-primary text-card border-primary'
+                                            : 'border-card text-textMain hover:bg-page'
                                     }`}
                                 >
                                     {page}
@@ -188,7 +188,7 @@ const SmartReorderEngine = () => {
                                 type="button"
                                 onClick={goToNextPage}
                                 disabled={currentPage === totalPages}
-                                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-textMain disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 rounded-lg border border-card text-sm text-textMain disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Next
                             </button>
@@ -198,15 +198,15 @@ const SmartReorderEngine = () => {
                 )}
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                 <h3 className="text-lg font-bold text-textMain mb-4">Immediate Reorder Queue</h3>
                 {reorderCandidates.length === 0 ? (
-                    <p className="text-sm text-green-700">No immediate reorder actions required based on current live data.</p>
+                    <p className="text-sm text-success">No immediate reorder actions required based on current live data.</p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-200">
+                                <tr className="border-b border-card">
                                     <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Reorder Qty</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Urgency</th>
@@ -214,7 +214,7 @@ const SmartReorderEngine = () => {
                             </thead>
                             <tbody>
                                 {reorderCandidates.slice(0, 15).map((item) => (
-                                    <tr key={`queue-${item.product_id}`} className="border-b border-gray-100 hover:bg-gray-50">
+                                    <tr key={`queue-${item.product_id}`} className="border-b border-card hover:bg-page">
                                         <td className="py-3 text-textMain font-medium">{item.product_name}</td>
                                         <td className="text-center py-3 text-primary font-bold">{item.recommended_order_quantity}</td>
                                         <td className="text-center py-3 text-textMain">{item.urgency}</td>
@@ -226,15 +226,15 @@ const SmartReorderEngine = () => {
                 )}
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                 <h3 className="text-lg font-bold text-textMain mb-4">Discontinue / Phase-Down Candidates</h3>
                 {discontinueCandidates.length === 0 ? (
-                    <p className="text-sm text-green-700">No low-demand discontinue candidates at the moment.</p>
+                    <p className="text-sm text-success">No low-demand discontinue candidates at the moment.</p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-200">
+                                <tr className="border-b border-card">
                                     <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Demand</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Units</th>
@@ -245,7 +245,7 @@ const SmartReorderEngine = () => {
                             </thead>
                             <tbody>
                                 {discontinueCandidates.map((item) => (
-                                    <tr key={`discontinue-${item.product_id}`} className="border-b border-gray-100 hover:bg-gray-50">
+                                    <tr key={`discontinue-${item.product_id}`} className="border-b border-card hover:bg-page">
                                         <td className="py-3 text-textMain font-medium">{item.product_name}</td>
                                         <td className="text-center py-3 text-textMain">{item.demand_band}</td>
                                         <td className="text-center py-3 text-textMain">{item.units_sold_period}</td>

@@ -25,7 +25,7 @@ const AppsStrip = ({ compact }) => {
             <div className={`apps-cards ${compact ? 'apps-cards-compact' : 'apps-cards-grid'}`}>
                 {apps.map((app) => (
                     <div key={app.label} onClick={() => navigate(app.path)} className="apps-card bg-background/50 rounded-xl p-3 border border-surface/8 flex items-center gap-3 cursor-pointer hover:shadow-md">
-                        <div className="apps-card-icon w-10 h-10 rounded flex items-center justify-center text-white font-bold" aria-hidden>
+                        <div className="apps-card-icon w-10 h-10 rounded flex items-center justify-center text-card font-bold" aria-hidden>
                             {app.label.split(' ').map(w => w[0]).join('').slice(0,2)}
                         </div>
                         <div className="min-w-0">

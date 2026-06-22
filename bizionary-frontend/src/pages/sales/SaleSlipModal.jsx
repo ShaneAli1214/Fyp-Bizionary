@@ -141,7 +141,7 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
 
             <button
                 type="button"
-                className="fixed inset-0 bg-black/40"
+                className="fixed inset-0 bg-primary/40"
                 aria-label="Close sale slip"
                 onClick={onClose}
             />
@@ -151,7 +151,7 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="sale-slip-no-print print:hidden ml-auto rounded-full p-2 text-gray-400 transition-colors hover:bg-white hover:text-gray-600"
+                        className="sale-slip-no-print print:hidden ml-auto rounded-full p-2 text-secondary transition-colors hover:bg-card hover:text-secondary"
                         aria-label="Close sale slip"
                     >
                         <X className="h-5 w-5" />
@@ -159,59 +159,59 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
 
                     <div
                         ref={receiptRef}
-                        className="sale-slip-print-area mx-auto w-full max-w-[350px] rounded-lg bg-white px-5 py-6 shadow-xl ring-1 ring-gray-200 font-mono text-gray-800 print:w-[80mm] print:max-w-none print:rounded-none print:shadow-none print:ring-0"
+                        className="sale-slip-print-area mx-auto w-full max-w-[350px] rounded-lg bg-card px-5 py-6 shadow-xl ring-1 ring-gray-200 font-mono text-primary print:w-[80mm] print:max-w-none print:rounded-none print:shadow-none print:ring-0"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="text-center">
                             <p className="text-[15px] font-bold uppercase tracking-[0.28em]">Bizionary CRM</p>
-                            <p className="mt-1 text-[11px] leading-4 text-gray-500">
+                            <p className="mt-1 text-[11px] leading-4 text-secondary">
                                 Main Boulevard, Lahore
                                 <br />
                                 info@bizionary.com | +92 300 0000000
                             </p>
 
-                            <div className="mt-4 border-t border-dashed border-gray-300 pt-3 text-left text-[11px] leading-5 text-gray-700">
+                            <div className="mt-4 border-t border-dashed border-card pt-3 text-left text-[11px] leading-5 text-primary">
                                 <div className="flex items-start justify-between gap-3">
-                                    <span className="font-medium text-gray-500">Date:</span>
+                                    <span className="font-medium text-secondary">Date:</span>
                                     <span className="text-right">{saleDate}{saleTime ? ` ${saleTime}` : ''}</span>
                                 </div>
                                 <div className="flex items-start justify-between gap-3">
-                                    <span className="font-medium text-gray-500">Receipt No:</span>
+                                    <span className="font-medium text-secondary">Receipt No:</span>
                                     <span className="text-right">{saleIdLabel}</span>
                                 </div>
                                 <div className="flex items-start justify-between gap-3">
-                                    <span className="font-medium text-gray-500">Customer:</span>
+                                    <span className="font-medium text-secondary">Customer:</span>
                                     <span className="max-w-[180px] text-right">{sale?.customer_name || 'N/A'}</span>
                                 </div>
                                 <div className="flex items-start justify-between gap-3">
-                                    <span className="font-medium text-gray-500">Payment:</span>
+                                    <span className="font-medium text-secondary">Payment:</span>
                                     <span className="text-right">{paymentMethod}</span>
                                 </div>
                                 <div className="flex items-start justify-between gap-3">
-                                    <span className="font-medium text-gray-500">Status:</span>
+                                    <span className="font-medium text-secondary">Status:</span>
                                     <span className="text-right">{paymentStatus}</span>
                                 </div>
                             </div>
 
-                            <div className="mt-4 border-t border-dashed border-gray-300 pt-3 text-left">
-                                <div className="grid grid-cols-[1fr_auto] gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                            <div className="mt-4 border-t border-dashed border-card pt-3 text-left">
+                                <div className="grid grid-cols-[1fr_auto] gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
                                     <span>Item</span>
                                     <span className="text-right">Total</span>
                                 </div>
 
-                                <div className="mt-2 space-y-2 border-t border-dashed border-gray-200 pt-2 text-[11px] leading-5 text-gray-800">
+                                <div className="mt-2 space-y-2 border-t border-dashed border-card pt-2 text-[11px] leading-5 text-primary">
                                     {slipItems.map((item, index) => (
                                         <div key={`${item.product_code}-${index}`} className="grid grid-cols-[1fr_auto] gap-3">
                                             <div>
                                                 <span className="font-medium">{item.quantity_sold}x {item.product_name}</span>
-                                                <span className="ml-1 text-gray-500">({formatPKR(item.unit_price)})</span>
+                                                <span className="ml-1 text-secondary">({formatPKR(item.unit_price)})</span>
                                             </div>
                                             <div className="text-right font-medium">{formatPKR(item.total_price)}</div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="mt-4 border-t border-dashed border-gray-300 pt-3 text-[11px] text-gray-700">
+                                <div className="mt-4 border-t border-dashed border-card pt-3 text-[11px] text-primary">
                                     <div className="flex items-center justify-between gap-3">
                                         <span>Products</span>
                                         <span>{itemCountLabel}</span>
@@ -223,7 +223,7 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                                 </div>
                             </div>
 
-                            <div className="mt-4 border-t border-dashed border-gray-300 pt-3 text-[11px] text-gray-700">
+                            <div className="mt-4 border-t border-dashed border-card pt-3 text-[11px] text-primary">
                                 <div className="flex items-center justify-between gap-3">
                                     <span>Subtotal</span>
                                     <span>{formatPKR(totalPrice)}</span>
@@ -232,13 +232,13 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                                     <span>Discount</span>
                                     <span>{formatPKR(discount)}</span>
                                 </div>
-                                <div className="mt-2 flex items-center justify-between gap-3 border-t border-dashed border-gray-300 pt-2">
-                                    <span className="text-sm font-semibold text-gray-800">Grand Total</span>
-                                    <span className="text-base font-bold text-gray-800">{formatPKR(grandTotal)}</span>
+                                <div className="mt-2 flex items-center justify-between gap-3 border-t border-dashed border-card pt-2">
+                                    <span className="text-sm font-semibold text-primary">Grand Total</span>
+                                    <span className="text-base font-bold text-primary">{formatPKR(grandTotal)}</span>
                                 </div>
                             </div>
 
-                            <div className="mt-4 border-t border-dashed border-gray-300 pt-3 text-center text-[11px] text-gray-500">
+                            <div className="mt-4 border-t border-dashed border-card pt-3 text-center text-[11px] text-secondary">
                                 Thank you for shopping with us.
                             </div>
                         </div>
@@ -248,7 +248,7 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 print:hidden"
+                            className="inline-flex items-center justify-center rounded-md border border-card bg-card px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-page print:hidden"
                         >
                             Back
                         </button>
@@ -256,16 +256,16 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                         <button
                             type="button"
                             onClick={handlePrint}
-                            className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 print:hidden"
+                            className="inline-flex items-center justify-center rounded-md border border-card bg-card px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-page print:hidden"
                         >
-                            <Printer className="mr-2 h-4 w-4 text-gray-500" />
+                            <Printer className="mr-2 h-4 w-4 text-secondary" />
                             Print
                         </button>
                         <button
                             type="button"
                             onClick={handleDownload}
                             disabled={isDownloading}
-                            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 print:hidden"
+                            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 print:hidden"
                         >
                             <Download className="mr-2 h-4 w-4" />
                             {isDownloading ? 'Downloading...' : 'Download'}

@@ -87,11 +87,11 @@ const PurchasesList = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-gray-400" />
+                        <Search className="h-4 w-4 text-secondary" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
+                        className="block w-full pl-10 pr-3 py-2 border border-card rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
                         placeholder="Search by product, company, or ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -100,11 +100,11 @@ const PurchasesList = () => {
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative w-full sm:w-auto">
-                        <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                         <select
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="w-full sm:w-44 pl-9 pr-3 py-2 border border-gray-100 rounded-xl text-sm bg-surface text-textMain outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full sm:w-44 pl-9 pr-3 py-2 border border-card rounded-xl text-sm bg-surface text-textMain outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="ALL">All Categories</option>
                             {PRODUCT_CATEGORIES.map((item) => (
@@ -114,7 +114,7 @@ const PurchasesList = () => {
                     </div>
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20 w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         New Purchase
@@ -123,7 +123,7 @@ const PurchasesList = () => {
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={6} />
@@ -131,7 +131,7 @@ const PurchasesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-white text-textMuted text-xs uppercase tracking-wider border-b border-gray-100">
+                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">PO #</th>
                                     <th className="px-6 py-4 font-semibold">Date</th>
@@ -145,14 +145,14 @@ const PurchasesList = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {filteredPurchases.map((p) => (
-                                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={p.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">PO-{p.id.toString().padStart(4, '0')}</td>
                                         <td className="px-6 py-4 text-textMuted">{p.purchase_date}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{p.company_name}</td>
                                         <td className="px-6 py-4 text-textMuted">{getCategoryLabel(p.product_category) || 'N/A'}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">{p.product_name || `Product ID: ${p.product}`}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-100">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-background text-text-secondary border border-border">
                                                 {p.quantity_purchased}
                                             </span>
                                         </td>
@@ -161,14 +161,14 @@ const PurchasesList = () => {
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => openEditForm(p)}
-                                                    className="text-gray-400 hover:text-primary transition-colors"
+                                                    className="text-secondary hover:text-primary transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit2 className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(p.id)}
-                                                    className="text-gray-400 hover:text-danger hover:fill-danger/10 transition-colors"
+                                                    className="text-secondary hover:text-danger hover:fill-danger/10 transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />

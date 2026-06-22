@@ -242,7 +242,7 @@ const AIInsights = () => {
         }
     };
 
-    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+    const COLORS = ['#A6764F', '#6B8E4E', '#C99A4A', '#B5533C', '#8A7F6E'];
 
     if (loading) {
         return (
@@ -259,12 +259,12 @@ const AIInsights = () => {
     }
 
     const errorBanner = insightsError ? (
-        <div className="rounded-3xl bg-red-50 p-4 border border-red-200 mb-4">
+        <div className="rounded-3xl bg-status-info/10 p-4 border border-card mb-4">
             <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+                <AlertCircle className="w-5 h-5 text-status-info" />
                 <div>
                     <div className="font-semibold text-red-900">Error Loading Insights</div>
-                    <div className="text-sm text-red-700">{insightsError}</div>
+                    <div className="text-sm text-status-info">{insightsError}</div>
                 </div>
             </div>
         </div>
@@ -316,24 +316,24 @@ const AIInsights = () => {
             <div className="space-y-6">
                 <PageHeader title="AI Insights" subtitle="Powered by Advanced Analytics & AI" />
                 {/* Feature Banner */}
-                <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-8 border border-primary/20">
+                <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-card">
                             <Brain className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-textMain">AI Insights Dashboard</h2>
-                            <p className="text-textMuted mt-0.5 text-sm">Powered by Advanced Analytics & AI</p>
+                            <h2 className="text-xl font-bold text-text-primary">AI Insights Dashboard</h2>
+                            <p className="text-text-secondary mt-0.5 text-sm">Powered by Advanced Analytics & AI</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Empty State / Compilation Placeholder */}
-                <div className="rounded-3xl bg-white border border-slate-100 p-12 text-center flex flex-col items-center justify-center min-h-[350px] shadow-sm">
-                    <div className="w-16 h-16 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-center mb-5 animate-pulse">
-                        <Brain className="w-8 h-8 text-slate-400" />
+                <div className="rounded-3xl bg-card border border-card p-12 text-center flex flex-col items-center justify-center min-h-[350px] shadow-sm">
+                    <div className="w-16 h-16 bg-page border border-slate-150 rounded-2xl flex items-center justify-center mb-5 animate-pulse">
+                        <Brain className="w-8 h-8 text-secondary" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800">AI Financial Insights Compiling</h3>
+                    <h3 className="text-lg font-bold text-primary">AI Financial Insights Compiling</h3>
                     <p className="text-sm text-textMuted max-w-md mt-2 leading-relaxed">
                         Bizionary AI is currently analyzing your general ledger accounts. Predictive modeling, revenue diagnostics, and cash flow warnings will automatically activate once sales and revenue records are created.
                     </p>
@@ -345,28 +345,28 @@ const AIInsights = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-blue-500/10 p-8 border border-primary/20">
+            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
+                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-card">
                         <Brain className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-textMain">AI Insights Dashboard</h1>
-                        <p className="text-textMuted mt-1">Powered by Advanced Analytics & AI</p>
-                        <p className="text-xs text-textMuted mt-1">Data source: db.sqlite3 (live)</p>
+                        <h1 className="text-3xl font-bold text-text-primary">AI Insights Dashboard</h1>
+                        <p className="text-text-secondary mt-1">Powered by Advanced Analytics & AI</p>
+                        <p className="text-xs text-text-secondary mt-1">Data source: db.sqlite3 (live)</p>
                     </div>
                 </div>
             </div>
 
             {/* Tabs */}
             {!isAccountant && (
-                <div className="rounded-2xl bg-white p-2 border border-gray-100 shadow-sm inline-flex gap-2">
+                <div className="rounded-2xl bg-surface p-2 border border-border shadow-sm inline-flex gap-2">
                     <button
                         onClick={() => setActiveTab('live')}
                         className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
                             activeTab === 'live'
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-100 text-textMain hover:bg-gray-200'
+                                ? 'bg-primary text-card'
+                                : 'bg-background text-text-primary hover:bg-border'
                         }`}
                     >
                         Live Insights
@@ -375,8 +375,8 @@ const AIInsights = () => {
                         onClick={() => setActiveTab('nlp')}
                         className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
                             activeTab === 'nlp'
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-100 text-textMain hover:bg-gray-200'
+                                ? 'bg-primary text-card'
+                                : 'bg-background text-text-primary hover:bg-border'
                         }`}
                     >
                         NLP Report
@@ -387,12 +387,12 @@ const AIInsights = () => {
             {activeTab === 'nlp' ? (
                 <div className="space-y-6">
                     {nlpReportError ? (
-                        <div className="rounded-3xl bg-red-50 p-8 border border-red-200">
+                        <div className="rounded-3xl bg-status-info/10 p-8 border border-card">
                             <div className="flex items-center gap-3 mb-4">
-                                <AlertCircle className="w-6 h-6 text-red-600" />
+                                <AlertCircle className="w-6 h-6 text-status-info" />
                                 <div>
                                     <h3 className="font-semibold text-red-900">Error Loading NLP Report</h3>
-                                    <p className="text-sm text-red-700 mt-1">{nlpReportError}</p>
+                                    <p className="text-sm text-status-info mt-1">{nlpReportError}</p>
                                 </div>
                             </div>
                             <button
@@ -400,7 +400,7 @@ const AIInsights = () => {
                                     setNlpReportError('');
                                     fetchNlpReport(selectedNlpPeriod);
                                 }}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                className="px-4 py-2 bg-status-info text-card rounded-lg hover:bg-red-700 transition"
                             >
                                 Retry
                             </button>
@@ -411,7 +411,7 @@ const AIInsights = () => {
                         </div>
                     ) : (
                         <>
-                            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Customer Reviews</h3>
                                 <p className="text-sm text-textMuted mb-5">Submit a live review and it will flow into NLP report metrics immediately.</p>
                                 <form onSubmit={submitCustomerReview} className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -422,7 +422,7 @@ const AIInsights = () => {
                                             value={reviewForm.customer_name}
                                             onChange={(e) => setReviewForm((prev) => ({ ...prev, customer_name: e.target.value }))}
                                             placeholder="Enter your name"
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                            className="w-full px-3 py-2 rounded-lg border border-card focus:outline-none focus:ring-2 focus:ring-primary/30"
                                             maxLength={255}
                                             required
                                         />
@@ -432,7 +432,7 @@ const AIInsights = () => {
                                         <select
                                             value={reviewForm.rating}
                                             onChange={(e) => setReviewForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                            className="w-full px-3 py-2 rounded-lg border border-card bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
                                         >
                                             {[5, 4, 3, 2, 1].map((r) => (
                                                 <option key={r} value={r}>{r} Star{r > 1 ? 's' : ''}</option>
@@ -445,7 +445,7 @@ const AIInsights = () => {
                                             value={reviewForm.review_text}
                                             onChange={(e) => setReviewForm((prev) => ({ ...prev, review_text: e.target.value }))}
                                             placeholder="Share your feedback"
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                            className="w-full px-3 py-2 rounded-lg border border-card focus:outline-none focus:ring-2 focus:ring-primary/30"
                                             rows={3}
                                             maxLength={2000}
                                             required
@@ -455,7 +455,7 @@ const AIInsights = () => {
                                         <button
                                             type="submit"
                                             disabled={isSubmittingReview}
-                                            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
+                                            className="px-4 py-2 rounded-lg bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                                         >
                                             {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                                         </button>
@@ -466,7 +466,7 @@ const AIInsights = () => {
                                 </form>
                             </div>
 
-                            <div className="rounded-3xl bg-white p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="rounded-3xl bg-card p-5 shadow-sm border border-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-textMain">NLP Report Controls</h3>
                                     <p className="text-sm text-textMuted mt-1">View and export live report data by period.</p>
@@ -475,7 +475,7 @@ const AIInsights = () => {
                                     <select
                                         value={selectedNlpPeriod}
                                         onChange={(e) => setSelectedNlpPeriod(e.target.value)}
-                                        className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-textMain"
+                                        className="px-3 py-2 rounded-lg border border-card bg-card text-sm text-textMain"
                                     >
                                         <option value="daily">Daily</option>
                                         <option value="weekly">Weekly</option>
@@ -483,7 +483,7 @@ const AIInsights = () => {
                                     </select>
                                     <button
                                         onClick={downloadNlpReportCsv}
-                                        className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition"
+                                        className="px-4 py-2 rounded-lg bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition"
                                     >
                                         Download CSV
                                     </button>
@@ -491,46 +491,46 @@ const AIInsights = () => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Reviews ({(NLP_PERIODS[selectedNlpPeriod] || NLP_PERIODS.monthly).label})</p>
                                     <p className="text-3xl font-bold text-primary mt-2">{nlpReport.review_summary?.total_reviews || 0}</p>
                                 </div>
-                                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Avg Rating</p>
-                                    <p className="text-3xl font-bold text-green-600 mt-2">{nlpReport.review_summary?.average_rating || 0}/5</p>
+                                    <p className="text-3xl font-bold text-success mt-2">{nlpReport.review_summary?.average_rating || 0}/5</p>
                                 </div>
-                                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Positive Ratio</p>
-                                    <p className="text-3xl font-bold text-emerald-600 mt-2">{nlpReport.review_summary?.positive_ratio || 0}%</p>
+                                    <p className="text-3xl font-bold text-success mt-2">{nlpReport.review_summary?.positive_ratio || 0}%</p>
                                 </div>
-                                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Sales in Report</p>
-                                    <p className="text-3xl font-bold text-orange-600 mt-2">{nlpReport.sales_summary?.total_sales || 0}</p>
+                                    <p className="text-3xl font-bold text-warning mt-2">{nlpReport.sales_summary?.total_sales || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 p-8 border border-primary/20">
+                            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
                                 <h3 className="text-lg font-bold text-textMain mb-3">NLP Recommendation</h3>
                                 <p className="text-textMain leading-7">{nlpReport.recommendation}</p>
                             </div>
 
-                            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Key Findings</h3>
                                 <ul className="space-y-3">
                                     {(nlpReport.key_findings || []).map((item, idx) => (
-                                        <li key={idx} className="text-textMain bg-gray-50 border border-gray-100 rounded-xl p-3">
+                                        <li key={idx} className="text-textMain bg-page border border-card rounded-xl p-3">
                                             {item}
                                         </li>
                                     ))}
                                 </ul>
                             </div>
 
-                            <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Recent Customer Reviews</h3>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="border-b border-gray-200">
+                                            <tr className="border-b border-card">
                                                 <th className="text-left py-3 text-textMuted font-semibold">Customer</th>
                                                 <th className="text-left py-3 text-textMuted font-semibold">Review</th>
                                                 <th className="text-center py-3 text-textMuted font-semibold">Rating</th>
@@ -539,17 +539,17 @@ const AIInsights = () => {
                                         </thead>
                                         <tbody>
                                             {(nlpReport.recent_reviews || []).map((review) => (
-                                                <tr key={review.id} className="border-b border-gray-100">
+                                                <tr key={review.id} className="border-b border-card">
                                                     <td className="py-3 text-textMain font-medium">{review.customer_name}</td>
                                                     <td className="py-3 text-textMain">{review.review_text}</td>
                                                     <td className="py-3 text-center text-textMain">{review.rating}</td>
                                                     <td className="py-3 text-center">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                                                             review.sentiment_label === 'positive'
-                                                                ? 'bg-green-100 text-green-700'
+                                                                ? 'bg-success/15 text-success'
                                                                 : review.sentiment_label === 'negative'
-                                                                    ? 'bg-red-100 text-red-700'
-                                                                    : 'bg-gray-100 text-gray-700'
+                                                                    ? 'bg-danger/15 text-danger'
+                                                                    : 'bg-background text-text-secondary'
                                                         }`}>
                                                             {review.sentiment_label}
                                                         </span>
@@ -568,7 +568,7 @@ const AIInsights = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Revenue (30d)</p>
@@ -576,34 +576,34 @@ const AIInsights = () => {
                                 ₨{(displayedInsights.total_revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </p>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-blue-600" />
+                        <div className="w-12 h-12 bg-accent/15 rounded-full flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-accent" />
                         </div>
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Sales</p>
-                            <p className="text-3xl font-bold text-green-600 mt-2">{displayedInsights.total_sales || 0}</p>
+                            <p className="text-3xl font-bold text-success mt-2">{displayedInsights.total_sales || 0}</p>
                         </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-green-600" />
+                        <div className="w-12 h-12 bg-success/15 rounded-full flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-success" />
                         </div>
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Avg Order Value</p>
-                            <p className="text-3xl font-bold text-orange-600 mt-2">
+                            <p className="text-3xl font-bold text-warning mt-2">
                                 ₨{(displayedInsights.average_order_value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </p>
                         </div>
-                        <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                            <Package className="w-6 h-6 text-orange-600" />
+                        <div className="w-12 h-12 bg-warning/15 rounded-full flex items-center justify-center">
+                            <Package className="w-6 h-6 text-warning" />
                         </div>
                     </div>
                 </div>
@@ -612,30 +612,30 @@ const AIInsights = () => {
             {/* Charts Row 1 */}
             <div className={`grid grid-cols-1 ${isAccountant ? 'grid-cols-1' : 'lg:grid-cols-2'} gap-6`}>
                 {/* Sales Trend */}
-                <div className={`rounded-3xl bg-white p-6 shadow-sm border border-gray-100 ${isAccountant ? 'col-span-full' : ''}`}>
+                <div className={`rounded-3xl bg-card p-6 shadow-sm border border-card ${isAccountant ? 'col-span-full' : ''}`}>
                     <h3 className="text-lg font-bold text-textMain mb-4">Sales Trend (30 Days)</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={salesTrendData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                            <YAxis tick={{ fontSize: 12 }} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                            <Line type="monotone" dataKey="sales" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 4 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D3" />
+                            <XAxis dataKey="date" tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                            <YAxis tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                            <Tooltip contentStyle={{ backgroundColor: '#FFFCF7', color: '#2E2620', border: '1px solid #E8E0D3', borderRadius: '12px' }} />
+                            <Line type="monotone" dataKey="sales" stroke="#A6764F" strokeWidth={2} dot={{ fill: '#A6764F', r: 4 }} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
 
                 {/* Hot Selling Products */}
                 {!isAccountant && (
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">🔥 Hot Selling Products</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={hotProductsChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} />
-                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                                <Bar dataKey="sales" fill="#10B981" radius={[8, 8, 0, 0]} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D3" />
+                                <XAxis dataKey="name" tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <YAxis tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#FFFCF7', color: '#2E2620', border: '1px solid #E8E0D3', borderRadius: '12px' }} />
+                                <Bar dataKey="sales" fill="#6B8E4E" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -646,30 +646,30 @@ const AIInsights = () => {
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Cold Selling Products */}
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">❄️ Low Selling Products</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={coldProductsChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} />
-                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                                <Bar dataKey="sales" fill="#F59E0B" radius={[8, 8, 0, 0]} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D3" />
+                                <XAxis dataKey="name" tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <YAxis tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#FFFCF7', color: '#2E2620', border: '1px solid #E8E0D3', borderRadius: '12px' }} />
+                                <Bar dataKey="sales" fill="#C99A4A" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
 
                     {/* Restocking Needed */}
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">⚠️ Products Needing Restocking</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={restockingChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} />
-                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                                <Bar dataKey="current" fill="#EF4444" radius={[8, 8, 0, 0]} />
-                                <Bar dataKey="recommended" fill="#8B5CF6" radius={[8, 8, 0, 0]} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D3" />
+                                <XAxis dataKey="name" tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <YAxis tick={{ fill: '#8A7F6E', fontSize: 12 }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#FFFCF7', color: '#2E2620', border: '1px solid #E8E0D3', borderRadius: '12px' }} />
+                                <Bar dataKey="current" fill="#B5533C" radius={[8, 8, 0, 0]} />
+                                <Bar dataKey="recommended" fill="#8A7F6E" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -677,7 +677,7 @@ const AIInsights = () => {
             )}
 
             {/* AI Analysis */}
-                <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 p-8 border border-primary/20">
+            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                         <Brain className="w-6 h-6 text-primary" />
@@ -694,12 +694,12 @@ const AIInsights = () => {
             {/* Daily Top Products (Quantity & Revenue) */}
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Quantity)</h3>
                         <p className="text-sm text-textMuted mb-3">Date: {latestQuantity?.date || 'N/A'}</p>
                         <ul className="space-y-2">
                             {(latestQuantity?.top || []).map((item, idx) => (
-                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-page border border-card">
                                     <div>
                                         <div className="font-medium text-textMain">{item.product_name}</div>
                                         <div className="text-sm text-textMuted">Units: {item.units}</div>
@@ -712,12 +712,12 @@ const AIInsights = () => {
                         </ul>
                     </div>
 
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Revenue)</h3>
                         <p className="text-sm text-textMuted mb-3">Date: {latestRevenue?.date || 'N/A'}</p>
                         <ul className="space-y-2">
                             {(latestRevenue?.top || []).map((item, idx) => (
-                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <li key={idx} className="flex items-center justify-between p-3 rounded-xl bg-page border border-card">
                                     <div>
                                         <div className="font-medium text-textMain">{item.product_name}</div>
                                         <div className="text-sm text-textMuted">Revenue: ₨{Number(item.revenue || 0).toLocaleString()}</div>
@@ -736,12 +736,12 @@ const AIInsights = () => {
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Hot Products Table */}
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">Top Performers</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-gray-200">
+                                    <tr className="border-b border-card">
                                         <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                         <th className="text-right py-3 text-textMuted font-semibold">Sales</th>
                                         <th className="text-right py-3 text-textMuted font-semibold">Revenue</th>
@@ -749,10 +749,10 @@ const AIInsights = () => {
                                 </thead>
                                 <tbody>
                                     {displayedInsights.hot_products?.map((product, idx) => (
-                                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                                        <tr key={idx} className="border-b border-card hover:bg-page">
                                             <td className="py-3 text-textMain font-medium">{product.product_name}</td>
                                             <td className="text-right py-3 text-textMain">{product.total_sales}</td>
-                                            <td className="text-right py-3 text-green-600 font-semibold">
+                                            <td className="text-right py-3 text-status-success font-semibold">
                                                 ₨{product.total_revenue?.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                                             </td>
                                         </tr>
@@ -763,12 +763,12 @@ const AIInsights = () => {
                     </div>
 
                     {/* Restocking Table */}
-                    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">Urgent: Low Stock</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-gray-200">
+                                    <tr className="border-b border-card">
                                         <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                         <th className="text-center py-3 text-textMuted font-semibold">Current</th>
                                         <th className="text-center py-3 text-textMuted font-semibold">Min</th>
@@ -776,9 +776,9 @@ const AIInsights = () => {
                                 </thead>
                                 <tbody>
                                     {displayedInsights.restocking_needed?.map((product, idx) => (
-                                        <tr key={idx} className="border-b border-gray-100 hover:bg-red-50">
+                                        <tr key={idx} className="border-b border-card hover:bg-status-info/10">
                                             <td className="py-3 text-textMain font-medium">{product.product_name}</td>
-                                            <td className="text-center py-3 text-red-600 font-bold">{product.stock_level}</td>
+                                            <td className="text-center py-3 text-status-info font-bold">{product.stock_level}</td>
                                             <td className="text-center py-3 text-textMuted">{product.reorder_level}</td>
                                         </tr>
                                     ))}

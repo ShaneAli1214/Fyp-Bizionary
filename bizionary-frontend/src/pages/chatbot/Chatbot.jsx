@@ -297,7 +297,7 @@ const Chatbot = () => {
             
             // Render Headers (e.g. ### Header)
             if (renderedLine.startsWith('### ')) {
-                return <h4 key={idx} className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-2 mb-1 flex items-center gap-1.5">{renderedLine.replace('### ', '')}</h4>;
+                return <h4 key={idx} className="text-sm font-bold text-primary dark:text-slate-200 mt-2 mb-1 flex items-center gap-1.5">{renderedLine.replace('### ', '')}</h4>;
             }
             
             // Render Bullet points (e.g. - item)
@@ -349,9 +349,9 @@ const Chatbot = () => {
             }
             
             if (matchText.startsWith('**') && matchText.endsWith('**')) {
-                parts.push(<strong key={matchIndex} className="font-bold text-slate-900 dark:text-white">{matchText.slice(2, -2)}</strong>);
+                parts.push(<strong key={matchIndex} className="font-bold text-primary dark:text-card">{matchText.slice(2, -2)}</strong>);
             } else if (matchText.startsWith('`') && matchText.endsWith('`')) {
-                parts.push(<code key={matchIndex} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono text-[10px] text-primary dark:text-sky-300 border border-slate-200/40 dark:border-slate-700/50">{matchText.slice(1, -1)}</code>);
+                parts.push(<code key={matchIndex} className="bg-page dark:bg-primary px-1 py-0.5 rounded font-mono text-[10px] text-primary dark:text-sky-300 border border-card/40 dark:border-slate-700/50">{matchText.slice(1, -1)}</code>);
             } else if (matchText.startsWith('[') && matchText.includes('](')) {
                 const linkMatch = matchText.match(/\[([^\]]+)\]\(([^)]+)\)/);
                 if (linkMatch) {
@@ -379,7 +379,7 @@ const Chatbot = () => {
                                 href={backendUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 mx-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
+                                className="inline-flex items-center gap-1.5 mx-1 px-3 py-1.5 bg-status-success hover:bg-emerald-700 text-card rounded-xl text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
                             >
                                 <Download className="w-3.5 h-3.5" />
                                 {label}
@@ -425,7 +425,7 @@ const Chatbot = () => {
     const renderChart = (config, index) => {
         if (!config || !config.data || !config.data.length) {
             return (
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-250/30 rounded-2xl text-[10px] text-textMuted text-center mt-3">
+                <div className="p-4 bg-page dark:bg-primary border border-slate-250/30 rounded-2xl text-[10px] text-textMuted text-center mt-3">
                     No data available for chart.
                 </div>
             );
@@ -515,8 +515,8 @@ const Chatbot = () => {
         };
 
         return (
-            <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-inner w-full min-w-[260px] animate-in fade-in zoom-in-95 duration-300">
-                {title && <h5 className="text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-2.5 text-center uppercase tracking-wide">{title}</h5>}
+            <div className="mt-3 p-4 bg-page dark:bg-primary border border-card dark:border-slate-800 rounded-2xl shadow-inner w-full min-w-[260px] animate-in fade-in zoom-in-95 duration-300">
+                {title && <h5 className="text-[10px] font-bold text-primary dark:text-slate-300 mb-2.5 text-center uppercase tracking-wide">{title}</h5>}
                 <div className="w-full h-[150px]">
                     <ResponsiveContainer width="100%" height="100%">
                         {renderChartComponent()}
@@ -564,17 +564,17 @@ const Chatbot = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto h-[calc(100vh-6rem)] min-h-[500px]">
             {/* Left Chat Screen (Takes 3 columns on desktop) */}
-            <div className="lg:col-span-3 flex flex-col h-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm rounded-3xl overflow-hidden relative">
+            <div className="lg:col-span-3 flex flex-col h-full bg-card dark:bg-primary border border-card dark:border-slate-800 shadow-sm rounded-3xl overflow-hidden relative">
                 {/* Header Actions */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-card dark:border-slate-800 bg-page/50 dark:bg-primary/50">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <Bot className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">AI Assistant</h2>
+                            <h2 className="text-sm font-bold text-primary dark:text-card">AI Assistant</h2>
                             <p className="text-[10px] text-textMuted flex items-center gap-1.5 mt-0.5">
-                                <span className={`w-1.5 h-1.5 rounded-full ${(demoMode || !isKeyConfigured) ? 'bg-orange-400' : 'bg-emerald-500 animate-pulse'}`}></span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${(demoMode || !isKeyConfigured) ? 'bg-orange-400' : 'bg-status-success animate-pulse'}`}></span>
                                 {(demoMode || !isKeyConfigured) ? 'Demo Mode (Offline)' : 'Online • Powered by Groq'}
                             </p>
                         </div>
@@ -584,7 +584,7 @@ const Chatbot = () => {
                         {/* Read Aloud Toggle */}
                         <button
                             onClick={() => setReadAloud(!readAloud)}
-                            className={`p-2 rounded-xl transition ${readAloud ? 'bg-primary/10 text-primary' : 'text-textMuted hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            className={`p-2 rounded-xl transition ${readAloud ? 'bg-primary/10 text-primary' : 'text-textMuted hover:bg-page dark:hover:bg-primary'}`}
                             title="Toggle Read Aloud"
                         >
                             {readAloud ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -593,7 +593,7 @@ const Chatbot = () => {
                         {/* Reset Chat */}
                         <button
                             onClick={resetChat}
-                            className="p-2 rounded-xl text-textMuted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition"
+                            className="p-2 rounded-xl text-textMuted hover:text-red-500 hover:bg-status-info/10 dark:hover:bg-red-950/20 transition"
                             title="Clear conversation history"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -602,7 +602,7 @@ const Chatbot = () => {
                         {/* Export Chat */}
                         <button
                             onClick={exportChat}
-                            className="p-2 rounded-xl text-textMuted hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                            className="p-2 rounded-xl text-textMuted hover:bg-page dark:hover:bg-primary transition"
                             title="Export chat transcript"
                         >
                             <Download className="w-4 h-4" />
@@ -623,7 +623,7 @@ const Chatbot = () => {
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => setDemoMode(true)}
-                                className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${demoMode ? 'bg-orange-600 text-white shadow-sm' : 'border border-orange-300 text-orange-800 dark:text-orange-400 hover:bg-orange-100'}`}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${demoMode ? 'bg-orange-600 text-card shadow-sm' : 'border border-orange-300 text-orange-800 dark:text-orange-400 hover:bg-orange-100'}`}
                             >
                                 Use Demo Mode
                             </button>
@@ -655,25 +655,25 @@ const Chatbot = () => {
                             
                             <div className={`p-4 rounded-3xl shadow-sm border text-xs leading-relaxed transition ${
                                 msg.sender === 'user'
-                                    ? 'bg-primary text-white border-primary/20 rounded-tr-none'
-                                    : 'bg-white dark:bg-slate-850 text-slate-800 dark:text-slate-100 border-gray-100 dark:border-slate-800/80 rounded-tl-none'
+                                    ? 'bg-primary text-card border-primary/20 rounded-tr-none'
+                                    : 'bg-card dark:bg-slate-850 text-primary dark:text-slate-100 border-card dark:border-slate-800/80 rounded-tl-none'
                             }`}>
                                 {renderMessageContent(msg, index)}
                                 
                                 {/* AI Message Utilities */}
                                 {msg.sender === 'assistant' && (
-                                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-3 pt-2">
+                                    <div className="flex items-center justify-between border-t border-card dark:border-slate-800 mt-3 pt-2">
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => speakText(msg.text, index)}
-                                                className={`p-1.5 rounded-lg transition ${activeSpeech === index ? 'text-primary bg-primary/10' : 'text-textMuted hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                                className={`p-1.5 rounded-lg transition ${activeSpeech === index ? 'text-primary bg-primary/10' : 'text-textMuted hover:bg-page dark:hover:bg-primary'}`}
                                                 title="Read text out loud"
                                             >
                                                 <Volume2 className="w-3.5 h-3.5" />
                                             </button>
                                             <button 
                                                 onClick={() => handleCopy(msg.text, index)}
-                                                className="p-1.5 rounded-lg text-textMuted hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                                                className="p-1.5 rounded-lg text-textMuted hover:bg-page dark:hover:bg-primary transition"
                                                 title="Copy to clipboard"
                                             >
                                                 {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -682,13 +682,13 @@ const Chatbot = () => {
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => handleRate(index, 'up')}
-                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'up' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20' : 'text-textMuted hover:bg-slate-50'}`}
+                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'up' ? 'text-status-success bg-status-success/10 dark:bg-emerald-950/20' : 'text-textMuted hover:bg-page'}`}
                                             >
                                                 <ThumbsUp className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                                 onClick={() => handleRate(index, 'down')}
-                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'down' ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/20' : 'text-textMuted hover:bg-slate-50'}`}
+                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'down' ? 'text-status-info bg-status-info/10 dark:bg-rose-950/20' : 'text-textMuted hover:bg-page'}`}
                                             >
                                                 <ThumbsDown className="w-3.5 h-3.5" />
                                             </button>
@@ -702,7 +702,7 @@ const Chatbot = () => {
                     {loading && (
                         <div className="mr-auto items-start max-w-[80%] flex flex-col animate-pulse">
                             <div className="text-[10px] text-textMuted mb-1">🤖 AI Assistant • Thinking...</div>
-                            <div className="bg-white dark:bg-slate-850 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 rounded-tl-none flex items-center gap-2">
+                            <div className="bg-card dark:bg-slate-850 p-4 rounded-3xl border border-card dark:border-slate-800 rounded-tl-none flex items-center gap-2">
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -713,21 +713,21 @@ const Chatbot = () => {
 
                 {/* Error Banner */}
                 {error && (
-                    <div className="px-6 py-2 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-xs border-t border-rose-100 flex items-center gap-2">
+                    <div className="px-6 py-2 bg-status-info/10 dark:bg-rose-950/20 text-status-info dark:text-rose-400 text-xs border-t border-rose-100 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                         <span>{error}</span>
                     </div>
                 )}
 
                 {/* Footer Input Area */}
-                <div className="border-t border-gray-100 dark:border-slate-800 p-4 bg-white dark:bg-slate-900 rounded-b-3xl">
+                <div className="border-t border-card dark:border-slate-800 p-4 bg-card dark:bg-primary rounded-b-3xl">
                     <div className="relative flex items-center">
                         <textarea
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Ask me anything about Bizionary..."
-                            className="w-full pl-4 pr-24 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl text-xs text-slate-800 dark:text-slate-100 shadow-inner outline-none focus:border-primary focus:bg-white dark:focus:bg-slate-900 transition resize-none min-h-[48px] max-h-[120px]"
+                            className="w-full pl-4 pr-24 py-3 bg-page dark:bg-primary border border-card dark:border-slate-850 rounded-2xl text-xs text-primary dark:text-slate-100 shadow-inner outline-none focus:border-primary focus:bg-card dark:focus:bg-primary transition resize-none min-h-[48px] max-h-[120px]"
                             rows="1"
                         />
                         
@@ -736,7 +736,7 @@ const Chatbot = () => {
                             <button
                                 type="button"
                                 onClick={toggleListening}
-                                className={`p-2 rounded-xl transition active:scale-95 ${isListening ? 'bg-rose-500 text-white shadow-md animate-pulse' : 'text-textMuted hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                className={`p-2 rounded-xl transition active:scale-95 ${isListening ? 'bg-rose-500 text-card shadow-md animate-pulse' : 'text-textMuted hover:bg-page dark:hover:bg-primary'}`}
                                 title={isListening ? 'Stop listening' : 'Speak your query'}
                             >
                                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -747,7 +747,7 @@ const Chatbot = () => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-2 bg-gradient-to-br from-[#1C3A5A] to-[#2B527E] hover:from-[#13283E] hover:to-[#1C3A5A] text-white rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
+                                className="p-2 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>
@@ -759,12 +759,12 @@ const Chatbot = () => {
             {/* Right Guide Screen (Takes 1 column on desktop, hidden on mobile/tablet) */}
             <div className="hidden lg:flex flex-col gap-6 h-full">
                 {/* Shortcuts & Guide */}
-                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm space-y-4">
-                    <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-3xl shadow-sm space-y-4">
+                    <h3 className="text-xs font-bold text-primary dark:text-card uppercase tracking-wider flex items-center gap-1.5">
                         <HelpCircle className="w-4 h-4 text-primary" />
                         Quick Shortcuts
                     </h3>
-                    <p className="text-[11px] text-textMuted dark:text-gray-400">
+                    <p className="text-[11px] text-textMuted dark:text-secondary">
                         Click any prompt card below to test the query instantly:
                     </p>
                     <div className="space-y-2">
@@ -773,7 +773,7 @@ const Chatbot = () => {
                                 key={idx}
                                 onClick={() => handleSend(shortcut.query)}
                                 disabled={loading}
-                                className="w-full p-3 bg-slate-50 hover:bg-primary/5 dark:bg-slate-950/40 hover:text-primary dark:hover:text-sky-400 text-left text-xs font-semibold rounded-xl border border-gray-100 dark:border-slate-800/80 transition active:scale-[0.98] disabled:opacity-50"
+                                className="w-full p-3 bg-page hover:bg-primary/5 dark:bg-primary/40 hover:text-primary dark:hover:text-sky-400 text-left text-xs font-semibold rounded-xl border border-card dark:border-slate-800/80 transition active:scale-[0.98] disabled:opacity-50"
                             >
                                 {shortcut.label}
                             </button>
@@ -782,35 +782,35 @@ const Chatbot = () => {
                 </div>
 
                 {/* Dashboard Metrics (Cached in state) */}
-                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-5 rounded-3xl shadow-sm flex-1 flex flex-col justify-between space-y-4">
+                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-3xl shadow-sm flex-1 flex flex-col justify-between space-y-4">
                     <div>
-                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                        <h3 className="text-xs font-bold text-primary dark:text-card uppercase tracking-wider flex items-center gap-1.5 mb-2">
                             <Database className="w-4 h-4 text-emerald-500" />
                             Live Statistics
                         </h3>
-                        <p className="text-[10px] text-textMuted dark:text-gray-400">
+                        <p className="text-[10px] text-textMuted dark:text-secondary">
                             Current database figures cached locally for AI context:
                         </p>
                     </div>
 
                     <div className="space-y-3 flex-1 flex flex-col justify-center">
-                        <div className="p-3 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
+                        <div className="p-3 bg-page dark:bg-primary/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-textMuted uppercase">Revenue</span>
-                            <span className="text-xs font-black text-slate-900 dark:text-white">
+                            <span className="text-xs font-black text-primary dark:text-card">
                                 {kpis?.total_revenue ? `Rs ${Number(kpis.total_revenue).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : 'Rs 1,245,630'}
                             </span>
                         </div>
                         
-                        <div className="p-3 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
+                        <div className="p-3 bg-page dark:bg-primary/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-textMuted uppercase">Low Stock</span>
-                            <span className={`text-xs font-black px-2 py-0.5 rounded-full ${kpis?.low_stock_count > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}`}>
+                            <span className={`text-xs font-black px-2 py-0.5 rounded-full ${kpis?.low_stock_count > 0 ? 'bg-status-info/20 text-status-info' : 'bg-page text-primary'}`}>
                                 {kpis?.low_stock_count || 12} items
                             </span>
                         </div>
                         
-                        <div className="p-3 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
+                        <div className="p-3 bg-page dark:bg-primary/20 rounded-xl border border-gray-50 dark:border-slate-850 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-textMuted uppercase">Sales Goal</span>
-                            <span className="text-xs font-black text-slate-900 dark:text-white">
+                            <span className="text-xs font-black text-primary dark:text-card">
                                 {kpis?.sales_growth_percentage || '64%'}
                             </span>
                         </div>

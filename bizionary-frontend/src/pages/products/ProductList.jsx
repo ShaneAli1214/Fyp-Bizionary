@@ -184,11 +184,11 @@ const ProductList = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-gray-400" />
+                        <Search className="h-4 w-4 text-secondary" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
+                        className="block w-full pl-10 pr-3 py-2 border border-card rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
                         placeholder="Search by product name or product code..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -198,7 +198,7 @@ const ProductList = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20 w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Product
@@ -211,10 +211,10 @@ const ProductList = () => {
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
                 <button
                     onClick={() => setSelectedSection('ALL')}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                         selectedSection === 'ALL'
-                            ? 'bg-primary text-white shadow-md shadow-primary/20'
-                            : 'bg-gray-100 text-textMuted hover:bg-gray-200'
+                            ? 'bg-primary text-card'
+                            : 'bg-page text-secondary hover:bg-active-pill'
                     }`}
                 >
                     All Sections
@@ -223,10 +223,10 @@ const ProductList = () => {
                     <button
                         key={category.value}
                         onClick={() => setSelectedSection(category.value)}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                        className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                             selectedSection === category.value
-                                ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                : 'bg-gray-100 text-textMuted hover:bg-gray-200'
+                                ? 'bg-primary text-card'
+                                : 'bg-page text-secondary hover:bg-active-pill'
                         }`}
                     >
                         {category.label}
@@ -235,33 +235,33 @@ const ProductList = () => {
             </div>
 
             {formSuccess && (
-                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700 text-sm font-medium">
+                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-status-success/10 text-status-success text-sm font-medium">
                     {formSuccess}
                 </div>
             )}
             {formError && (
-                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-rose-700 text-sm font-medium">
+                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-status-info/10 text-status-info text-sm font-medium">
                     {formError}
                 </div>
             )}
 
             {loading ? (
-                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
                     <Skeleton.TableRows count={7} cols={5} />
                 </div>
             ) : (
                 <div className="space-y-5">
                     {productsByCategory.map((section) => (
-                        <div key={section.value} className="bg-surface rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center justify-between">
+                        <div key={section.value} className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-card bg-card flex items-center justify-between">
                                 <h3 className="text-base font-bold text-textMain">{section.label} Section</h3>
-                                <span className="text-xs font-semibold text-textMuted bg-slate-100 px-2.5 py-1 rounded-lg">
+                                <span className="text-xs font-semibold text-textMuted bg-page px-2.5 py-1 rounded-lg">
                                     {section.items.length} item(s)
                                 </span>
                             </div>
                             <div className="overflow-x-auto">
                                         <table className="w-full text-sm text-left">
-                                    <thead className="bg-white text-textMuted text-xs uppercase tracking-wider border-b border-gray-100">
+                                    <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
                                         <tr>
                                                     <th className="px-6 py-4 font-semibold">SKU</th>
                                                     <th className="px-6 py-4 font-semibold">Product Name</th>
@@ -286,7 +286,7 @@ const ProductList = () => {
                                         ) : section.items.map((p) => {
                                             const profitMargin = toNumber(p.profit_margin, toNumber(p.sale_price) - toNumber(p.cost_price));
                                             return (
-                                                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                                                <tr key={p.id} className="hover:bg-page transition-colors">
                                                     <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">{p.product_code || p.sku}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain">
                                                         <div>{p.name}</div>
@@ -294,15 +294,15 @@ const ProductList = () => {
                                                     <td className="px-6 py-4 text-textMuted">{getCategoryLabel(p.category) || section.label}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.cost_price)}</td>
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
-                                                    <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatPKR(profitMargin)}</td>
+                                                    <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-status-success' : 'text-status-info'}`}>{formatPKR(profitMargin)}</td>
                                                     {/* Supplier cell removed */}
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-page text-primary border border-card">
                                                             {toNumber(p.current_stock)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.status === 'INACTIVE' ? 'bg-gray-100 text-gray-700 border border-gray-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.status === 'INACTIVE' ? 'bg-page text-primary border border-card' : 'bg-status-success/10 text-status-success border border-emerald-100'}`}>
                                                             {p.status === 'INACTIVE' ? 'Inactive' : 'Active'}
                                                         </span>
                                                     </td>
@@ -310,14 +310,14 @@ const ProductList = () => {
                                                         <div className="flex items-center justify-center gap-3">
                                                             <button
                                                                 onClick={() => openEditForm(p)}
-                                                                className="text-gray-400 hover:text-primary transition-colors"
+                                                                className="text-secondary hover:text-primary transition-colors"
                                                                 title="Edit"
                                                             >
                                                                 <Edit2 className="h-4 w-4" />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete(p.id)}
-                                                                className="text-gray-400 hover:text-danger hover:fill-danger/10 transition-colors"
+                                                                className="text-secondary hover:text-danger hover:fill-danger/10 transition-colors"
                                                                 title="Delete"
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
@@ -334,7 +334,7 @@ const ProductList = () => {
                     ))}
 
                     {noResults && (
-                        <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm px-6 py-12 text-center text-textMuted">
+                        <div className="bg-surface rounded-3xl border border-card shadow-sm px-6 py-12 text-center text-textMuted">
                             <Search className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                             <p>No products found matching your search.</p>
                         </div>

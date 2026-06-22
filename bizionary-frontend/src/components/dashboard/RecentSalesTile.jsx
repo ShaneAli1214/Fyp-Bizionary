@@ -70,7 +70,7 @@ const RecentSalesTile = ({ periodOptions = [], selectedPeriod, onPeriodChange, s
             </button>
 
             {detailsOpen && (
-                <div className="mt-3 rounded-xl border border-surface/20 bg-white shadow-sm overflow-hidden">
+                <div className="mt-3 rounded-xl border border-surface/20 bg-card shadow-sm overflow-hidden">
                     <div className="px-4 py-3 border-b border-surface/10 bg-surface/40">
                         <div className="grid grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr] gap-3 text-xs font-semibold text-textMain whitespace-nowrap">
                             <div>Product Category Name</div>
@@ -112,7 +112,7 @@ const RecentSalesTile = ({ periodOptions = [], selectedPeriod, onPeriodChange, s
                                                         <div className="text-right font-semibold text-textMain">{formatPKR(subcategory.profit)}</div>
                                                     </div>
 
-                                                    <div className="mt-2 ml-4 rounded-md border border-surface/10 bg-white overflow-hidden">
+                                                    <div className="mt-2 ml-4 rounded-md border border-surface/10 bg-card overflow-hidden">
                                                         <div className="grid grid-cols-[1.4fr_0.7fr_0.9fr_0.9fr] gap-3 px-3 py-2 text-[11px] font-semibold text-textMuted border-b border-surface/10 whitespace-nowrap">
                                                             <div>Product</div>
                                                             <div className="text-right">Qty</div>

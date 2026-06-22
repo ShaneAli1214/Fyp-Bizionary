@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 const CONFIG = {
     success: {
         icon: CheckCircle2,
-        bar: 'bg-emerald-500',
+        bar: 'bg-status-success',
         icon_cls: 'text-emerald-500',
     },
     error: {
@@ -15,13 +15,13 @@ const CONFIG = {
     },
     warning: {
         icon: AlertTriangle,
-        bar: 'bg-amber-500',
+        bar: 'bg-status-info',
         icon_cls: 'text-amber-500',
     },
     info: {
         icon: Info,
-        bar: 'bg-blue-500',
-        icon_cls: 'text-blue-500',
+        bar: 'bg-status-info',
+        icon_cls: 'text-status-info',
     },
 };
 
@@ -31,7 +31,7 @@ const ToastItem = ({ toast }) => {
     const Icon = cfg.icon;
 
     return (
-        <div className="toast-enter flex items-start gap-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl px-4 py-3 min-w-[300px] max-w-[420px] relative overflow-hidden">
+        <div className="toast-enter flex items-start gap-3 bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-xl shadow-xl px-4 py-3 min-w-[300px] max-w-[420px] relative overflow-hidden">
             {/* colored left bar */}
             <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${cfg.bar}`} />
             <div className="pl-2 flex items-start gap-3 flex-1">

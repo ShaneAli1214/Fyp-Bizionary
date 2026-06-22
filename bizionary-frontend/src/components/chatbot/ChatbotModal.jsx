@@ -190,7 +190,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
         if (!text) return '';
         return text.split('\n').map((line, idx) => {
             if (line.startsWith('### ')) {
-                return <h5 key={idx} className="font-bold text-slate-800 dark:text-slate-200 mt-1.5 mb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider">{line.replace('### ', '')}</h5>;
+                return <h5 key={idx} className="font-bold text-primary dark:text-slate-200 mt-1.5 mb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider">{line.replace('### ', '')}</h5>;
             }
             if (line.startsWith('- ') || line.startsWith('* ')) {
                 return <li key={idx} className="ml-4 list-disc text-[10.5px] my-0.5">{parseBoldAndCode(line.slice(2))}</li>;
@@ -215,9 +215,9 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                 parts.push(text.slice(index, matchIndex));
             }
             if (matchText.startsWith('**')) {
-                parts.push(<strong key={matchIndex} className="font-bold text-slate-900 dark:text-white">{matchText.slice(2, -2)}</strong>);
+                parts.push(<strong key={matchIndex} className="font-bold text-primary dark:text-card">{matchText.slice(2, -2)}</strong>);
             } else if (matchText.startsWith('`')) {
-                parts.push(<code key={matchIndex} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono text-[9.5px] text-primary dark:text-sky-300 border border-slate-200/40 dark:border-slate-700/50">{matchText.slice(1, -1)}</code>);
+                parts.push(<code key={matchIndex} className="bg-page dark:bg-primary px-1 py-0.5 rounded font-mono text-[9.5px] text-primary dark:text-sky-300 border border-card/40 dark:border-slate-700/50">{matchText.slice(1, -1)}</code>);
             } else if (matchText.startsWith('[') && matchText.includes('](')) {
                 const linkMatch = matchText.match(/\[([^\]]+)\]\(([^)]+)\)/);
                 if (linkMatch) {
@@ -245,7 +245,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 href={backendUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1.5 bg-status-success hover:bg-emerald-700 text-card rounded-lg text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
                             >
                                 <Download className="w-3.5 h-3.5 mr-1 inline-block align-middle" />
                                 {label}
@@ -286,7 +286,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
     const renderChart = (config, index) => {
         if (!config || !config.data || !config.data.length) {
             return (
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-250/30 rounded-2xl text-[10px] text-textMuted text-center mt-3">
+                <div className="p-4 bg-page dark:bg-primary border border-slate-250/30 rounded-2xl text-[10px] text-textMuted text-center mt-3">
                     No data available for chart.
                 </div>
             );
@@ -376,8 +376,8 @@ const ChatbotModal = ({ isOpen, onClose }) => {
         };
 
         return (
-            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-inner w-full min-w-[240px] animate-in fade-in zoom-in-95 duration-300">
-                {title && <h5 className="text-[9px] font-bold text-slate-700 dark:text-slate-300 mb-2.5 text-center uppercase tracking-wide">{title}</h5>}
+            <div className="mt-3 p-3 bg-page dark:bg-primary border border-card dark:border-slate-800 rounded-2xl shadow-inner w-full min-w-[240px] animate-in fade-in zoom-in-95 duration-300">
+                {title && <h5 className="text-[9px] font-bold text-primary dark:text-slate-300 mb-2.5 text-center uppercase tracking-wide">{title}</h5>}
                 <div className="w-full h-[130px]">
                     <ResponsiveContainer width="100%" height="100%">
                         {renderChartComponent()}
@@ -440,15 +440,15 @@ const ChatbotModal = ({ isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-end justify-end p-4 pointer-events-none">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-slate-900/10 pointer-events-auto" onClick={onClose} />
+            <div className="absolute inset-0 bg-primary/10 pointer-events-auto" onClick={onClose} />
 
             {/* Modal Drawer Layout */}
-            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-white shadow-2xl border border-slate-200/85 flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
+            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-card shadow-2xl border border-card flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
                 
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3.5 bg-[#1C3A5A] text-white border-b border-[#0f1f33] shadow-sm">
+                <div className="flex items-center justify-between px-4 py-3.5 bg-[#2B2620] text-card border-b border-[#0f1f33] shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-lg bg-card/15 flex items-center justify-center">
                             <Bot className="w-4.5 h-4.5 text-emerald-300" />
                         </div>
                         <div>
@@ -459,14 +459,14 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleClearHistory}
-                            className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+                            className="text-card/80 hover:text-card p-1 rounded-lg hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Clear History"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                         <button
                             onClick={onClose}
-                            className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+                            className="text-card/80 hover:text-card p-1 rounded-lg hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Close"
                         >
                             <X className="w-4.5 h-4.5" />
@@ -502,16 +502,16 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                         >
                             <div className={`p-3 rounded-2xl border text-xs shadow-sm ${
                                 message.sender === 'user'
-                                    ? 'bg-[#1C3A5A] text-white border-[#1C3A5A]/20 rounded-tr-none'
-                                    : 'bg-slate-100 text-slate-800 border-slate-200/60 rounded-tl-none'
+                                    ? 'bg-[#2B2620] text-card border-card rounded-tr-none'
+                                    : 'bg-page text-primary border-card/60 rounded-tl-none'
                             }`}>
                                 {renderMessageContent(message, index)}
                                 
                                 {message.sender === 'assistant' && (
-                                    <div className="flex justify-end mt-2 pt-1 border-t border-slate-200/50">
+                                    <div className="flex justify-end mt-2 pt-1 border-t border-card">
                                         <button
                                             onClick={() => speakText(message.text, index)}
-                                            className={`p-1 rounded hover:bg-slate-200/40 transition-all duration-300 ease-in-out ${activeSpeech === index ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}
+                                            className={`p-1 rounded hover:bg-active-pill/40 transition-all duration-300 ease-in-out ${activeSpeech === index ? 'text-status-success font-bold' : 'text-secondary'}`}
                                             title="Read text out loud"
                                         >
                                             <Volume2 className="w-3.5 h-3.5" />
@@ -531,7 +531,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                     <button
                                         key={idx}
                                         onClick={() => handleSend(chip.query)}
-                                        className="text-[10px] px-2.5 py-1.5 bg-white border border-slate-250 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 rounded-full font-bold text-left transition-all duration-300 ease-in-out active:scale-95 shadow-sm"
+                                        className="text-[10px] px-2.5 py-1.5 bg-card border border-slate-250 hover:bg-status-success/10 hover:text-status-success hover:border-card rounded-full font-bold text-left transition-all duration-300 ease-in-out active:scale-95 shadow-sm"
                                     >
                                         {chip.label}
                                     </button>
@@ -542,16 +542,16 @@ const ChatbotModal = ({ isOpen, onClose }) => {
 
                     {loading && (
                         <div className="mr-auto items-start flex flex-col">
-                            <div className="bg-slate-100 p-2.5 rounded-2xl border border-slate-200/60 rounded-tl-none flex items-center gap-1.5 shadow-sm">
-                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                <span className="w-2 h-2 bg-[#1C3A5A] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            <div className="bg-page p-2.5 rounded-2xl border border-card/60 rounded-tl-none flex items-center gap-1.5 shadow-sm">
+                                <span className="w-2 h-2 bg-[#2B2620] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-[#2B2620] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-[#2B2620] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                             </div>
                         </div>
                     )}
                     
                     {error && (
-                        <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl text-[10px] border border-rose-100 flex items-center gap-1">
+                        <div className="p-2.5 bg-status-info/10 text-status-info rounded-xl text-[10px] border border-rose-100 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                             <span>{error}</span>
                         </div>
@@ -559,21 +559,21 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Input Area */}
-                <div className="border-t border-slate-150 bg-white p-3">
+                <div className="border-t border-slate-150 bg-card p-3">
                     <div className="relative flex items-center">
                         <textarea
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Type your question..."
-                            className="w-full pl-3 pr-16 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-xs outline-none shadow-sm focus:shadow-md focus:border-[#1C3A5A] focus:bg-white transition-all duration-300 ease-in-out resize-none min-h-[36px] max-h-[80px]"
+                            className="w-full pl-3 pr-16 py-2.5 bg-page border border-card rounded-xl text-xs outline-none shadow-sm focus:shadow-md focus:border-[#2B2620] focus:bg-card transition-all duration-300 ease-in-out resize-none min-h-[36px] max-h-[80px]"
                             rows="1"
                         />
                         <div className="absolute right-2 flex items-center gap-1">
                             <button
                                 type="button"
                                 onClick={toggleListening}
-                                className={`p-1.5 rounded-lg transition-all duration-300 ease-in-out ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-100 hover:scale-105'}`}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ease-in-out ${isListening ? 'bg-rose-500 text-card animate-pulse' : 'text-secondary hover:bg-page hover:scale-105'}`}
                                 title="Speak"
                             >
                                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -582,7 +582,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-1.5 bg-gradient-to-br from-[#1C3A5A] to-[#2B527E] hover:from-[#13283E] hover:to-[#1C3A5A] text-white rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
+                                className="p-1.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>

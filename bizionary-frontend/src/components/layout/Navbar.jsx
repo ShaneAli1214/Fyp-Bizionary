@@ -76,7 +76,7 @@ const Navbar = ({ onToggleSidebar }) => {
     });
 
     return (
-        <header className="h-16 text-white flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300 relative">
+        <header className="h-16 text-card flex items-center justify-between px-3 md:px-6 z-40 sticky top-0 transition-colors duration-300 relative">
             {/* Custom Hanging Tab Background */}
             <div className="absolute inset-0 -z-10 overflow-visible pointer-events-none">
                 {/* Left hanging tab & slope background */}
@@ -85,13 +85,13 @@ const Navbar = ({ onToggleSidebar }) => {
                     <path d="M 0 96 L 200 96 L 240 64" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
                 </svg>
                 {/* Right horizontal header background */}
-                <div className="absolute left-[239px] right-0 top-0 h-16 bg-[var(--color-topbar)] border-b border-white/10"></div>
+                <div className="absolute left-[239px] right-0 top-0 h-16 bg-[var(--color-topbar)] border-b border-card/50"></div>
             </div>
 
             {/* Left Brand: Absolute positioned to hang down centered in the tab */}
-            <div className="absolute left-0 top-0 h-24 flex items-center pl-3 md:pl-6 pr-4 gap-2.5 cursor-pointer text-white z-10" onClick={() => navigate('/')}>
-                <Logo className="h-12 w-auto text-white" />
-                <span className="text-base font-black text-white tracking-wider uppercase">Bizionary</span>
+            <div className="absolute left-0 top-0 h-24 flex items-center pl-3 md:pl-6 pr-4 gap-2.5 cursor-pointer text-card z-10" onClick={() => navigate('/')}>
+                <Logo className="h-12 w-auto text-card" />
+                <span className="text-base font-black text-card tracking-wider uppercase">Bizionary</span>
             </div>
 
             {/* Spacer to push menu and links past the logo tab */}
@@ -102,7 +102,7 @@ const Navbar = ({ onToggleSidebar }) => {
                 <button 
                     onClick={onToggleSidebar}
                     aria-label="Toggle navigation menu"
-                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                    className="p-2 text-card/80 hover:text-card hover:bg-card/10 rounded-lg transition-all"
                 >
                     <Menu className="h-6 w-6" />
                 </button>
@@ -119,8 +119,8 @@ const Navbar = ({ onToggleSidebar }) => {
                             onClick={() => navigate(item.path)}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                                 isActive 
-                                ? 'bg-white/20 text-white font-bold' 
-                                : 'text-white/80 hover:text-white hover:bg-white/10'
+                                ? 'bg-card/20 text-card font-bold' 
+                                : 'text-card/80 hover:text-card hover:bg-card/10'
                             }`}
                         >
                             <Icon className="h-4 w-4 shrink-0" />
@@ -143,45 +143,45 @@ const Navbar = ({ onToggleSidebar }) => {
                 {/* Profile row trigger */}
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/10 transition-all duration-300 ease-in-out cursor-pointer select-none text-xs font-semibold focus:outline-none z-50 relative"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-card/10 transition-all duration-300 ease-in-out cursor-pointer select-none text-xs font-semibold focus:outline-none z-50 relative"
                 >
-                    <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-white/10">
+                    <div className="w-8 h-8 rounded-full bg-card/20 text-card flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-card/50">
                         {initials}
                     </div>
-                    <span className="hidden sm:inline text-white/90">Welcome, <strong>{user?.first_name || user?.username || 'User'}</strong></span>
-                    <ChevronDown className={`h-4 w-4 text-white/80 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    <span className="hidden sm:inline text-card/90">Welcome, <strong>{user?.first_name || user?.username || 'User'}</strong></span>
+                    <ChevronDown className={`h-4 w-4 text-card/80 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Dropdown Menu Card */}
                 <div 
-                    className={`absolute right-0 mt-2 w-64 sm:w-72 bg-white dark:bg-[color:var(--dm-surface,#243348)] rounded-2xl shadow-2xl border border-slate-200/85 dark:border-white/[0.08] p-4 text-slate-800 dark:text-slate-200 z-50 flex flex-col gap-3.5 transition-all duration-200 origin-top-right ${
+                    className={`absolute right-0 mt-2 w-64 sm:w-72 bg-card dark:bg-[color:var(--dm-surface,#243348)] rounded-2xl shadow-2xl border border-card dark:border-card/[0.08] p-4 text-primary dark:text-slate-200 z-50 flex flex-col gap-3.5 transition-all duration-200 origin-top-right ${
                         isDropdownOpen 
                             ? 'scale-100 opacity-100 visible' 
                             : 'scale-95 opacity-0 invisible pointer-events-none'
                     }`}
                 >
                     {/* Section 1: User Profile Summary */}
-                    <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800/80 pb-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#1C3A5A]/10 text-[#1C3A5A] dark:bg-sky-500/10 dark:text-sky-450 flex items-center justify-center font-bold text-sm uppercase">
+                    <div className="px-2 py-1 border-b border-card dark:border-slate-800/80 pb-3 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-active-pill/30 text-[#2B2620] dark:bg-sky-500/10 dark:text-sky-450 flex items-center justify-center font-bold text-sm uppercase">
                             {initials}
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-sm text-slate-900 dark:text-white truncate">{displayName}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || '—'}</span>
+                            <span className="font-bold text-sm text-primary dark:text-card truncate">{displayName}</span>
+                            <span className="text-[10px] text-secondary dark:text-secondary truncate">{user?.email || '—'}</span>
                         </div>
                     </div>
 
                     {/* Section 2: Quick Actions */}
                     <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-1">Quick Actions</span>
+                        <span className="text-[9px] font-bold text-secondary dark:text-secondary uppercase tracking-wider px-2 mb-1">Quick Actions</span>
                         <button
                             onClick={() => {
                                 setIsDropdownOpen(false);
                                 navigate('/settings');
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary dark:text-slate-350 hover:bg-page dark:hover:bg-primary/60 hover:text-primary dark:hover:text-card hover:pl-4 transition-all duration-200 ease-in-out"
                         >
-                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <User className="h-3.5 w-3.5 text-secondary" />
                             <span>My Profile</span>
                         </button>
                         <button
@@ -189,9 +189,9 @@ const Navbar = ({ onToggleSidebar }) => {
                                 setIsDropdownOpen(false);
                                 navigate('/settings');
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary dark:text-slate-350 hover:bg-page dark:hover:bg-primary/60 hover:text-primary dark:hover:text-card hover:pl-4 transition-all duration-200 ease-in-out"
                         >
-                            <Settings className="h-3.5 w-3.5 text-slate-400" />
+                            <Settings className="h-3.5 w-3.5 text-secondary" />
                             <span>Account Settings</span>
                         </button>
                         <button
@@ -199,28 +199,28 @@ const Navbar = ({ onToggleSidebar }) => {
                                 setIsDropdownOpen(false);
                                 navigate(isAccountant ? '/settings' : '/user-management');
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary dark:text-slate-350 hover:bg-page dark:hover:bg-primary/60 hover:text-primary dark:hover:text-card hover:pl-4 transition-all duration-200 ease-in-out"
                         >
-                            <History className="h-3.5 w-3.5 text-slate-400" />
+                            <History className="h-3.5 w-3.5 text-secondary" />
                             <span>Activity Log</span>
                         </button>
                     </div>
 
                     {/* Section 3: Preferences / AI Toggles */}
-                    <div className="flex flex-col gap-1.5 border-t border-slate-100 dark:border-slate-800/80 pt-3">
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-0.5">Preferences</span>
+                    <div className="flex flex-col gap-1.5 border-t border-card dark:border-slate-800/80 pt-3">
+                        <span className="text-[9px] font-bold text-secondary dark:text-secondary uppercase tracking-wider px-2 mb-0.5">Preferences</span>
                         
                         {/* Dark Mode toggle */}
                         <div className="flex items-center justify-between px-2 py-1">
-                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Dark Mode</span>
+                            <span className="text-xs font-semibold text-primary dark:text-slate-300">Dark Mode</span>
                             <button 
                                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                    theme === 'dark' ? 'bg-[#1D4ED8]' : 'bg-slate-200 dark:bg-slate-700'
+                                    theme === 'dark' ? 'bg-[#1D4ED8]' : 'bg-active-pill dark:bg-slate-700'
                                 }`}
                                 aria-label="Toggle theme mode"
                             >
-                                <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
                                     theme === 'dark' ? 'translate-x-4' : 'translate-x-0'
                                 }`} />
                             </button>
@@ -233,22 +233,22 @@ const Navbar = ({ onToggleSidebar }) => {
                                     setIsDropdownOpen(false);
                                     navigate('/settings');
                                 }}
-                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white hover:pl-4 transition-all duration-200 ease-in-out"
+                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary dark:text-slate-350 hover:bg-page dark:hover:bg-primary/60 hover:text-primary dark:hover:text-card hover:pl-4 transition-all duration-200 ease-in-out"
                             >
-                                <Sliders className="h-3.5 w-3.5 text-slate-400" />
+                                <Sliders className="h-3.5 w-3.5 text-secondary" />
                                 <span>API Configuration</span>
                             </button>
                         )}
                     </div>
 
                     {/* Section 4: Danger Zone */}
-                    <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3">
+                    <div className="border-t border-card dark:border-slate-800/80 pt-3">
                         <button
                             onClick={() => {
                                 setIsDropdownOpen(false);
                                 logout();
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/35 hover:pl-4 transition-all duration-200 ease-in-out"
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-bold text-status-info hover:bg-status-info/10 dark:hover:bg-rose-950/35 hover:pl-4 transition-all duration-200 ease-in-out"
                         >
                             <LogOut className="h-3.5 w-3.5 text-rose-500" />
                             <span>Logout</span>

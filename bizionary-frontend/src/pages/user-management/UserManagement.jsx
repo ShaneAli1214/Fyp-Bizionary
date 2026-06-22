@@ -156,7 +156,7 @@ const UserManagement = () => {
                 {activeTab === 'users' && (
                     <button 
                         onClick={handleAddUser}
-                        className="flex items-center justify-center gap-2 bg-[#1C3A5A] hover:bg-[#2B527E] text-white px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
+                        className="flex items-center justify-center gap-2 bg-[#2B2620] hover:bg-[#2B2620] text-card px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
                     >
                         <UserPlus className="w-5 h-5" />
                         Add New User
@@ -165,13 +165,13 @@ const UserManagement = () => {
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-card">
                 <button
                     onClick={() => setActiveTab('users')}
                     className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
                         activeTab === 'users'
-                            ? 'border-[#1C3A5A] text-[#1C3A5A]'
-                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                            ? 'border-[#2B2620] text-[#2B2620]'
+                            : 'border-transparent text-secondary hover:text-secondary'
                     }`}
                 >
                     <Users className="w-4 h-4" />
@@ -181,8 +181,8 @@ const UserManagement = () => {
                     onClick={() => setActiveTab('audit_logs')}
                     className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
                         activeTab === 'audit_logs'
-                            ? 'border-[#1C3A5A] text-[#1C3A5A]'
-                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                            ? 'border-[#2B2620] text-[#2B2620]'
+                            : 'border-transparent text-secondary hover:text-secondary'
                     }`}
                 >
                     <Shield className="w-4 h-4" />
@@ -194,24 +194,24 @@ const UserManagement = () => {
                 <>
                     {/* Error Message */}
                     {errorMsg && (
-                        <div className="p-4 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center gap-3 text-sm">
+                        <div className="p-4 rounded-xl bg-status-info/10 text-status-info border border-red-100 flex items-center gap-3 text-sm">
                             <AlertCircle className="w-5 h-5 flex-shrink-0" />
                             <span>{errorMsg}</span>
                         </div>
                     )}
 
                     {/* Filter Bar */}
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                    <div className="bg-card p-5 rounded-2xl border border-card shadow-sm space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                             {/* Search field */}
                             <div className="relative md:col-span-2">
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4.5 h-4.5" />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary w-4.5 h-4.5" />
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                                     placeholder="Search by name, username, or email..."
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-page/50 border border-card rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all bg-card"
                                 />
                             </div>
 
@@ -220,7 +220,7 @@ const UserManagement = () => {
                                 <select
                                     value={roleFilter}
                                     onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
-                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
+                                    className="w-full px-4 py-2.5 bg-page/50 border border-card rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all bg-card appearance-none"
                                 >
                                     <option value="">All Roles</option>
                                     {roles.map(r => (
@@ -234,7 +234,7 @@ const UserManagement = () => {
                                 <select
                                     value={deptFilter}
                                     onChange={(e) => { setDeptFilter(e.target.value); setCurrentPage(1); }}
-                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
+                                    className="w-full px-4 py-2.5 bg-page/50 border border-card rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all bg-card appearance-none"
                                 >
                                     <option value="">All Departments</option>
                                     {departments.map(d => (
@@ -248,7 +248,7 @@ const UserManagement = () => {
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                                    className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all bg-white appearance-none"
+                                    className="w-full px-4 py-2.5 bg-page/50 border border-card rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all bg-card appearance-none"
                                 >
                                     <option value="">All Statuses</option>
                                     <option value="ACTIVE">Active</option>
@@ -258,7 +258,7 @@ const UserManagement = () => {
                                 <button
                                     onClick={handleResetFilters}
                                     title="Reset filters"
-                                    className="p-2.5 text-gray-500 hover:text-[#1C3A5A] bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                                    className="p-2.5 text-secondary hover:text-[#2B2620] bg-page hover:bg-page border border-card rounded-xl transition-all flex items-center justify-center flex-shrink-0"
                                 >
                                     <RotateCcw className="w-5 h-5" />
                                 </button>
@@ -267,7 +267,7 @@ const UserManagement = () => {
                     </div>
 
                     {/* Data Table */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="bg-card rounded-2xl border border-card shadow-sm overflow-hidden">
                         <UsersTable 
                             users={users} 
                             loading={loading} 
@@ -278,7 +278,7 @@ const UserManagement = () => {
                         
                         {/* Pagination Controls */}
                         {users.length > 0 && (
-                            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                            <div className="px-6 py-4 border-t border-card bg-page/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                                 <span className="text-xs text-textMuted">
                                     Showing <span className="font-semibold text-textMain">{users.length}</span> of <span className="font-semibold text-textMain">{totalCount}</span> users
                                 </span>
@@ -290,7 +290,7 @@ const UserManagement = () => {
                                         <select
                                             value={pageSize}
                                             onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                                            className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-[#1C3A5A]"
+                                            className="px-2 py-1 bg-card border border-card rounded-lg text-xs outline-none focus:border-[#2B2620]"
                                         >
                                             <option value={5}>5</option>
                                             <option value={10}>10</option>
@@ -304,7 +304,7 @@ const UserManagement = () => {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                                             disabled={currentPage === 1}
-                                            className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-lg text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Previous
                                         </button>
@@ -314,7 +314,7 @@ const UserManagement = () => {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                                             disabled={currentPage === totalPages}
-                                            className="px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-lg text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Next
                                         </button>

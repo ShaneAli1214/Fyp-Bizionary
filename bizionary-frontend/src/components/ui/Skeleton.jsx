@@ -1,6 +1,6 @@
 import React from 'react';
 
-const base = 'animate-pulse bg-gray-200 dark:bg-slate-700 rounded';
+const base = 'animate-pulse bg-active-pill dark:bg-slate-700 rounded';
 
 const Line = ({ width = 'w-full', height = 'h-4', className = '' }) => (
     <div className={`${base} ${width} ${height} ${className}`} />
@@ -17,7 +17,7 @@ const Circle = ({ size = 'w-10 h-10', className = '' }) => (
 const TableRows = ({ count = 5, cols = 4 }) => (
     <div className="w-full overflow-hidden">
         {/* thead placeholder */}
-        <div className="flex gap-4 px-6 py-3 border-b border-gray-100 dark:border-slate-800">
+        <div className="flex gap-4 px-6 py-3 border-b border-card dark:border-slate-800">
             {Array.from({ length: cols }).map((_, i) => (
                 <div key={i} className={`${base} h-3 ${i === 0 ? 'w-24' : 'flex-1'}`} />
             ))}
@@ -34,7 +34,7 @@ const TableRows = ({ count = 5, cols = 4 }) => (
 );
 
 const KPICard = () => (
-    <div className="bg-surface rounded-xl border border-gray-100 dark:border-slate-800/60 shadow-sm p-5 space-y-3">
+    <div className="bg-surface rounded-xl border border-card dark:border-slate-800/60 shadow-sm p-5 space-y-3">
         <div className="flex items-center justify-between">
             <div className={`${base} h-3 w-24`} />
             <div className={`${base} rounded-lg w-8 h-8`} />

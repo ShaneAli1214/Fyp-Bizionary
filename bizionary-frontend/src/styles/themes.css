@@ -1,96 +1,95 @@
 /* ============================================================
    BIZIONARY THEME SYSTEM
-   Light theme: clean white with charcoal primary
-   Dark theme: ERPNext-inspired deep charcoal palette
-   Apply by adding `theme-horizon` or `theme-horizon-dark` to <html>.
+   Strictly mapped to the 10 allowed reference design tokens:
+   - bg-page: #F1EBE3
+   - bg-card: #FFFFFF
+   - border-card: #E8E0D3
+   - text-primary: #2B2620
+   - text-secondary: #9C9387
+   - active-pill: #DCD3C5
+   - chart-accent: #B7A893
+   - chart-track: #E8E0D3
+   - status-success: #8FA888
+   - status-info: #C9A86A
    ============================================================ */
 
 .theme-horizon {
-  --color-primary: #111111;
-  --color-primary-dark: #333333;
-  --color-accent: #111111;
-  --color-accent-dark: #333333;
-  --color-ai-purple: #8b5cf6;
-  --color-background: #F7F7F8;
-  --color-background-light: #FFFFFF;
-  --color-background-dark: #161B24;
-  --color-surface: #FFFFFF;
-  --color-surface-dark: #1C2333;
-  --color-textMain: #1A1A1A;
-  --color-textMuted: #6B7280;
-  --color-border: #E5E7EB;
-  --color-success: #10B981;
-  --color-danger: #EF4444;
-  --color-warning: #F59E0B;
-  --color-primary-rgb: 17,17,17;
-  --color-accent-rgb: 17,17,17;
+  --color-primary: #2B2620; /* text-primary */
+  --color-primary-dark: #2B2620;
+  --color-accent: #B7A893; /* chart-accent */
+  --color-accent-dark: #2B2620;
+  --color-ai-purple: #B7A893;
+  --color-background: #F1EBE3; /* bg-page */
+  --color-background-light: #FFFFFF; /* bg-card */
+  --color-background-dark: #2B2620;
+  --color-surface: #FFFFFF; /* bg-card */
+  --color-surface-dark: #F1EBE3;
+  --color-textMain: #2B2620; /* text-primary */
+  --color-textMuted: #9C9387; /* text-secondary */
+  --color-border: #E8E0D3; /* border-card / chart-track */
+  --color-success: #8FA888; /* status-success */
+  --color-danger: #C9A86A; /* status-info */
+  --color-warning: #C9A86A; /* status-info */
+  
+  /* RGB Helpers */
+  --color-primary-rgb: 43,38,32;
+  --color-accent-rgb: 183,168,147;
   --color-surface-rgb: 255,255,255;
-  --color-background-rgb: 247,247,248;
+  --color-background-rgb: 241,235,227;
+  --color-topbar: #FFFFFF; /* bg-card */
 }
-
-/* ============================================================
-   DARK MODE: Frappe/ERPNext Exact Palette (from espresso/colors.css)
-   bg:      #171717  – gray-950 (neutral dark, no blue tint)
-   surface: #1f1f1f  – gray-900 (cards, panels, topbar)
-   sidebar: #171717  – same as bg (Frappe sidebar is transparent)
-   input:   #292929  – gray-700 (control-bg in Frappe)
-   border:  #242424  – gray-800 (outline-gray-1 in Frappe)
-   text:    #d9d9d9  – gray-100 (ink-gray-8 in Frappe dark)
-   muted:   #999999  – gray-300 (ink-gray-6 in Frappe dark)
-   subtle:  #7a7a7a  – gray-400 (ink-gray-4 in Frappe dark)
-   accent:  #76bef9  – blue-200 (bright blue for active nav in dark)
-   ============================================================ */
 
 .theme-horizon-dark,
 html.dark {
   /* Core backgrounds */
-  --color-background: #171717;
-  --color-background-light: #1f1f1f;
-  --color-background-dark: #0f0f0f;
-  --color-surface: #1f1f1f;
-  --color-surface-dark: #171717;
+  --color-background: #2B2620; /* text-primary */
+  --color-background-light: #2B2620;
+  --color-background-dark: #2B2620;
+  --color-surface: #2B2620;
+  --color-surface-dark: #2B2620;
 
-  /* Primary (used for buttons in dark) */
-  --color-primary: #76bef9;
-  --color-primary-dark: #349bef;
-  --color-accent: #349bef;
-  --color-accent-dark: #2480cc;
-  --color-ai-purple: #a78bfa;
+  /* Primary */
+  --color-primary: #F1EBE3; /* bg-page */
+  --color-primary-dark: #FFFFFF; /* bg-card */
+  --color-accent: #B7A893; /* chart-accent */
+  --color-accent-dark: #DCD3C5; /* active-pill */
+  --color-ai-purple: #B7A893;
 
   /* Typography */
-  --color-textMain: #d9d9d9;
-  --color-textMuted: #999999;
-  --color-border: #242424;
+  --color-textMain: #F1EBE3; /* bg-page */
+  --color-textMuted: #9C9387; /* text-secondary */
+  --color-border: #E8E0D3; /* border-card */
 
-  /* Status colors — vibrant in dark */
-  --color-success: #34d399;
-  --color-danger: #f87171;
-  --color-warning: #fbbf24;
+  /* Status colors */
+  --color-success: #8FA888; /* status-success */
+  --color-danger: #C9A86A; /* status-info */
+  --color-warning: #C9A86A;
 
   /* RGB helpers */
-  --color-primary-rgb: 118,190,249;
-  --color-accent-rgb: 52,155,239;
-  --color-surface-rgb: 31,31,31;
-  --color-background-rgb: 23,23,23;
-  --color-background-dark-rgb: 15,15,15;
-  --color-success-rgb: 52,211,153;
+  --color-primary-rgb: 241,235,227;
+  --color-accent-rgb: 183,168,147;
+  --color-surface-rgb: 43,38,32;
+  --color-background-rgb: 43,38,32;
+  --color-background-dark-rgb: 43,38,32;
+  --color-success-rgb: 143,168,136;
+  --color-topbar: #2B2620;
 
-  /* Semantic dm-* tokens (consumed by components) */
-  --dm-bg:               #171717;
-  --dm-bg-elevated:      #1f1f1f;
-  --dm-surface:          #1f1f1f;
-  --dm-surface-hover:    #292929;
-  --dm-surface-elevated: #242424;
-  --dm-sidebar:          #171717;
-  --dm-topbar:           #1f1f1f;
-  --dm-input-bg:         #292929;
-  --dm-border:           #242424;
-  --dm-border-strong:    #383838;
-  --dm-text-main:        #d9d9d9;
-  --dm-text-muted:       #999999;
-  --dm-text-subtle:      #7a7a7a;
-  --dm-nav-active-bg:    #292929;
-  --dm-nav-hover-bg:     #242424;
-  --dm-nav-accent:       #76bef9;
-  --dm-glow:             rgba(118,190,249,0.15);
+  /* Semantic dm-* tokens */
+  --dm-bg:               #2B2620;
+  --dm-bg-elevated:      #2B2620;
+  --dm-surface:          #2B2620;
+  --dm-surface-hover:    #2B2620;
+  --dm-surface-elevated: #2B2620;
+  --dm-sidebar:          #2B2620;
+  --dm-topbar:           #2B2620;
+  --dm-input-bg:         #2B2620;
+  --dm-border:           #E8E0D3;
+  --dm-border-strong:    #E8E0D3;
+  --dm-text-main:        #F1EBE3;
+  --dm-text-muted:       #9C9387;
+  --dm-text-subtle:      #9C9387;
+  --dm-nav-active-bg:    #DCD3C5;
+  --dm-nav-hover-bg:     #DCD3C5;
+  --dm-nav-accent:       #B7A893;
+  --dm-glow:             rgba(183,168,147,0.15);
 }

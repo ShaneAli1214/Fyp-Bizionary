@@ -1,19 +1,19 @@
 import React from 'react';
 
 const variants = {
-    success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    warning: 'bg-amber-50 text-amber-700 border-amber-100',
-    danger:  'bg-rose-50 text-rose-700 border-rose-100',
-    info:    'bg-blue-50 text-blue-700 border-blue-100',
-    neutral: 'bg-slate-100 text-slate-600 border-slate-200',
-    orange:  'bg-orange-50 text-orange-700 border-orange-100',
+    success: 'bg-status-success/10 text-status-success border-emerald-100',
+    warning: 'bg-amber-50 text-status-info border-amber-100',
+    danger:  'bg-status-info/10 text-status-info border-rose-100',
+    info:    'bg-active-pill/20 text-status-info border-blue-100',
+    neutral: 'bg-page text-secondary border-card',
+    orange:  'bg-orange-50 text-status-info border-orange-100',
 };
 
 const dotColors = {
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
+    success: 'bg-status-success',
+    warning: 'bg-status-info',
     danger:  'bg-rose-500',
-    info:    'bg-blue-500',
+    info:    'bg-status-info',
     neutral: 'bg-slate-400',
     orange:  'bg-orange-500',
 };

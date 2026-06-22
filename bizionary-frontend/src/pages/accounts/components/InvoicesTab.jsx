@@ -30,29 +30,29 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
     };
 
     const getStatusColor = (status, voided) => {
-        if (voided || status === 'CANCELLED') return 'text-gray-700 bg-gray-100';
+        if (voided || status === 'CANCELLED') return 'text-primary bg-page';
         switch (status) {
-            case 'PAID': return 'text-emerald-700 bg-emerald-100';
-            case 'UNPAID': return 'text-amber-700 bg-amber-100';
-            case 'OVERDUE': return 'text-rose-700 bg-rose-100';
-            default: return 'text-gray-700 bg-gray-100';
+            case 'PAID': return 'text-status-success bg-status-success/20';
+            case 'UNPAID': return 'text-status-info bg-status-info/20';
+            case 'OVERDUE': return 'text-status-info bg-status-info/20';
+            default: return 'text-primary bg-page';
         }
     };
 
     if (invoices.length === 0) {
         return (
-            <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">
+            <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">
                 No matching database records found for this period.
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-gray-100">
+                        <tr className="bg-page border-b border-card">
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Invoice #</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Customer</th>
                             <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Due Date</th>
@@ -65,7 +65,7 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {paginatedInvoices.map((item) => (
-                            <tr key={item.id} className={`hover:bg-slate-50/50 transition-colors group ${item.voided ? 'bg-slate-50/50 opacity-60' : ''}`}>
+                            <tr key={item.id} className={`hover:bg-page/50 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
                                 <td className="px-6 py-4 text-sm font-medium text-primary">
                                     <div className="flex items-center gap-1.5 font-bold">
                                         <FileText className="w-4 h-4 text-primary/70" />
@@ -74,14 +74,14 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
                                 </td>
                                 <td className="px-6 py-4 text-sm font-bold text-textMain">
                                     <div className="flex items-center gap-1.5">
-                                        <User className="w-4 h-4 text-gray-400" />
+                                        <User className="w-4 h-4 text-secondary" />
                                         {item.client_name}
                                     </div>
-                                    {item.voided && <span className="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
+                                    {item.voided && <span className="ml-2 bg-status-info/20 text-status-info text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-secondary">
                                     <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-4 h-4 text-gray-400" />
+                                        <Calendar className="w-4 h-4 text-secondary" />
                                         {item.due_date}
                                     </div>
                                 </td>
@@ -90,21 +90,21 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
                                         {item.voided ? 'Voided' : (item.status_display || item.status)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                                <td className="px-6 py-4 text-right text-sm font-semibold text-primary">
                                     {formatPKR(item.balance_due)}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <span className={`text-sm font-bold inline-block ${item.voided ? 'text-gray-400 line-through bg-gray-50' : 'text-slate-900'}`}>
+                                    <span className={`text-sm font-bold inline-block ${item.voided ? 'text-secondary line-through bg-page' : 'text-primary'}`}>
                                         {formatPKR(item.amount)}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     {item.aging > 0 ? (
-                                        <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-bold text-status-info bg-status-info/10 px-2 py-0.5 rounded-full">
                                             {item.aging} days
                                         </span>
                                     ) : (
-                                        <span className="text-xs text-gray-500 font-medium">-</span>
+                                        <span className="text-xs text-secondary font-medium">-</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-right space-x-2">
@@ -112,14 +112,14 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
                                         <>
                                             <button 
                                                 onClick={() => onEdit(item)}
-                                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-secondary hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Edit"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => handleVoidClick(item.id)}
-                                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-secondary hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Void"
                                             >
                                                 <Ban className="w-4 h-4" />
@@ -139,22 +139,22 @@ const InvoicesTab = ({ invoices = [], onEdit, triggerRefresh }) => {
             </div>
 
             {numPages > 1 && (
-                <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-slate-50/50">
-                    <span className="text-xs text-gray-500 font-semibold">
+                <div className="flex justify-between items-center px-6 py-4 border-t border-card bg-page/50">
+                    <span className="text-xs text-secondary font-semibold">
                         Showing page {page} of {numPages} ({invoices.length} records)
                     </span>
                     <div className="flex gap-2">
                         <button
                             disabled={page <= 1}
                             onClick={() => setPage(prev => prev - 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Previous
                         </button>
                         <button
                             disabled={page >= numPages}
                             onClick={() => setPage(prev => prev + 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-slate-50 disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Next
                         </button>

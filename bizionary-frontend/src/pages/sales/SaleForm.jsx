@@ -217,15 +217,15 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
 
     return (
         <Dialog open={isOpen} onClose={submitting ? () => {} : onClose} className="relative z-50">
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 bg-primary/30" aria-hidden="true" />
 
             <div className="fixed inset-0 flex items-center justify-center p-3 sm:p-4">
-                <Dialog.Panel className="flex h-[90vh] w-11/12 max-w-5xl flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
-                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4 sm:px-6">
+                <Dialog.Panel className="flex h-[90vh] w-11/12 max-w-5xl flex-col overflow-hidden rounded-2xl border border-card bg-card shadow-xl">
+                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-card bg-card px-5 py-4 sm:px-6">
                         <Dialog.Title className="text-xl font-bold text-textMain">
                             {isEditing ? 'Edit Sale' : 'Create New Sale'}
                         </Dialog.Title>
-                        <button onClick={onClose} disabled={submitting} className="rounded-full p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 disabled:opacity-50">
+                        <button onClick={onClose} disabled={submitting} className="rounded-full p-2 text-secondary hover:bg-page hover:text-secondary disabled:opacity-50">
                             <X className="h-5 w-5" />
                         </button>
                     </div>
@@ -234,32 +234,32 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Customer Name</label>
+                                    <label className="mb-1 block text-sm font-medium text-primary">Customer Name</label>
                                     <input
                                         type="text"
                                         name="customer_name"
                                         required
                                         value={orderData.customer_name}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-lg border border-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                         placeholder="e.g. John Doe"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Sale Date</label>
+                                    <label className="mb-1 block text-sm font-medium text-primary">Sale Date</label>
                                     <input
                                         type="date"
                                         name="sale_date"
                                         required
                                         value={orderData.sale_date}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-lg border border-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Payment Method</label>
+                                    <label className="mb-1 block text-sm font-medium text-primary">Payment Method</label>
                                     <div className="grid grid-cols-2 gap-2 rounded-xl border border-amber-100 bg-amber-50/80 p-2.5">
                                         {paymentMethodOptions.map((option) => {
                                             const isSelected = orderData.payment_method === option.value;
@@ -271,7 +271,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                     onClick={() => setOrderData((prev) => ({ ...prev, payment_method: option.value }))}
                                                     className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${isSelected
                                                         ? 'border-amber-400 bg-amber-300 text-amber-950 shadow-sm'
-                                                        : 'border-amber-100 bg-white text-gray-700 hover:bg-amber-50'
+                                                        : 'border-amber-100 bg-card text-primary hover:bg-amber-50'
                                                         }`}
                                                 >
                                                     {option.label}
@@ -282,7 +282,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                 </div>
                             </div>
 
-                            <div className="mt-5 space-y-4 rounded-2xl border border-gray-100 bg-slate-50 p-4">
+                            <div className="mt-5 space-y-4 rounded-2xl border border-card bg-page p-4">
                                 <div className="flex items-center justify-between gap-3">
                                     <div>
                                         <h3 className="text-sm font-semibold text-textMain">Line Items</h3>
@@ -295,7 +295,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                         const rowProducts = getAvailableProducts(item.category);
 
                                         return (
-                                            <div key={`${index}-${item.category}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                                            <div key={`${index}-${item.category}`} className="rounded-2xl border border-card bg-card p-4 shadow-sm">
                                                 <div className="mb-3 flex items-center justify-between gap-3">
                                                     <div>
                                                         <p className="text-sm font-semibold text-textMain">Line Item {index + 1}</p>
@@ -304,7 +304,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveLineItem(index)}
-                                                        className="inline-flex items-center justify-center rounded-lg border border-rose-100 bg-rose-50 p-2 text-rose-600 transition-colors hover:bg-rose-100"
+                                                        className="inline-flex items-center justify-center rounded-lg border border-rose-100 bg-status-info/10 p-2 text-status-info transition-colors hover:bg-status-info/20"
                                                         title="Remove line item"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -313,11 +313,11 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
 
                                                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(8rem,9rem)_minmax(0,1.9fr)_minmax(6rem,7rem)_minmax(7rem,8rem)_auto] lg:items-end">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
+                                                        <label className="mb-1 block text-sm font-medium text-primary">Category</label>
                                                         <select
                                                             value={item.category}
                                                             onChange={(event) => handleLineItemChange(index, 'category', event.target.value)}
-                                                            className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                         >
                                                             {PRODUCT_CATEGORIES.map((category) => (
                                                                 <option key={category.value} value={category.value}>{category.label}</option>
@@ -326,11 +326,11 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                     </div>
 
                                                     <div className="min-w-0">
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Product</label>
+                                                        <label className="mb-1 block text-sm font-medium text-primary">Product</label>
                                                         <select
                                                             value={item.product}
                                                             onChange={(event) => handleLineItemChange(index, 'product', event.target.value)}
-                                                            className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                         >
                                                             <option value="" disabled>
                                                                 {productsLoading ? 'Loading products...' : `Select a ${item.category.toLowerCase()} product...`}
@@ -347,25 +347,25 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                     </div>
 
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Quantity</label>
+                                                        <label className="mb-1 block text-sm font-medium text-primary">Quantity</label>
                                                         <input
                                                             type="number"
                                                             min="1"
                                                             value={item.quantity}
                                                             onChange={(event) => handleLineItemChange(index, 'quantity', event.target.value)}
-                                                            className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                         />
                                                     </div>
 
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Unit Price (Rs)</label>
+                                                        <label className="mb-1 block text-sm font-medium text-primary">Unit Price (Rs)</label>
                                                         <input
                                                             type="number"
                                                             min="0"
                                                             step="0.01"
                                                             value={item.unitPrice}
                                                             onChange={(event) => handleLineItemChange(index, 'unitPrice', event.target.value)}
-                                                            className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                            className="w-full rounded-lg border border-card bg-page p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                         />
                                                     </div>
 
@@ -374,7 +374,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveLineItem(index)}
-                                                            className="inline-flex w-full items-center justify-center rounded-lg border border-rose-100 bg-rose-50 px-3 py-2.5 text-rose-600 transition-colors hover:bg-rose-100 lg:w-auto"
+                                                            className="inline-flex w-full items-center justify-center rounded-lg border border-rose-100 bg-status-info/10 px-3 py-2.5 text-status-info transition-colors hover:bg-status-info/20 lg:w-auto"
                                                             title="Remove line item"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -393,27 +393,27 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                 <button
                                     type="button"
                                     onClick={handleAddLineItem}
-                                    className="inline-flex items-center justify-center rounded-xl border border-dashed border-primary/30 bg-white px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                                    className="inline-flex items-center justify-center rounded-xl border border-dashed border-primary/30 bg-card px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
                                     Add Another Product
                                 </button>
 
                                 {!errorMessage && createMessage && createdSale && !isEditing && (
-                                    <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                                    <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-status-success/10 px-4 py-3 text-sm text-status-success">
                                         <span>{createMessage}</span>
                                     </div>
                                 )}
 
                                 {errorMessage && (
-                                    <div className="rounded-lg border border-rose-100 bg-rose-50 p-3 text-sm text-rose-700">
+                                    <div className="rounded-lg border border-rose-100 bg-status-info/10 p-3 text-sm text-status-info">
                                         {errorMessage}
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="sticky bottom-0 z-10 border-t border-gray-100 bg-white px-5 py-4 shadow-[0_-10px_25px_rgba(15,23,42,0.06)] sm:px-6">
+                        <div className="sticky bottom-0 z-10 border-t border-card bg-card px-5 py-4 shadow-[0_-10px_25px_rgba(15,23,42,0.06)] sm:px-6">
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="flex items-center justify-between rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 lg:min-w-[18rem]">
                                     <span className="text-sm font-semibold text-sky-800">Total Price:</span>
@@ -425,14 +425,14 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                         type="button"
                                         onClick={onClose}
                                         disabled={submitting}
-                                        className="rounded-xl border border-gray-200 bg-slate-50 px-4 py-2 text-sm font-medium text-textMain transition-colors hover:bg-slate-50/80"
+                                        className="rounded-xl border border-card bg-page px-4 py-2 text-sm font-medium text-textMain transition-colors hover:bg-page/80"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {submitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Sale')}
                                     </button>

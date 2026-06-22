@@ -439,9 +439,9 @@ const OrderedSlips = () => {
     }, [orderedSlips, searchTerm, statusFilter]);
 
     const statusBadgeClass = (status) => {
-        if (status === 'COMPLETED') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-        if (status === 'PARTIAL_RECEIVED') return 'bg-amber-50 text-amber-700 border-amber-100';
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        if (status === 'COMPLETED') return 'bg-status-success/10 text-status-success border-emerald-100';
+        if (status === 'PARTIAL_RECEIVED') return 'bg-amber-50 text-status-info border-amber-100';
+        return 'bg-page text-primary border-card';
     };
 
     return (
@@ -454,7 +454,7 @@ const OrderedSlips = () => {
 
                 <button
                     onClick={() => setIsFormOpen(true)}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20"
+                    className="inline-flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm"
                 >
                     <Plus className="h-4 w-4 mr-2" />
                     New Slip
@@ -462,21 +462,21 @@ const OrderedSlips = () => {
             </div>
 
             {formSuccess && (
-                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700 text-sm font-medium">{formSuccess}</div>
+                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-status-success/10 text-status-success text-sm font-medium">{formSuccess}</div>
             )}
             {formError && (
-                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-rose-700 text-sm font-medium">{formError}</div>
+                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-status-info/10 text-status-info text-sm font-medium">{formError}</div>
             )}
 
-            <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-5">
+            <div className="bg-surface rounded-3xl border border-card shadow-sm p-4 sm:p-5">
                 <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
                     <div className="relative flex-1 max-w-xl">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-4 w-4 text-gray-400" />
+                            <Search className="h-4 w-4 text-secondary" />
                         </div>
                         <input
                             type="text"
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-white shadow-sm text-textMain placeholder-textMuted"
+                            className="block w-full pl-10 pr-3 py-2 border border-card rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-card shadow-sm text-textMain placeholder-textMuted"
                             placeholder="Search by company, product, or slip number..."
                             value={searchTerm}
                             onChange={(event) => setSearchTerm(event.target.value)}
@@ -485,11 +485,11 @@ const OrderedSlips = () => {
 
                     <div className="flex items-center gap-3 flex-wrap">
                         <div className="relative">
-                            <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                             <select
                                 value={statusFilter}
                                 onChange={(event) => setStatusFilter(event.target.value)}
-                                className="pl-9 pr-3 py-2 border border-gray-100 rounded-xl text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary"
+                                className="pl-9 pr-3 py-2 border border-card rounded-xl text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary"
                             >
                                 <option value="ALL">All Statuses</option>
                                 <option value="PENDING">Pending</option>
@@ -500,7 +500,7 @@ const OrderedSlips = () => {
 
                         <button
                             onClick={() => navigate('/inventory-managment')}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-white text-textMain rounded-xl hover:bg-slate-50 text-sm font-bold transition-all border border-gray-200 shadow-sm"
+                            className="inline-flex items-center justify-center px-5 py-2 bg-card text-primary rounded-full text-sm font-bold transition-all hover:bg-active-pill/30 border border-card shadow-sm"
                         >
                             <Package className="h-4 w-4 mr-2" />
                             Inventory
@@ -510,13 +510,13 @@ const OrderedSlips = () => {
             </div>
 
             {loading ? (
-                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
                     <Skeleton.TableRows count={6} cols={5} />
                 </div>
             ) : (
                 <div className="space-y-4">
                     {filteredSlips.length === 0 ? (
-                        <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm px-6 py-12 text-center text-textMuted">
+                        <div className="bg-surface rounded-3xl border border-card shadow-sm px-6 py-12 text-center text-textMuted">
                             <Clock3 className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                             <p>No ordered slips found.</p>
                         </div>
@@ -524,8 +524,8 @@ const OrderedSlips = () => {
                         const receivedPercent = slip.quantity_ordered ? Math.round((Number(slip.quantity_received || 0) / Number(slip.quantity_ordered || 1)) * 100) : 0;
 
                         return (
-                            <div key={slip.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                            <div key={slip.id} className="bg-card rounded-3xl border border-card shadow-sm overflow-hidden">
+                                <div className="px-6 py-4 border-b border-card flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="text-base font-bold text-textMain">OS-{String(slip.id).padStart(4, '0')}</h3>
@@ -538,14 +538,14 @@ const OrderedSlips = () => {
                                         <button
                                             onClick={() => handleDeleteSlip(slip.id)}
                                             disabled={busySlipId === slip.id}
-                                            className="inline-flex items-center px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                                            className="inline-flex items-center px-3 py-2 rounded-xl border border-card bg-status-info/10 text-sm font-semibold text-status-info hover:bg-status-info/20 disabled:opacity-60"
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
                                             Delete
                                         </button>
                                         <button
                                             onClick={() => handleDownload(slip, false)}
-                                            className="inline-flex items-center px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-textMain hover:bg-slate-50"
+                                            className="inline-flex items-center px-3 py-2 rounded-xl border border-card bg-card text-sm font-semibold text-textMain hover:bg-page"
                                         >
                                             <Download className="h-4 w-4 mr-2" />
                                             Download PDF
@@ -554,7 +554,7 @@ const OrderedSlips = () => {
                                             <button
                                                 onClick={() => handleCompleteReceipt(slip.id)}
                                                 disabled={busySlipId === slip.id}
-                                                className="inline-flex items-center px-3 py-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                                                className="inline-flex items-center px-3 py-2 rounded-xl bg-status-success text-sm font-semibold text-card hover:bg-emerald-700 disabled:opacity-60"
                                             >
                                                 <CheckCircle2 className="h-4 w-4 mr-2" />
                                                 Mark Complete
@@ -563,7 +563,7 @@ const OrderedSlips = () => {
                                         {slip.status === 'COMPLETED' && (
                                             <button
                                                 onClick={() => handleDownload(slip, true)}
-                                                className="inline-flex items-center px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                                                className="inline-flex items-center px-3 py-2 rounded-xl border border-card bg-status-success/10 text-sm font-semibold text-status-success hover:bg-status-success/20"
                                             >
                                                 <Download className="h-4 w-4 mr-2" />
                                                 Download Received PDF
@@ -590,7 +590,7 @@ const OrderedSlips = () => {
                                     </div>
                                     <div>
                                         <div className="text-xs uppercase tracking-wider text-textMuted font-semibold">Total Amount</div>
-                                        <div className="mt-1 text-sm font-bold text-emerald-700">{formatPKR(slip.total_cost)}</div>
+                                        <div className="mt-1 text-sm font-bold text-status-success">{formatPKR(slip.total_cost)}</div>
                                         <div className="text-[11px] text-textMuted">Unit cost: {formatPKR(slip.unit_cost)}</div>
                                     </div>
                                 </div>
@@ -605,13 +605,13 @@ const OrderedSlips = () => {
                                                 max={slip.quantity_ordered}
                                                 value={partialQuantities[slip.id] || ''}
                                                 onChange={(event) => setPartialQuantities((prev) => ({ ...prev, [slip.id]: event.target.value }))}
-                                                className="w-full sm:w-40 px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
+                                                className="w-full sm:w-40 px-3 py-2 border border-card rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
                                                 placeholder="Total received"
                                             />
                                             <button
                                                 onClick={() => handlePartialReceipt(slip.id)}
                                                 disabled={busySlipId === slip.id}
-                                                className="inline-flex items-center px-4 py-2 rounded-xl bg-amber-500 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-60"
+                                                className="inline-flex items-center px-4 py-2 rounded-xl bg-status-info text-sm font-semibold text-card hover:bg-amber-600 disabled:opacity-60"
                                             >
                                                 <Clock3 className="h-4 w-4 mr-2" />
                                                 Mark Partial Received
@@ -621,7 +621,7 @@ const OrderedSlips = () => {
 
                                     <div className="text-right">
                                         <div className="text-xs uppercase tracking-wider text-textMuted font-semibold mb-1">Inventory</div>
-                                        <div className={`text-sm font-bold ${slip.status === 'COMPLETED' ? 'text-emerald-700' : 'text-textMain'}`}>
+                                        <div className={`text-sm font-bold ${slip.status === 'COMPLETED' ? 'text-status-success' : 'text-textMain'}`}>
                                             {slip.status === 'COMPLETED' ? 'Stock updated' : 'Waiting for receipt'}
                                         </div>
                                     </div>
@@ -632,7 +632,7 @@ const OrderedSlips = () => {
                 </div>
             )}
 
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-card rounded-3xl border border-card shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div>
                         <h2 className="text-lg font-bold text-textMain">Supplier Purchase History</h2>
@@ -645,14 +645,14 @@ const OrderedSlips = () => {
                         <Skeleton.TableRows count={4} cols={5} />
                     </div>
                 ) : purchaseError ? (
-                    <div className="text-center text-sm text-rose-600 py-8">{purchaseError}</div>
+                    <div className="text-center text-sm text-status-info py-8">{purchaseError}</div>
                 ) : purchases.length === 0 ? (
                     <div className="text-center text-sm text-textMuted py-8">No purchase history found.</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-gray-100">
+                                <tr className="bg-page border-b border-card">
                                     <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Purchase #</th>
                                     <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Supplier</th>
                                     <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Product</th>
@@ -664,22 +664,22 @@ const OrderedSlips = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {purchases.map((purchase) => (
-                                    <tr key={purchase.id} className="hover:bg-slate-50/50">
+                                    <tr key={purchase.id} className="hover:bg-page/50">
                                         <td className="px-4 py-3 text-sm font-semibold text-primary">PO-{String(purchase.id).padStart(5, '0')}</td>
                                         <td className="px-4 py-3 text-sm text-textMain">{purchase.company_name}</td>
                                         <td className="px-4 py-3 text-sm text-textMain">{purchase.product_name}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">{purchase.purchase_date}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                        <td className="px-4 py-3 text-sm text-secondary">{purchase.purchase_date}</td>
+                                        <td className="px-4 py-3 text-sm text-primary">
                                             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
-                                                purchase.payment_status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                purchase.payment_status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                'bg-rose-50 text-rose-700 border-rose-100'
+                                                purchase.payment_status === 'PAID' ? 'bg-status-success/10 text-status-success border-emerald-100' :
+                                                purchase.payment_status === 'PARTIAL' ? 'bg-amber-50 text-status-info border-amber-100' :
+                                                'bg-status-info/10 text-status-info border-rose-100'
                                             }`}>
                                                 {purchase.payment_status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-right text-gray-700">{purchase.quantity_purchased}</td>
-                                        <td className="px-4 py-3 text-sm font-semibold text-right text-slate-900">{formatPKR(purchase.total_cost)}</td>
+                                        <td className="px-4 py-3 text-sm text-right text-primary">{purchase.quantity_purchased}</td>
+                                        <td className="px-4 py-3 text-sm font-semibold text-right text-primary">{formatPKR(purchase.total_cost)}</td>
                                     </tr>
                                 ))}
                             </tbody>

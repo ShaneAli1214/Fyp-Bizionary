@@ -18,19 +18,19 @@ const formatCompactPKR = (value) => {
 };
 
 const CATEGORY_COLORS = {
-    electronics_appliances: '#0A6ED1',
-    grocery_food_items: '#06B6D4',
-    clothing_textiles: '#8B5CF6',
-    pharmaceuticals_health: '#16A34A',
-    stationery_office_supplies: '#F97316',
+    electronics_appliances: '#A6764F',
+    grocery_food_items: '#C99A4A',
+    clothing_textiles: '#8A7F6E',
+    pharmaceuticals_health: '#6B8E4E',
+    stationery_office_supplies: '#E8E0D3',
 };
 
 const CATEGORY_GRADIENTS = {
-    electronics_appliances: { start: '#3B82F6', end: '#1D4ED8' },
-    grocery_food_items: { start: '#22D3EE', end: '#0891B2' },
-    clothing_textiles: { start: '#A78BFA', end: '#6D28D9' },
-    pharmaceuticals_health: { start: '#34D399', end: '#059669' },
-    stationery_office_supplies: { start: '#FBBF24', end: '#D97706' },
+    electronics_appliances: { start: '#A6764F', end: '#8C5F3C' },
+    grocery_food_items: { start: '#C99A4A', end: '#A37B34' },
+    clothing_textiles: { start: '#8A7F6E', end: '#6B5E4F' },
+    pharmaceuticals_health: { start: '#6B8E4E', end: '#506B3A' },
+    stationery_office_supplies: { start: '#E8E0D3', end: '#CFC5B4' },
 };
 
 const normalizeKey = (name) => name.toLowerCase();
@@ -42,21 +42,21 @@ const CustomTooltip = ({ active, payload, label }) => {
         const totalVolume = categoryItems.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
 
         return (
-            <div className="bg-white/85 dark:bg-slate-900/85 backdrop-blur-md p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl text-xs font-sans transition-all duration-150 ease-out">
-                <div className="font-bold text-slate-800 dark:text-slate-200 border-b border-slate-200/40 dark:border-slate-800/60 pb-1.5 mb-2">
+            <div className="bg-surface/90 backdrop-blur-md p-4 rounded-xl border border-border shadow-xl text-xs font-sans transition-all duration-150 ease-out">
+                <div className="font-bold text-text-primary border-b border-border pb-1.5 mb-2">
                     Date: {label}
                 </div>
                 
                 {moneyItems.length > 0 && (
                     <div className="space-y-1.5 mb-3">
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Financials</div>
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-text-secondary">Financials</div>
                         {moneyItems.map((item) => (
                             <div key={item.name} className="flex justify-between items-center gap-6">
-                                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-350">
+                                <div className="flex items-center gap-1.5 text-text-secondary">
                                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || item.stroke }} />
                                     <span>{item.name}</span>
                                 </div>
-                                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                <span className="font-semibold text-text-primary">
                                     {formatPKR(item.value)}
                                 </span>
                             </div>
@@ -65,21 +65,21 @@ const CustomTooltip = ({ active, payload, label }) => {
                 )}
 
                 {categoryItems.length > 0 && (
-                    <div className="space-y-1.5 border-t border-slate-200/40 dark:border-slate-800/60 pt-2">
-                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                    <div className="space-y-1.5 border-t border-border pt-2">
+                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-text-secondary mb-1">
                             <span>Category Volume</span>
-                            <span className="text-slate-700 dark:text-slate-350 normal-case font-semibold">Total: {totalVolume}</span>
+                            <span className="text-text-primary font-semibold">Total: {totalVolume}</span>
                         </div>
                         <div className="max-h-32 overflow-y-auto pr-1 space-y-1">
                             {categoryItems.map((item) => {
                                 if (Number(item.value) === 0) return null;
                                 return (
                                     <div key={item.name} className="flex justify-between items-center gap-6">
-                                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-350">
+                                        <div className="flex items-center gap-1.5 text-text-secondary">
                                             <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color || item.fill }} />
                                             <span className="truncate max-w-[120px]">{item.name}</span>
                                         </div>
-                                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                        <span className="font-semibold text-text-primary">
                                             {item.value} units
                                         </span>
                                     </div>
@@ -100,18 +100,18 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
     const categoryKeys = useMemo(() => categories.map((category) => ({
         key: category.key || normalizeKey(category.name),
         name: category.name,
-        color: category.color || CATEGORY_COLORS[category.key || normalizeKey(category.name)] || '#0A6ED1',
+        color: category.color || CATEGORY_COLORS[category.key || normalizeKey(category.name)] || '#A6764F',
     })), [categories]);
 
     if (!chartData || chartData.length === 0) {
-        return <div className="h-64 flex items-center justify-center text-sm text-textMuted">No data available for the selected period.</div>;
+        return <div className="h-64 flex items-center justify-center text-sm text-text-secondary">No data available for the selected period.</div>;
     }
 
     const xAxisAngle = selectedData.xAxisType === 'day' && chartData.length > 7 ? -20 : 0;
 
     // Fallbacks for totals if not sent by the backend hook
     const displaySalesAmount = totalSalesAmount ?? chartData.reduce((sum, d) => sum + (d.revenue || 0), 0);
-    const displayProfit = totalProfit ?? chartData.reduce((sum, d) => sum + (d.profit || 0), 0);
+    const displayProfit = totalProfit ?? chartData.reduce((sum, d) => d.profit !== undefined ? sum + d.profit : sum, 0);
     const displayQuantity = totalQuantity ?? chartData.reduce((sum, d) => {
         return sum + categoryKeys.reduce((catSum, cat) => catSum + (Number(d[cat.key]) || 0), 0);
     }, 0);
@@ -120,14 +120,14 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
         <div className="w-full">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-text-primary">
                         {isAccountant ? 'Revenue & Profit Trend' : 'Sales Breakdown'}
                     </h4>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    <p className="text-xs text-text-secondary mt-0.5">
                         {selectedData.periodLabel} • {selectedData.dateContext}
                     </p>
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-550 max-w-md md:text-right">
+                <p className="text-xs text-text-secondary max-w-md md:text-right">
                     {isAccountant 
                         ? 'Live revenue and profit trends in PKR for the selected timeframe.' 
                         : 'Stacked bars show category quantity. Solid and dashed lines show revenue and profit trends.'
@@ -136,23 +136,23 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
             </div>
 
             {/* Premium metrics grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-b border-slate-200/50 dark:border-slate-800/50 py-3.5 mb-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-b border-border py-3.5 mb-5">
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Total Revenue</span>
-                    <span className="text-base md:text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Total Revenue</span>
+                    <span className="text-base md:text-lg font-black text-accent mt-0.5">
                         {formatPKR(displaySalesAmount)}
                     </span>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Total Profit</span>
-                    <span className="text-base md:text-lg font-black text-rose-600 dark:text-rose-450 mt-0.5">
+                    <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Total Profit</span>
+                    <span className="text-base md:text-lg font-black text-success mt-0.5">
                         {formatPKR(displayProfit)}
                     </span>
                 </div>
                 {!isAccountant && (
                     <div className="flex flex-col col-span-2 md:col-span-1">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Total Volume Sold</span>
-                        <span className="text-base md:text-lg font-black text-slate-700 dark:text-slate-350 mt-0.5">
+                        <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Total Volume Sold</span>
+                        <span className="text-base md:text-lg font-black text-text-primary mt-0.5">
                             {displayQuantity.toLocaleString()} units
                         </span>
                     </div>
@@ -173,11 +173,11 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
                                 );
                             })}
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200/50 dark:text-slate-800/40" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D3" />
                         <XAxis
                             dataKey="period"
-                            tick={{ fontSize: 10, fill: 'currentColor' }}
-                            className="text-slate-400 dark:text-slate-500"
+                            tick={{ fontSize: 10, fill: '#8A7F6E' }}
+                            className="text-text-secondary"
                             angle={xAxisAngle}
                             textAnchor={xAxisAngle ? 'end' : 'middle'}
                             interval={0}
@@ -186,18 +186,18 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
                         {!isAccountant && (
                             <YAxis
                                 yAxisId="quantity"
-                                tick={{ fontSize: 10, fill: 'currentColor' }}
-                                className="text-slate-400 dark:text-slate-500"
-                                label={{ value: 'Quantity sold', angle: -90, position: 'insideLeft', fill: 'currentColor', offset: 10, className: 'text-slate-400 dark:text-slate-500 font-semibold' }}
+                                tick={{ fontSize: 10, fill: '#8A7F6E' }}
+                                className="text-text-secondary"
+                                label={{ value: 'Quantity sold', angle: -90, position: 'insideLeft', fill: '#8A7F6E', offset: 10, className: 'text-text-secondary font-semibold' }}
                             />
                         )}
                         <YAxis
                             yAxisId="money"
                             orientation={isAccountant ? 'left' : 'right'}
                             tickFormatter={formatCompactPKR}
-                            tick={{ fontSize: 10, fill: 'currentColor' }}
-                            className="text-slate-400 dark:text-slate-500"
-                            label={{ value: 'Amount (PKR)', angle: 90, position: isAccountant ? 'outside' : 'insideRight', fill: 'currentColor', offset: 10, className: 'text-slate-400 dark:text-slate-500 font-semibold' }}
+                            tick={{ fontSize: 10, fill: '#8A7F6E' }}
+                            className="text-text-secondary"
+                            label={{ value: 'Amount (PKR)', angle: 90, position: isAccountant ? 'outside' : 'insideRight', fill: '#8A7F6E', offset: 10, className: 'text-text-secondary font-semibold' }}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend 
@@ -206,7 +206,7 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
                             iconType="circle"
                             iconSize={8}
                             formatter={(value) => (
-                                <span className="text-slate-600 dark:text-slate-400 font-semibold text-xs ml-1">
+                                <span className="text-text-secondary font-semibold text-xs ml-1">
                                     {value}
                                 </span>
                             )}
@@ -234,7 +234,7 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
                             dataKey="revenue"
                             name="Revenue"
                             yAxisId="money"
-                            stroke="#10b981"
+                            stroke="#A6764F"
                             strokeWidth={3}
                             dot={{ r: 3, strokeWidth: 1 }}
                             activeDot={{ r: 5 }}
@@ -248,7 +248,7 @@ const SalesPerformanceChart = ({ selectedData, isAccountant = false }) => {
                             dataKey="profit"
                             name="Profit"
                             yAxisId="money"
-                            stroke="#dc2626"
+                            stroke="#6B8E4E"
                             strokeWidth={2}
                             strokeDasharray="6 4"
                             dot={{ r: 3, strokeWidth: 1 }}

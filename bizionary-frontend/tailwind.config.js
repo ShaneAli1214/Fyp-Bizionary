@@ -8,34 +8,30 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: "#4F46E5",
-                'primary-dark': "#4338CA",
-                primaryDark: "#4338CA",
-                accent: "#06B6D4",
-                'accent-dark': "#0891B2",
-                background: "#F8FAFC",
-                'background-dark': '#0F172A',
-                surface: "#FFFFFF",
-                'surface-dark': '#0B1220',
-                'ai-purple': '#8b5cf6',
-                textMain: "#0f172a",
-                textMuted: "#94A3B8",
-                success: "#10B981",
-                danger: "#EF4444",
-                warning: "#F59E0B"
-                ,
-                grey: {
-                    50: '#F7F8FA',
-                    100: '#F1F3F5',
-                    200: '#E6E9EE',
-                    300: '#D0D5DB',
-                    400: '#B9BEC7',
-                    500: '#94A0AF',
-                    600: '#6E7A86',
-                    700: '#47515A',
-                    800: '#2C343A',
-                    900: '#0B0D10'
-                }
+                // ── Semantic aliases that map to dynamic CSS variables ──
+                primary:    'var(--color-textMain)',
+                'primary-dark': 'var(--color-textMain)',
+                accent:     'var(--color-accent)',
+                background: 'var(--color-background)',
+                surface:    'var(--color-surface)',
+                textMain:   'var(--color-textMain)',
+                textMuted:  'var(--color-textMuted)',
+                border:     'var(--color-border)',
+                success:    'var(--color-success)',
+                danger:     'var(--color-danger)',
+                warning:    'var(--color-warning)',
+
+                // ── The 10 reference design tokens (strict) ──
+                'bg-page':       '#F1EBE3',
+                'bg-card':       '#FFFFFF',
+                'border-card':   '#E8E0D3',
+                'text-primary':  '#2B2620',
+                'text-secondary':'#9C9387',
+                'active-pill':   '#DCD3C5',
+                'chart-accent':  '#B7A893',
+                'chart-track':   '#E8E0D3',
+                'status-success':'#8FA888',
+                'status-info':   '#C9A86A',
             }
         },
     },

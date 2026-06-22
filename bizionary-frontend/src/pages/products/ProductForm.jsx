@@ -70,15 +70,15 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
 
     return (
         <Dialog open={isOpen} onClose={submitting ? () => {} : onClose} className="relative z-50">
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 bg-primary/30" aria-hidden="true" />
 
             <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
+                <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-xl border border-card">
                     <div className="flex justify-between items-center mb-6">
                         <Dialog.Title className="text-xl font-bold text-primary">
                             {isEditing ? 'Edit Product' : 'Add New Product'}
                         </Dialog.Title>
-                        <button onClick={onClose} disabled={submitting} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 disabled:opacity-50">
+                        <button onClick={onClose} disabled={submitting} className="p-2 text-secondary hover:text-secondary rounded-full hover:bg-page disabled:opacity-50">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -86,20 +86,20 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Product Name</label>
                                 <input
                                     type="text"
                                     name="name"
                                     required
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                     placeholder="Enter the master product name"
                                 />
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product ID / SKU</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Product ID / SKU</label>
                                 <input
                                     type="text"
                                     name="product_code"
@@ -107,18 +107,18 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                     value={formData.product_code}
                                     onChange={handleChange}
                                     readOnly={!isEditing}
-                                    className={`w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm ${!isEditing ? 'bg-gray-50 text-gray-600' : ''}`}
+                                    className={`w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm ${!isEditing ? 'bg-page text-secondary' : ''}`}
                                     placeholder="Auto-generated from category"
                                 />
                             </div>
 
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                 <select
                                     name="category"
                                     value={formData.category}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     {PRODUCT_CATEGORIES.map((option) => (
                                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -129,7 +129,7 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                             {/* Brand and Unit fields removed */}
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (Rs)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Purchase Price (Rs)</label>
                                 <input
                                     type="number"
                                     name="cost_price"
@@ -138,12 +138,12 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                     required
                                     value={formData.cost_price}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (Rs)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Selling Price (Rs)</label>
                                 <input
                                     type="number"
                                     name="sale_price"
@@ -152,17 +152,17 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                     required
                                     value={formData.sale_price}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Supplier</label>
                                 <select
                                     name="supplier"
                                     value={formData.supplier || ''}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     <option value="">No supplier linked</option>
                                     {supplierOptions.map((supplier) => (
@@ -172,12 +172,12 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
                                 <select
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     <option value="ACTIVE">Active</option>
                                     <option value="INACTIVE">Inactive</option>
@@ -187,7 +187,7 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                         </div>
 
                         {errorMessage && (
-                            <div className="p-3 rounded-lg border border-rose-100 bg-rose-50 text-rose-700 text-sm">
+                            <div className="p-3 rounded-lg border border-rose-100 bg-status-info/10 text-status-info text-sm">
                                 {errorMessage}
                             </div>
                         )}
@@ -197,14 +197,14 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                 type="button"
                                 onClick={onClose}
                                 disabled={submitting}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-card rounded-xl hover:bg-page transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-xl hover:bg-secondary transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-xl hover:bg-secondary transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {submitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Add Product')}
                             </button>

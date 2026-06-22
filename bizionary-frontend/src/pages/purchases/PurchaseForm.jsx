@@ -96,15 +96,15 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
 
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 bg-primary/30" aria-hidden="true" />
 
             <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
+                <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-xl border border-card">
                     <div className="flex justify-between items-center mb-6">
                         <Dialog.Title className="text-xl font-bold text-textMain">
                             {isEditing ? 'Edit Purchase Order' : 'Create Purchase Order'}
                         </Dialog.Title>
-                        <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50">
+                        <button onClick={onClose} className="p-2 text-secondary hover:text-secondary rounded-full hover:bg-page">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -113,13 +113,13 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                         <div className="grid grid-cols-2 gap-4">
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                 <select
                                     name="category"
                                     required
                                     value={selectedCategory}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     {PRODUCT_CATEGORIES.map((category) => (
                                         <option key={category.value} value={category.value}>{category.label}</option>
@@ -128,25 +128,25 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Company (Auto Assigned)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Company (Auto Assigned)</label>
                                 <input
                                     type="text"
                                     name="company_name"
                                     required
                                     value={formData.company_name}
                                     readOnly
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm bg-gray-50 text-gray-700"
+                                    className="w-full border border-card rounded-lg p-2.5 text-sm bg-page text-primary"
                                 />
                             </div>
 
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Product</label>
                                 <select
                                     name="product"
                                     required
                                     value={formData.product}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     <option value="" disabled>Select a {selectedCategory.toLowerCase()} product...</option>
                                     {availableProducts.map((p) => (
@@ -156,19 +156,19 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Purchase Date</label>
                                 <input
                                     type="date"
                                     name="purchase_date"
                                     required
                                     value={formData.purchase_date}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Quantity</label>
                                 <input
                                     type="number"
                                     name="quantity_purchased"
@@ -176,12 +176,12 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                                     required
                                     value={formData.quantity_purchased}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost (Rs)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Unit Cost (Rs)</label>
                                 <input
                                     type="number"
                                     name="unit_cost"
@@ -190,15 +190,15 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                                     required
                                     value={formData.unit_cost}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                         </div>
 
                         {/* Calculated Total Cost */}
-                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 flex justify-between items-center">
-                            <span className="text-sm font-semibold text-gray-700">Total Estimated Cost:</span>
+                        <div className="mt-4 p-4 bg-page rounded-xl border border-card flex justify-between items-center">
+                            <span className="text-sm font-semibold text-primary">Total Estimated Cost:</span>
                             <span className="text-xl font-bold text-danger">
                                 Rs {(formData.quantity_purchased * formData.unit_cost).toLocaleString()}
                             </span>
@@ -208,13 +208,13 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-card rounded-xl hover:bg-page transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primaryDark transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-xl hover:bg-primaryDark transition-colors"
                             >
                                 {isEditing ? 'Save Changes' : 'Create Purchase'}
                             </button>

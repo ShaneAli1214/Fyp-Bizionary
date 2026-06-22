@@ -425,13 +425,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
 
     return (
         <Dialog open={isOpen} onClose={submitting ? () => {} : onClose} className="relative z-50">
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 bg-primary/30" aria-hidden="true" />
 
             <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="w-full max-w-3xl h-fit max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl border border-gray-100">
+                <Dialog.Panel className="w-full max-w-3xl h-fit max-h-[90vh] overflow-y-auto rounded-2xl bg-card p-6 shadow-xl border border-card">
                     <div className="flex justify-between items-center mb-6">
                         <Dialog.Title className="text-xl font-bold text-primary">{title}</Dialog.Title>
-                        <button onClick={onClose} disabled={submitting} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 disabled:opacity-50">
+                        <button onClick={onClose} disabled={submitting} className="p-2 text-secondary hover:text-secondary rounded-full hover:bg-page disabled:opacity-50">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -440,13 +440,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                         {!isCustomMode ? (
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Category</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Product Category</label>
                                 <select
                                     name="category"
                                     required
                                     value={selectedCategory}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     {categoryOptions.map((category) => (
                                         <option key={category.value} value={category.value}>{category.label}</option>
@@ -455,13 +455,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                             </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Company</label>
                                 <select
                                     name="company_name"
                                     required
                                     value={formData.company_name}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     {selectedCompanyOptions.map((company) => (
                                         <option key={company.name} value={company.name}>{company.name}</option>
@@ -470,13 +470,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                             </div>
 
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Product</label>
                                 <select
                                     name="product"
                                     required
                                     value={formData.product}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-white"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
                                     <option value="" disabled>Select a {selectedCategory.toLowerCase()} product...</option>
                                     {availableProducts.map((product) => (
@@ -488,14 +488,14 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                             </div>
 
                                 <div className="col-span-2 sm:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
-                                    <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-800">
+                                    <label className="block text-sm font-medium text-primary mb-1">Unit Price</label>
+                                    <div className="w-full rounded-lg border border-card bg-page px-3 py-2.5 text-sm font-semibold text-primary">
                                         {selectedProduct ? `Rs ${selectedUnitCost.toLocaleString()}` : 'Select a product'}
                                     </div>
                                 </div>
 
                             <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity to Order</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Quantity to Order</label>
                                 <input
                                     type="number"
                                     name="quantity_ordered"
@@ -503,34 +503,34 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                     required
                                     value={formData.quantity_ordered}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
                             </div>
 
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                                 <textarea
                                     name="notes"
                                     rows={3}
                                     value={formData.notes}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                     placeholder="Optional order instructions..."
                                 />
                             </div>
                         </div>
 
                         ) : (
-                        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-gray-100 bg-gray-50 p-4 md:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-card bg-page p-4 md:grid-cols-2">
                             <div className="grid grid-cols-2 gap-6 md:col-span-2">
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                     <select
                                         name="custom_category_select"
                                         required
                                         value={customData.category_mode === 'create' ? CREATE_NEW_VALUE : customData.category}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                     >
                                         {categoryOptions.map((category) => (
                                             <option key={category.value} value={category.value}>{category.label}</option>
@@ -541,27 +541,27 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
 
                                 {customData.category_mode === 'create' && (
                                     <div className="col-span-2 md:col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">New Category Name</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">New Category Name</label>
                                         <input
                                             type="text"
                                             name="custom_category_name"
                                             required
                                             value={customData.custom_category}
                                             onChange={handleChange}
-                                            className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                             placeholder="Type a new category"
                                         />
                                     </div>
                                 )}
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Sub-category</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Sub-category</label>
                                     <select
                                         name="custom_subcategory_select"
                                         required
                                         value={customData.subcategory_mode === 'create' ? CREATE_NEW_VALUE : customData.subcategory}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                     >
                                         {customSubcategories.length > 0 ? (
                                             customSubcategories.map((subcategory) => (
@@ -576,40 +576,40 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
 
                                 {customData.subcategory_mode === 'create' && (
                                     <div className="col-span-2 md:col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">New Sub-category Name</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">New Sub-category Name</label>
                                         <input
                                             type="text"
                                             name="custom_subcategory_name"
                                             required
                                             value={customData.custom_subcategory}
                                             onChange={handleChange}
-                                            className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                             placeholder="Type a new sub-category"
                                         />
                                     </div>
                                 )}
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Product Name</label>
                                     <input
                                         type="text"
                                         name="product_name"
                                         required
                                         value={customData.product_name}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                         placeholder="Enter custom product name"
                                     />
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Company / Supplier</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Company / Supplier</label>
                                     <select
                                         name="custom_company_select"
                                         required
                                         value={customData.company_mode === 'create' ? REGISTER_NEW_COMPANY_VALUE : customData.company_name}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                     >
                                         {customCompanyOptions.map((company) => (
                                             <option key={`${company.name}-${company.category || ''}`} value={company.name}>{company.name}</option>
@@ -619,32 +619,32 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                 </div>
 
                                 {customData.company_mode === 'create' && (
-                                    <div className="col-span-2 rounded-xl border border-dashed border-primary/20 bg-white p-4">
+                                    <div className="col-span-2 rounded-xl border border-dashed border-primary/20 bg-card p-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="col-span-2 sm:col-span-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Company Name</label>
                                                 <input
                                                     type="text"
                                                     name="custom_company_name"
                                                     required
                                                     value={customData.company_name}
                                                     onChange={handleChange}
-                                                    className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                                    className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                                     placeholder="Enter company name"
                                                 />
                                             </div>
                                             <div className="col-span-2 sm:col-span-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Contact Number</label>
                                                 <input
                                                     type="text"
                                                     name="company_contact_number"
                                                     value={customData.company_contact_number}
                                                     onChange={handleChange}
-                                                    className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                                    className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                                     placeholder="e.g. 0300-1234567"
                                                 />
                                                 {companyContactError && (
-                                                    <div className="mt-2 text-sm text-rose-600">
+                                                    <div className="mt-2 text-sm text-status-info">
                                                         {companyContactError}
                                                     </div>
                                                 )}
@@ -655,13 +655,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                                 type="button"
                                                 onClick={handleRegisterCompany}
                                                 disabled={isSavingCompany}
-                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
+                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-card hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
                                             >
                                                 {isSavingCompany ? 'Registering...' : 'Save Company'}
                                             </button>
                                         </div>
                                         {companyError && (
-                                            <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                                            <div className="mt-3 rounded-lg border border-rose-100 bg-status-info/10 px-3 py-2 text-sm text-status-info">
                                                 {companyError}
                                             </div>
                                         )}
@@ -669,7 +669,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                 )}
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity to Order</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Quantity to Order</label>
                                     <input
                                         type="number"
                                         name="quantity_ordered"
@@ -677,11 +677,11 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                         required
                                         value={customData.quantity_ordered}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                     />
                                 </div>
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Cost Price</label>
                                     <input
                                         type="number"
                                         name="cost_price"
@@ -690,13 +690,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                         required
                                         value={customData.cost_price}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                         placeholder="Enter cost price"
                                     />
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Sale Price</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Sale Price</label>
                                     <input
                                         type="number"
                                         name="sale_price"
@@ -705,19 +705,19 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                         required
                                         value={customData.sale_price}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                         placeholder="Enter sale price"
                                     />
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                                     <textarea
                                         name="notes"
                                         rows={5}
                                         value={customData.notes}
                                         onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                         placeholder="Optional order instructions..."
                                     />
                                 </div>
@@ -725,13 +725,13 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                         </div>
                         )}
 
-                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <span className="text-sm font-semibold text-gray-700">Total Amount:</span>
+                        <div className="mt-4 p-4 bg-page rounded-xl border border-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span className="text-sm font-semibold text-primary">Total Amount:</span>
                             <span className="text-xl font-bold text-danger">Rs {(isCustomMode ? customTotalAmount : totalAmount).toLocaleString()}</span>
                         </div>
 
                         {errorMessage && (
-                            <div className="p-3 rounded-lg border border-rose-100 bg-rose-50 text-rose-700 text-sm">
+                            <div className="p-3 rounded-lg border border-rose-100 bg-status-info/10 text-status-info text-sm">
                                 {errorMessage}
                             </div>
                         )}
@@ -741,14 +741,14 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                 type="button"
                                 onClick={onClose}
                                 disabled={submitting}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-card rounded-xl hover:bg-page transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting || (!isCustomMode && !selectedProduct) || (isCustomMode && (!customData.product_name.trim() || !customData.company_name.trim()))}
-                                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primaryDark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-xl hover:bg-primaryDark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {submitting ? 'Generating...' : submitLabel}
                             </button>

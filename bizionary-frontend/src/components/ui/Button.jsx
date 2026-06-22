@@ -2,16 +2,51 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 const variants = {
-    primary: 'bg-primary text-white hover:bg-[#1E40AF] shadow-sm hover:shadow-md active:scale-[0.98]',
-    secondary: 'bg-white text-textMain border border-gray-200 hover:bg-gray-50 shadow-sm active:scale-[0.98]',
-    ghost: 'bg-transparent text-textMain hover:bg-gray-100 active:scale-[0.98]',
-    danger: 'bg-white text-danger border border-danger/20 hover:bg-danger hover:text-white shadow-sm active:scale-[0.98]',
+    // ── Primary: "text-primary" (#2B2620) fill, white text, pill shape ──
+    // This is the ONLY place text-primary is used as a background fill.
+    primary: [
+        'bg-[#2B2620]',           // text-primary token as fill
+        'text-[#FFFFFF]',         // bg-card token as text
+        'hover:opacity-85',       // hover: reduce opacity — no new color
+        'active:opacity-70',
+        'shadow-sm',
+        'hover:shadow-md',
+        'active:scale-[0.98]',
+    ].join(' '),
+
+    // ── Secondary: card background, primary text, card border ──
+    secondary: [
+        'bg-card',
+        'text-primary',
+        'border border-card',
+        'hover:bg-active-pill/20',
+        'shadow-sm',
+        'active:scale-[0.98]',
+    ].join(' '),
+
+    // ── Ghost: transparent, primary text, active-pill hover ──
+    ghost: [
+        'bg-transparent',
+        'text-primary',
+        'hover:bg-active-pill/20',
+        'active:scale-[0.98]',
+    ].join(' '),
+
+    // ── Danger: status-info tint, primary text, border ──
+    danger: [
+        'bg-card',
+        'text-status-info',
+        'border border-status-info/20',
+        'hover:bg-active-pill/20',
+        'shadow-sm',
+        'active:scale-[0.98]',
+    ].join(' '),
 };
 
 const sizes = {
-    sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5',
-    md: 'px-4 py-2 text-sm rounded-xl gap-2',
-    lg: 'px-5 py-2.5 text-sm rounded-xl gap-2',
+    sm: 'px-4 py-1.5 text-xs rounded-full gap-1.5',    // pill
+    md: 'px-5 py-2 text-sm rounded-full gap-2',         // pill
+    lg: 'px-6 py-2.5 text-sm rounded-full gap-2',       // pill
 };
 
 const Button = React.forwardRef(({

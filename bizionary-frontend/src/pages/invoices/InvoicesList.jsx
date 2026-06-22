@@ -43,12 +43,12 @@ const InvoicesList = () => {
     );
 
     const getStatusStyle = (status, isOverdue) => {
-        if (isOverdue) return 'bg-red-50 text-danger border-red-100';
+        if (isOverdue) return 'bg-status-info/10 text-danger border-red-100';
         switch (status?.toLowerCase()) {
-            case 'paid': return 'bg-green-50 text-success border-green-100';
+            case 'paid': return 'bg-status-success/10 text-success border-green-100';
             case 'sent': return 'bg-sky-50 text-sky-700 border-sky-100';
-            case 'draft': return 'bg-gray-100 text-gray-600 border-gray-200';
-            default: return 'bg-gray-50 text-gray-600 border-gray-100';
+            case 'draft': return 'bg-page text-secondary border-card';
+            default: return 'bg-page text-secondary border-card';
         }
     };
 
@@ -60,11 +60,11 @@ const InvoicesList = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-gray-400" />
+                        <Search className="h-4 w-4 text-secondary" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
+                        className="block w-full pl-10 pr-3 py-2 border border-card rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
                         placeholder="Search by invoice number or client..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -72,13 +72,13 @@ const InvoicesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <button className="flex items-center justify-center px-4 py-2 border border-gray-100 text-textMuted bg-surface rounded-xl hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto">
+                    <button className="flex items-center justify-center px-4 py-2 border border-card text-textMuted bg-surface rounded-xl hover:bg-page text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto">
                         <Filter className="h-4 w-4 mr-2" />
                         Filters
                     </button>
                     <button
                         onClick={handlePrint}
-                        className="flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-textMain rounded-xl hover:bg-gray-50 text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
+                        className="flex items-center justify-center px-4 py-2 bg-card border border-card text-textMain rounded-xl hover:bg-page text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
                     >
                         <Printer className="h-4 w-4 mr-2 text-textMuted" />
                         Print View
@@ -87,7 +87,7 @@ const InvoicesList = () => {
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={8} />
@@ -95,7 +95,7 @@ const InvoicesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-white text-textMuted text-xs uppercase tracking-wider border-b border-gray-100">
+                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Invoice #</th>
                                     <th className="px-6 py-4 font-semibold">Client</th>
@@ -109,7 +109,7 @@ const InvoicesList = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {filteredInvoices.map((inv) => (
-                                    <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={inv.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap font-bold text-primary text-xs">{inv.invoice_number}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{inv.customer_name}</td>
                                         <td className="px-6 py-4 text-textMuted">{inv.issue_date}</td>
@@ -125,7 +125,7 @@ const InvoicesList = () => {
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => handleExport(inv.id)}
-                                                    className="inline-flex items-center justify-center p-1.5 text-gray-400 hover:text-primary bg-gray-50 hover:bg-sky-50 rounded-lg transition-colors border border-gray-100 hover:border-sky-100"
+                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-primary bg-page hover:bg-sky-50 rounded-lg transition-colors border border-card hover:border-sky-100"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />

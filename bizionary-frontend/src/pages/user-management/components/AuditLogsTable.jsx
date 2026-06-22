@@ -106,21 +106,21 @@ const AuditLogsTable = () => {
         switch (action) {
             case 'LOGIN':
             case '2FA_ENABLE':
-                return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                return 'bg-status-success/10 text-status-success border-card';
             case 'LOGOUT':
             case '2FA_DISABLE':
-                return 'bg-rose-50 text-rose-700 border-rose-200';
+                return 'bg-status-info/10 text-status-info border-card';
             case 'CREATE':
                 return 'bg-sky-50 text-sky-700 border-sky-200';
             case 'UPDATE':
             case 'ROLE_CHANGE':
             case 'PERMISSION_CHANGE':
             case 'PASSWORD_CHANGE':
-                return 'bg-amber-50 text-amber-700 border-amber-200';
+                return 'bg-amber-50 text-status-info border-amber-200';
             case 'DELETE':
-                return 'bg-red-50 text-red-700 border-red-200';
+                return 'bg-status-info/10 text-status-info border-card';
             default:
-                return 'bg-slate-50 text-slate-700 border-slate-200';
+                return 'bg-page text-primary border-card';
         }
     };
 
@@ -130,19 +130,19 @@ const AuditLogsTable = () => {
             case 'products':
                 return 'bg-violet-50 text-violet-700 border-violet-200';
             case 'purchases':
-                return 'bg-orange-50 text-orange-700 border-orange-200';
+                return 'bg-orange-50 text-status-info border-orange-200';
             case 'sales':
                 return 'bg-sky-50 text-sky-700 border-sky-200';
             case 'accounts':
-                return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                return 'bg-status-success/10 text-status-success border-card';
             case 'user management':
-                return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                return 'bg-active-pill/20 text-status-info border-indigo-200';
             case 'security':
-                return 'bg-rose-50 text-rose-700 border-rose-200';
+                return 'bg-status-info/10 text-status-info border-card';
             case 'dashboard':
-                return 'bg-slate-50 text-slate-700 border-slate-200';
+                return 'bg-page text-primary border-card';
             default:
-                return 'bg-gray-50 text-gray-500 border-gray-200';
+                return 'bg-page text-secondary border-card';
         }
     };
 
@@ -164,31 +164,31 @@ const AuditLogsTable = () => {
         <div className="space-y-5">
 
             {/* ── Filter Bar ── */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="bg-card dark:bg-primary p-5 rounded-2xl border border-card dark:border-slate-800 shadow-sm space-y-4">
 
                 {/* Row 1: Search + Action + Module + Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative lg:col-span-1">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary w-4 h-4" />
                         <input
                             id="audit-search"
                             type="text"
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                             placeholder="Search name, description…"
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] dark:text-slate-200 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] dark:text-slate-200 transition-all"
                         />
                     </div>
 
                     {/* Action filter */}
                     <div className="relative">
-                        <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                        <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary w-4 h-4 pointer-events-none" />
                         <select
                             id="audit-action-filter"
                             value={actionFilter}
                             onChange={(e) => { setActionFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] dark:text-slate-200 transition-all appearance-none"
+                            className="w-full pl-10 pr-4 py-2.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] dark:text-slate-200 transition-all appearance-none"
                         >
                             <option value="">All Event Types</option>
                             {actionCategories.map((cat) => (
@@ -199,12 +199,12 @@ const AuditLogsTable = () => {
 
                     {/* Module filter */}
                     <div className="relative">
-                        <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                        <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary w-4 h-4 pointer-events-none" />
                         <select
                             id="audit-module-filter"
                             value={moduleFilter}
                             onChange={(e) => { setModuleFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] dark:text-slate-200 transition-all appearance-none"
+                            className="w-full pl-10 pr-4 py-2.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] dark:text-slate-200 transition-all appearance-none"
                         >
                             <option value="">All Modules</option>
                             {erpModules.map((m) => (
@@ -219,7 +219,7 @@ const AuditLogsTable = () => {
                             id="audit-status-filter"
                             value={statusFilter}
                             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] dark:text-slate-200 transition-all appearance-none"
+                            className="w-full px-4 py-2.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] dark:text-slate-200 transition-all appearance-none"
                         >
                             <option value="">All Statuses</option>
                             <option value="SUCCESS">Success</option>
@@ -229,7 +229,7 @@ const AuditLogsTable = () => {
                             id="audit-reset-filters"
                             onClick={handleResetFilters}
                             title="Clear all filters"
-                            className="p-2.5 text-gray-500 hover:text-[#1C3A5A] bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                            className="p-2.5 text-secondary hover:text-[#2B2620] bg-page hover:bg-page dark:bg-primary dark:hover:bg-slate-700 border border-card dark:border-slate-700 rounded-xl transition-all flex items-center justify-center flex-shrink-0"
                         >
                             <RotateCcw className="w-4 h-4" />
                         </button>
@@ -237,8 +237,8 @@ const AuditLogsTable = () => {
                 </div>
 
                 {/* Row 2: Date Range */}
-                <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-gray-100 dark:border-slate-800">
-                    <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-card dark:border-slate-800">
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-secondary dark:text-secondary uppercase tracking-wider">
                         <Calendar className="w-3.5 h-3.5" />
                         Date Range
                     </span>
@@ -247,20 +247,20 @@ const AuditLogsTable = () => {
                         type="date"
                         value={fromDate}
                         onChange={(e) => { setFromDate(e.target.value); setCurrentPage(1); }}
-                        className="px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all"
+                        className="px-3 py-1.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-xs text-primary dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all"
                     />
-                    <span className="text-xs text-gray-400">to</span>
+                    <span className="text-xs text-secondary">to</span>
                     <input
                         id="audit-to-date"
                         type="date"
                         value={toDate}
                         onChange={(e) => { setToDate(e.target.value); setCurrentPage(1); }}
-                        className="px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1C3A5A]/20 focus:border-[#1C3A5A] transition-all"
+                        className="px-3 py-1.5 bg-page dark:bg-primary border border-card dark:border-slate-700 rounded-xl text-xs text-primary dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[#2B2620] transition-all"
                     />
                     {(fromDate || toDate) && (
                         <button
                             onClick={() => { setFromDate(''); setToDate(''); setCurrentPage(1); }}
-                            className="text-xs text-rose-500 hover:text-rose-700 font-semibold underline underline-offset-2 transition-colors"
+                            className="text-xs text-rose-500 hover:text-status-info font-semibold underline underline-offset-2 transition-colors"
                         >
                             Clear dates
                         </button>
@@ -270,38 +270,38 @@ const AuditLogsTable = () => {
 
             {/* ── Error Alert ── */}
             {errorMsg && (
-                <div className="p-4 rounded-xl bg-red-50 dark:bg-rose-950/30 text-red-700 dark:text-rose-400 border border-red-100 dark:border-rose-900 flex items-center gap-3 text-sm">
+                <div className="p-4 rounded-xl bg-status-info/10 dark:bg-rose-950/30 text-status-info dark:text-rose-400 border border-red-100 dark:border-rose-900 flex items-center gap-3 text-sm">
                     <ShieldAlert className="w-5 h-5 flex-shrink-0" />
                     <span>{errorMsg}</span>
                 </div>
             )}
 
             {/* ── Table ── */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="bg-card dark:bg-primary rounded-2xl border border-card dark:border-slate-800 shadow-sm overflow-hidden">
                 {loading ? (
                     <div className="p-20 flex justify-center items-center flex-col gap-4">
-                        <div className="w-10 h-10 rounded-full border-4 border-[#1C3A5A] border-t-transparent animate-spin" />
-                        <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
+                        <div className="w-10 h-10 rounded-full border-4 border-[#2B2620] border-t-transparent animate-spin" />
+                        <span className="text-sm font-medium text-secondary dark:text-secondary">
                             Retrieving audit logs…
                         </span>
                     </div>
                 ) : !logs || logs.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 flex items-center justify-center mb-5 text-gray-400">
-                            <ShieldAlert className="w-8 h-8 text-[#1C3A5A]" />
+                        <div className="w-16 h-16 bg-page dark:bg-primary rounded-2xl border border-card dark:border-slate-700 flex items-center justify-center mb-5 text-secondary">
+                            <ShieldAlert className="w-8 h-8 text-[#2B2620]" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-1">
+                        <h3 className="text-lg font-bold text-primary dark:text-slate-100 mb-1">
                             No audit entries found
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 max-w-sm">
+                        <p className="text-sm text-secondary dark:text-secondary max-w-sm">
                             No activity log entries match your current filters.
                         </p>
                     </div>
                 ) : (
                     <>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-700 dark:text-slate-300">
-                                <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 uppercase text-xs font-bold text-gray-500 dark:text-slate-400 tracking-wider">
+                            <table className="w-full text-left text-sm text-primary dark:text-slate-300">
+                                <thead className="bg-page dark:bg-primary border-b border-card dark:border-slate-700 uppercase text-xs font-bold text-secondary dark:text-secondary tracking-wider">
                                     <tr>
                                         <th className="px-5 py-4 whitespace-nowrap">Timestamp</th>
                                         <th className="px-5 py-4">Operator</th>
@@ -316,12 +316,12 @@ const AuditLogsTable = () => {
                                     {logs.map((log) => (
                                         <tr
                                             key={log.id}
-                                            className="hover:bg-gray-50/60 dark:hover:bg-slate-800/50 transition-colors"
+                                            className="hover:bg-page/60 dark:hover:bg-primary/50 transition-colors"
                                         >
                                             {/* Timestamp */}
                                             <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-slate-400">
-                                                    <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-secondary dark:text-secondary">
+                                                    <Calendar className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
                                                     <span>{formatTimestamp(log.timestamp)}</span>
                                                 </div>
                                             </td>
@@ -329,14 +329,14 @@ const AuditLogsTable = () => {
                                             {/* Operator */}
                                             <td className="px-5 py-3.5">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-[#1C3A5A]/10 text-[#1C3A5A] dark:bg-sky-500/10 dark:text-sky-400 flex items-center justify-center text-[10px] font-bold border border-[#1C3A5A]/10 dark:border-sky-500/20 flex-shrink-0">
+                                                    <div className="w-6 h-6 rounded-full bg-active-pill/30 text-[#2B2620] dark:bg-sky-500/10 dark:text-sky-400 flex items-center justify-center text-[10px] font-bold border border-card dark:border-sky-500/20 flex-shrink-0">
                                                         {(log.user_name || 'S').charAt(0).toUpperCase()}
                                                     </div>
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="font-bold text-gray-900 dark:text-slate-100 text-xs truncate">
+                                                        <span className="font-bold text-primary dark:text-slate-100 text-xs truncate">
                                                             {log.user_name}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate">
+                                                        <span className="text-[10px] text-secondary dark:text-secondary truncate">
                                                             {log.user_role || log.user_email || '—'}
                                                         </span>
                                                     </div>
@@ -357,15 +357,15 @@ const AuditLogsTable = () => {
                                                         {log.module}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-xs text-gray-400 italic">—</span>
+                                                    <span className="text-xs text-secondary italic">—</span>
                                                 )}
                                             </td>
 
                                             {/* Description */}
                                             <td className="px-5 py-3.5">
                                                 <div className="flex items-start gap-1.5 min-w-[180px] max-w-[320px]">
-                                                    <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
-                                                    <span className="text-xs text-gray-700 dark:text-slate-300 font-medium leading-relaxed line-clamp-2">
+                                                    <Info className="w-3.5 h-3.5 text-secondary flex-shrink-0 mt-0.5" />
+                                                    <span className="text-xs text-primary dark:text-slate-300 font-medium leading-relaxed line-clamp-2">
                                                         {log.description}
                                                     </span>
                                                 </div>
@@ -373,8 +373,8 @@ const AuditLogsTable = () => {
 
                                             {/* IP Address */}
                                             <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-slate-400 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-2 py-0.5 rounded-md w-fit">
-                                                    <Globe className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-secondary dark:text-secondary bg-page dark:bg-primary border border-card dark:border-slate-700 px-2 py-0.5 rounded-md w-fit">
+                                                    <Globe className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
                                                     <span>{log.ip_address || 'Internal'}</span>
                                                 </div>
                                             </td>
@@ -383,8 +383,8 @@ const AuditLogsTable = () => {
                                             <td className="px-5 py-3.5 whitespace-nowrap">
                                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                                     log.status === 'SUCCESS'
-                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
-                                                        : 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
+                                                        ? 'bg-status-success/10 text-status-success border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
+                                                        : 'bg-status-info/10 text-status-info border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
                                                 }`}>
                                                     {log.status === 'SUCCESS'
                                                         ? <CheckCircle2 className="w-3 h-3" />
@@ -400,20 +400,20 @@ const AuditLogsTable = () => {
                         </div>
 
                         {/* ── Pagination Footer ── */}
-                        <div className="px-6 py-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <span className="text-xs text-gray-500 dark:text-slate-400">
+                        <div className="px-6 py-4 border-t border-card dark:border-slate-800 bg-page/50 dark:bg-primary/30 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                            <span className="text-xs text-secondary dark:text-secondary">
                                 Total events logged:{' '}
-                                <span className="font-bold text-[#1C3A5A] dark:text-sky-400">{totalCount}</span>
+                                <span className="font-bold text-[#2B2620] dark:text-sky-400">{totalCount}</span>
                             </span>
 
                             <div className="flex items-center gap-4">
                                 {/* Rows per page */}
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 dark:text-slate-400">Rows:</span>
+                                    <span className="text-xs text-secondary dark:text-secondary">Rows:</span>
                                     <select
                                         value={pageSize}
                                         onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                                        className="px-2 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:border-[#1C3A5A] dark:text-slate-300"
+                                        className="px-2 py-1 bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-lg text-xs outline-none focus:border-[#2B2620] dark:text-slate-300"
                                     >
                                         <option value={10}>10</option>
                                         <option value={20}>20</option>
@@ -427,18 +427,18 @@ const AuditLogsTable = () => {
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                                         disabled={currentPage === 1}
-                                        className="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                        className="px-3 py-1.5 text-xs font-semibold bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-lg text-secondary dark:text-slate-300 hover:bg-page dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                     >
                                         Previous
                                     </button>
-                                    <span className="text-xs text-gray-500 dark:text-slate-400 font-medium px-1">
-                                        Page <span className="font-bold text-gray-800 dark:text-slate-200">{currentPage}</span>{' '}
-                                        of <span className="font-bold text-gray-800 dark:text-slate-200">{totalPages}</span>
+                                    <span className="text-xs text-secondary dark:text-secondary font-medium px-1">
+                                        Page <span className="font-bold text-primary dark:text-slate-200">{currentPage}</span>{' '}
+                                        of <span className="font-bold text-primary dark:text-slate-200">{totalPages}</span>
                                     </span>
                                     <button
                                         onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                                         disabled={currentPage === totalPages}
-                                        className="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                        className="px-3 py-1.5 text-xs font-semibold bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-lg text-secondary dark:text-slate-300 hover:bg-page dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                     >
                                         Next
                                     </button>

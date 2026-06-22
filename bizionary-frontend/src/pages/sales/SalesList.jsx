@@ -315,11 +315,11 @@ const SalesList = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-gray-400" />
+                        <Search className="h-4 w-4 text-secondary" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
+                        className="block w-full pl-10 pr-3 py-2 border border-card rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-surface shadow-sm text-textMain placeholder-textMuted"
                         placeholder="Search by product, customer, or ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -327,8 +327,8 @@ const SalesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-xl border border-gray-100 bg-surface">
-                        <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-xl border border-card bg-surface">
+                        <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                         <select
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -339,18 +339,18 @@ const SalesList = () => {
                                 <option key={item.value} value={item.value}>{item.label}</option>
                             ))}
                         </select>
-                        <ChevronDown className="h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        <ChevronDown className="h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                     </div>
                     <button
                         onClick={openBulkModal}
-                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-gray-200 text-textMain hover:border-primary hover:text-primary rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Upload className="h-4 w-4 mr-2" />
                         Bulk Upload
                     </button>
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-white rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-card rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         New Sale
@@ -360,10 +360,10 @@ const SalesList = () => {
 
             {/* ── BULK UPLOAD MODAL ─────────────────────────────── */}
             {bulkModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
                         {/* Modal header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-card">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-primary/10 rounded-xl"><Upload className="w-5 h-5 text-primary" /></div>
                                 <div>
@@ -371,34 +371,34 @@ const SalesList = () => {
                                     <p className="text-xs text-textMuted">Upload CSV or paste JSON — all KPIs update automatically</p>
                                 </div>
                             </div>
-                            <button onClick={closeBulkModal} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X className="w-4 h-4 text-gray-500" /></button>
+                            <button onClick={closeBulkModal} className="p-2 hover:bg-page rounded-xl transition-colors"><X className="w-4 h-4 text-secondary" /></button>
                         </div>
 
                         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
                             {/* Tab switcher */}
                             {!bulkResult && (
-                                <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-                                    <button onClick={() => setBulkTab('csv')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'csv' ? 'bg-white text-primary shadow-sm' : 'text-textMuted'}`}>CSV File</button>
-                                    <button onClick={() => setBulkTab('json')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'json' ? 'bg-white text-primary shadow-sm' : 'text-textMuted'}`}>JSON Paste</button>
+                                <div className="flex gap-1 bg-page p-1 rounded-xl w-fit">
+                                    <button onClick={() => setBulkTab('csv')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'csv' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>CSV File</button>
+                                    <button onClick={() => setBulkTab('json')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'json' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>JSON Paste</button>
                                 </div>
                             )}
 
                             {/* Success result */}
                             {bulkResult && (
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                        <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                                    <div className="flex items-center gap-3 p-4 bg-status-success/10 border border-card rounded-xl">
+                                        <CheckCircle2 className="w-6 h-6 text-status-success shrink-0" />
                                         <div>
-                                            <p className="font-bold text-emerald-800">{bulkResult.message}</p>
-                                            <p className="text-xs text-emerald-700 mt-0.5">
+                                            <p className="font-bold text-status-success">{bulkResult.message}</p>
+                                            <p className="text-xs text-status-success mt-0.5">
                                                 Revenue added: Rs. {bulkResult.summary?.total_revenue?.toLocaleString()} &nbsp;|&nbsp;
                                                 Dates: {bulkResult.summary?.date_range?.from} → {bulkResult.summary?.date_range?.to}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-xl">
+                                    <div className="max-h-64 overflow-y-auto border border-card rounded-xl">
                                         <table className="w-full text-xs">
-                                            <thead className="bg-gray-50 sticky top-0"><tr>
+                                            <thead className="bg-page sticky top-0"><tr>
                                                 <th className="px-3 py-2 text-left text-textMuted font-semibold">Row</th>
                                                 <th className="px-3 py-2 text-left text-textMuted font-semibold">Sale ID</th>
                                                 <th className="px-3 py-2 text-left text-textMuted font-semibold">Product</th>
@@ -408,12 +408,12 @@ const SalesList = () => {
                                             </tr></thead>
                                             <tbody className="divide-y divide-gray-50">
                                                 {bulkResult.created_sales?.map(s => (
-                                                    <tr key={s.sale_id} className="hover:bg-gray-50">
+                                                    <tr key={s.sale_id} className="hover:bg-page">
                                                         <td className="px-3 py-2 text-textMuted">#{s.row}</td>
                                                         <td className="px-3 py-2 font-mono text-primary">#SL-{String(s.sale_id).padStart(4,'0')}</td>
                                                         <td className="px-3 py-2 font-medium text-textMain">{s.product}</td>
                                                         <td className="px-3 py-2 text-center">{s.qty}</td>
-                                                        <td className="px-3 py-2 text-right font-bold text-emerald-700">Rs. {s.total?.toLocaleString()}</td>
+                                                        <td className="px-3 py-2 text-right font-bold text-status-success">Rs. {s.total?.toLocaleString()}</td>
                                                         <td className="px-3 py-2 text-textMuted">{s.date}</td>
                                                     </tr>
                                                 ))}
@@ -425,14 +425,14 @@ const SalesList = () => {
 
                             {/* Error display */}
                             {bulkError && (
-                                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl">
+                                <div className="p-4 bg-status-info/10 border border-card rounded-xl">
                                     <div className="flex items-start gap-2">
-                                        <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                                        <AlertCircle className="w-5 h-5 text-status-info shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-bold text-rose-800 text-sm">{bulkError.error}</p>
                                             {bulkError.validation_errors && (
                                                 <ul className="mt-2 space-y-0.5">
-                                                    {bulkError.validation_errors.map((e, i) => <li key={i} className="text-xs text-rose-700">• {e}</li>)}
+                                                    {bulkError.validation_errors.map((e, i) => <li key={i} className="text-xs text-status-info">• {e}</li>)}
                                                 </ul>
                                             )}
                                         </div>
@@ -449,24 +449,24 @@ const SalesList = () => {
                                         onDrop={handleDrop}
                                         onClick={() => fileInputRef.current?.click()}
                                         className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                                            bulkDragging ? 'border-primary bg-primary/5' : bulkFile ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                                            bulkDragging ? 'border-primary bg-primary/5' : bulkFile ? 'border-emerald-400 bg-status-success/10' : 'border-card hover:border-primary/50 hover:bg-page'
                                         }`}
                                     >
                                         <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => setBulkFile(e.target.files[0])} />
                                         {bulkFile ? (
                                             <div className="flex items-center justify-center gap-3">
-                                                <FileText className="w-6 h-6 text-emerald-600" />
+                                                <FileText className="w-6 h-6 text-status-success" />
                                                 <div className="text-left">
-                                                    <p className="font-bold text-emerald-800 text-sm">{bulkFile.name}</p>
-                                                    <p className="text-xs text-emerald-600">{(bulkFile.size / 1024).toFixed(1)} KB — Ready to upload</p>
+                                                    <p className="font-bold text-status-success text-sm">{bulkFile.name}</p>
+                                                    <p className="text-xs text-status-success">{(bulkFile.size / 1024).toFixed(1)} KB — Ready to upload</p>
                                                 </div>
-                                                <button onClick={(e) => { e.stopPropagation(); setBulkFile(null); }} className="ml-auto p-1 hover:bg-emerald-100 rounded-lg"><X className="w-3.5 h-3.5 text-emerald-600" /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); setBulkFile(null); }} className="ml-auto p-1 hover:bg-status-success/20 rounded-lg"><X className="w-3.5 h-3.5 text-status-success" /></button>
                                             </div>
                                         ) : (
                                             <>
                                                 <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                                                 <p className="font-semibold text-textMain text-sm">Drop your CSV here or click to browse</p>
-                                                <p className="text-xs text-textMuted mt-1">Required columns: <code className="bg-gray-100 px-1 rounded">product_id</code> or <code className="bg-gray-100 px-1 rounded">product_code</code>, <code className="bg-gray-100 px-1 rounded">quantity_sold</code>, <code className="bg-gray-100 px-1 rounded">unit_price</code>, <code className="bg-gray-100 px-1 rounded">sale_date</code></p>
+                                                <p className="text-xs text-textMuted mt-1">Required columns: <code className="bg-page px-1 rounded">product_id</code> or <code className="bg-page px-1 rounded">product_code</code>, <code className="bg-page px-1 rounded">quantity_sold</code>, <code className="bg-page px-1 rounded">unit_price</code>, <code className="bg-page px-1 rounded">sale_date</code></p>
                                             </>
                                         )}
                                     </div>
@@ -487,7 +487,7 @@ const SalesList = () => {
                                         onChange={(e) => setBulkJson(e.target.value)}
                                         rows={10}
                                         placeholder='[{"product_id": 1, "quantity_sold": 5, "unit_price": 500, "sale_date": "2026-05-01"}, ...]'
-                                        className="w-full font-mono text-xs border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-primary outline-none resize-none bg-gray-50"
+                                        className="w-full font-mono text-xs border border-card rounded-xl p-4 focus:ring-2 focus:ring-primary outline-none resize-none bg-page"
                                     />
                                     <p className="text-xs text-textMuted mt-1">Paste a JSON array of sale objects or <code>{'{ "sales": [...] }'}</code></p>
                                 </div>
@@ -495,11 +495,11 @@ const SalesList = () => {
                         </div>
 
                         {/* Modal footer */}
-                        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+                        <div className="px-6 py-4 border-t border-card flex justify-between items-center">
                             {bulkResult ? (
                                 <>
                                     <p className="text-xs text-textMuted">{bulkResult.summary?.total_records_created} records uploaded. KPIs refreshed.</p>
-                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primaryDark">Done</button>
+                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary text-card rounded-xl text-sm font-bold hover:bg-primaryDark">Done</button>
                                 </>
                             ) : (
                                 <>
@@ -507,9 +507,9 @@ const SalesList = () => {
                                     <button
                                         onClick={handleBulkUpload}
                                         disabled={bulkUploading || (bulkTab === 'csv' && !bulkFile) || (bulkTab === 'json' && !bulkJson.trim())}
-                                        className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primaryDark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="flex items-center gap-2 px-5 py-2 bg-primary text-card rounded-xl text-sm font-bold hover:bg-primaryDark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
-                                        {bulkUploading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
+                                        {bulkUploading ? <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
                                         {bulkUploading ? 'Uploading...' : 'Upload & Save'}
                                     </button>
                                 </>
@@ -520,12 +520,12 @@ const SalesList = () => {
             )}
 
             {/* Charts */}
-            <div className="bg-surface p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
                 <MemoizedSalesCharts categoryFilter={categoryFilter} searchTerm={debouncedSearch} />
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={7} />
@@ -533,7 +533,7 @@ const SalesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-white text-textMuted text-xs uppercase tracking-wider border-b border-gray-100">
+                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Ref ID</th>
                                     <th className="px-6 py-4 font-semibold">Date</th>
@@ -548,7 +548,7 @@ const SalesList = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {filteredSales.map((s) => (
-                                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={s.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">#SL-{s.id.toString().padStart(4, '0')}</td>
                                         <td className="px-6 py-4 text-textMuted">{s.sale_date}</td>
                                         <td className="px-6 py-4 font-medium text-textMain">{s.customer_name}</td>
@@ -571,21 +571,21 @@ const SalesList = () => {
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => handleViewSlip(s)}
-                                                    className="inline-flex items-center justify-center p-1.5 text-gray-400 hover:text-amber-600 bg-gray-50 hover:bg-amber-50 rounded-lg transition-colors border border-gray-100 hover:border-amber-100"
+                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-amber-600 bg-page hover:bg-amber-50 rounded-lg transition-colors border border-card hover:border-amber-100"
                                                     title="View Slip"
                                                 >
                                                     <Receipt className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => openEditForm(s)}
-                                                    className="text-gray-400 hover:text-primary transition-colors"
+                                                    className="text-secondary hover:text-primary transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit2 className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(s.id)}
-                                                    className="text-gray-400 hover:text-danger hover:fill-danger/10 transition-colors"
+                                                    className="text-secondary hover:text-danger hover:fill-danger/10 transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -607,22 +607,22 @@ const SalesList = () => {
                     </div>
                 )}
                 {pagination && pagination.num_pages > 1 && (
-                    <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-slate-50/50">
-                        <span className="text-xs text-gray-500 font-semibold">
+                    <div className="flex justify-between items-center px-6 py-4 border-t border-card bg-page/50">
+                        <span className="text-xs text-secondary font-semibold">
                             Showing page {pagination.current_page} of {pagination.num_pages} ({pagination.count} records)
                         </span>
                         <div className="flex gap-3">
                             <MagneticButton
                                 disabled={pagination.current_page <= 1}
                                 onClick={() => setPage(prev => prev - 1)}
-                                className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                                className="flex items-center justify-center w-10 h-10 bg-card border border-card rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
                                 <ChevronLeft className="h-4 w-4 transition-transform duration-300 ease-out group-hover:-translate-x-[3px]" />
                             </MagneticButton>
                             <MagneticButton
                                 disabled={pagination.current_page >= pagination.num_pages}
                                 onClick={() => setPage(prev => prev + 1)}
-                                className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                                className="flex items-center justify-center w-10 h-10 bg-card border border-card rounded-full text-textMain hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] active:scale-[0.95] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
                                 <ChevronRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-[3px]" />
                             </MagneticButton>

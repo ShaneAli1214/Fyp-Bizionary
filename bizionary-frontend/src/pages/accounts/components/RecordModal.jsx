@@ -85,13 +85,13 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-slate-50/50">
-                    <h2 className="text-lg font-bold text-slate-900">{getTitle()}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm">
+            <div className="bg-card rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center p-5 border-b border-card bg-page/50">
+                    <h2 className="text-lg font-bold text-primary">{getTitle()}</h2>
                     <button 
                         onClick={onClose}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -99,7 +99,7 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                 
                 <form id="record-form" onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                     {errors.general && (
-                        <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100">
+                        <div className="p-3 bg-status-info/10 text-status-info text-xs font-bold rounded-xl border border-red-100">
                             {errors.general}
                         </div>
                     )}
@@ -109,28 +109,28 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Customer Name *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Customer Name *</label>
                                     <input 
                                         type="text" name="customer" required value={formData.customer || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         placeholder="e.g. Acme Corp"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Invoice #</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Invoice #</label>
                                     <input 
                                         type="text" name="invoice_number" value={formData.invoice_number || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         placeholder="e.g. INV-1234 (optional)"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Category *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Category *</label>
                                     <select 
                                         name="category" required value={formData.category || 'SALES_REVENUE'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     >
                                         <option value="SALES_REVENUE">Sales Revenue</option>
                                         <option value="SERVICE_INCOME">Service Income</option>
@@ -138,10 +138,10 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Payment Status *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Payment Status *</label>
                                     <select 
                                         name="payment_status" required value={formData.payment_status || 'PAID'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     >
                                         <option value="PAID">Paid</option>
                                         <option value="PENDING">Pending</option>
@@ -151,25 +151,25 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Amount (Rs) *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Amount (Rs) *</label>
                                     <input 
                                         type="number" name="amount" required min="0.01" step="0.01" value={formData.amount || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Date *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Date *</label>
                                     <input 
                                         type="date" name="date" required value={formData.date || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">Description</label>
+                                <label className="block text-xs font-bold text-secondary mb-2">Description</label>
                                 <textarea 
                                     name="description" rows="2" value={formData.description || ''} onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
                                     placeholder="Optional transaction description..."
                                 ></textarea>
                             </div>
@@ -181,10 +181,10 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Category *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Category *</label>
                                     <select 
                                         name="category" required value={formData.category || 'SUPPLIES'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     >
                                         <option value="SUPPLIES">Supplies</option>
                                         <option value="RENT_UTILITIES">Rent & Utilities</option>
@@ -196,20 +196,20 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Vendor Name</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Vendor Name</label>
                                     <input 
                                         type="text" name="vendor" value={formData.vendor || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         placeholder="e.g. Office Depot"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Payment Method *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Payment Method *</label>
                                     <select 
                                         name="payment_method" required value={formData.payment_method || 'CASH'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     >
                                         <option value="CASH">Cash</option>
                                         <option value="BANK_TRANSFER">Bank Transfer</option>
@@ -217,43 +217,43 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Date *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Date *</label>
                                     <input 
                                         type="date" name="date" required value={formData.date || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Total Amount (Rs) *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Total Amount (Rs) *</label>
                                     <input 
                                         type="number" name="amount" required min="0.01" step="0.01" value={formData.amount || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Tax Amount (Rs)</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Tax Amount (Rs)</label>
                                     <input 
                                         type="number" name="tax_amount" min="0" step="0.01" value={formData.tax_amount !== undefined ? formData.tax_amount : '0'} onChange={handleChange}
-                                        className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.tax_amount ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
+                                        className={`w-full px-4 py-2.5 bg-page border ${errors.tax_amount ? 'border-red-500' : 'border-card'} rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
                                     />
                                     {errors.tax_amount && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.tax_amount}</span>}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">Receipt URL / Attachment Link</label>
+                                <label className="block text-xs font-bold text-secondary mb-2">Receipt URL / Attachment Link</label>
                                 <input 
                                     type="text" name="receipt" value={formData.receipt || ''} onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     placeholder="e.g. http://storage.bizionary.com/receipts/exp-001.png"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">Description</label>
+                                <label className="block text-xs font-bold text-secondary mb-2">Description</label>
                                 <textarea 
                                     name="description" rows="2" value={formData.description || ''} onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
                                 />
                             </div>
                         </>
@@ -264,45 +264,45 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Invoice # *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Invoice # *</label>
                                     <input 
                                         type="text" name="invoice_number" required value={formData.invoice_number || ''} onChange={handleChange}
-                                        className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.invoice_number ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
+                                        className={`w-full px-4 py-2.5 bg-page border ${errors.invoice_number ? 'border-red-500' : 'border-card'} rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
                                         placeholder="e.g. INV-1001"
                                         disabled={!!record}
                                     />
                                     {errors.invoice_number && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.invoice_number}</span>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Client Name *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Client Name *</label>
                                     <input 
                                         type="text" name="client_name" required value={formData.client_name || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Total Amount (Rs) *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Total Amount (Rs) *</label>
                                     <input 
                                         type="number" name="amount" required min="0.01" step="0.01" value={formData.amount || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Balance Due (Rs) *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Balance Due (Rs) *</label>
                                     <input 
                                         type="number" name="balance_due" required min="0" step="0.01" value={formData.balance_due !== undefined ? formData.balance_due : '0'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Status *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Status *</label>
                                     <select 
                                         name="status" required value={formData.status || 'PENDING'} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     >
                                         <option value="PAID">Paid</option>
                                         <option value="PENDING">Pending</option>
@@ -311,29 +311,29 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">Due Date *</label>
+                                    <label className="block text-xs font-bold text-secondary mb-2">Due Date *</label>
                                     <input 
                                         type="date" name="due_date" required value={formData.due_date || ''} onChange={handleChange}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-2">Description</label>
+                                <label className="block text-xs font-bold text-secondary mb-2">Description</label>
                                 <textarea 
                                     name="description" rows="2" value={formData.description || ''} onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
                                 />
                             </div>
                         </>
                     )}
                 </form>
                 
-                <div className="p-5 border-t border-gray-100 bg-slate-50/50 flex justify-end gap-3">
+                <div className="p-5 border-t border-card bg-page/50 flex justify-end gap-3">
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all shadow-sm cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-xl transition-all shadow-sm cursor-pointer"
                         disabled={saving}
                     >
                         Cancel
@@ -342,9 +342,9 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                         type="submit"
                         form="record-form"
                         disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primaryDark rounded-xl shadow-sm transition-all disabled:opacity-70 cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-primary hover:bg-primaryDark rounded-xl shadow-sm transition-all disabled:opacity-70 cursor-pointer"
                     >
-                        {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                        {saving && <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>}
                         {record ? 'Save Changes' : 'Add Record'}
                     </button>
                 </div>

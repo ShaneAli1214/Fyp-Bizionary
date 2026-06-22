@@ -1,95 +1,185 @@
 @import "tailwindcss";
 @import "./styles/themes.css";
 
+@theme {
+  /* Existing aliases that map to dynamic variables */
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-dark);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-ai-purple: var(--color-ai-purple);
+  --color-background: var(--color-background);
+  --color-background-light: var(--color-background-light);
+  --color-background-dark: var(--color-background-dark);
+  --color-surface: var(--color-surface);
+  --color-surface-dark: var(--color-surface-dark);
+  --color-text-primary: var(--color-textMain);
+  --color-text-secondary: var(--color-textMuted);
+  --color-border: var(--color-border);
+  --color-success: var(--color-success);
+  --color-danger: var(--color-danger);
+  --color-warning: var(--color-warning);
+
+  /* ── The 10 reference design tokens (static) ── */
+  --color-bg-page: #F1EBE3;
+  --color-bg-card: #FFFFFF;
+  --color-border-card: #E8E0D3;
+  --color-text-primary: #2B2620;
+  --color-text-secondary: #9C9387;
+  --color-active-pill: #DCD3C5;
+  --color-chart-accent: #B7A893;
+  --color-chart-track: #E8E0D3;
+  --color-status-success: #8FA888;
+  --color-status-info: #C9A86A;
+
+  /* ── Short-name aliases → Tailwind utility classes ── */
+  /* bg-page / bg-card */
+  --color-page: #F1EBE3;
+  --color-card: #FFFFFF;
+
+  /* text-primary / text-secondary (short names without "text-" prefix) */
+  /* already mapped via --color-text-primary above */
+
+  /* active-pill */
+  /* --color-active-pill already defined above */
+
+  /* status colors */
+  --color-status-success: #8FA888;
+  --color-status-info: #C9A86A;
+
+  /* chart colors */
+  --color-chart-accent: #B7A893;
+  --color-chart-track: #E8E0D3;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
    LIGHT MODE ROOT TOKENS
    ============================================================ */
 :root {
-  --color-primary: #111111;
-  --color-primary-dark: #333333;
-  --color-accent: #111111;
-  --color-white: #FFFFFF;
-  --color-accent-dark: #333333;
-  --color-ai-purple: #8b5cf6;
-  --color-background: #F7F7F8;
-  --color-background-light: #FFFFFF;
-  --color-background-dark: #1a2535;
-  --color-surface: #FFFFFF;
-  --color-surface-dark: #243348;
-  --color-textMain: #1A1A1A;
-  --color-textMuted: #6B7280;
-  --color-border: #E5E7EB;
-  --color-success: #10B981;
-  --color-danger: #EF4444;
-  --color-warning: #F59E0B;
-  --color-primary-glow: rgba(17,17,17,0.15);
+  --color-primary: #2B2620; /* text-primary */
+  --color-primary-dark: #2B2620;
+  --color-accent: #B7A893; /* chart-accent */
+  --color-white: #FFFFFF; /* bg-card */
+  --color-accent-dark: #2B2620;
+  --color-ai-purple: #B7A893;
+  --color-background: #F1EBE3; /* bg-page */
+  --color-background-light: #FFFFFF; /* bg-card */
+  --color-background-dark: #2B2620;
+  --color-surface: #FFFFFF; /* bg-card */
+  --color-surface-dark: #F1EBE3;
+  --color-textMain: #2B2620; /* text-primary */
+  --color-textMuted: #9C9387; /* text-secondary */
+  --color-border: #E8E0D3; /* border-card / chart-track */
+  --color-success: #8FA888; /* status-success */
+  --color-danger: #C9A86A; /* status-info */
+  --color-warning: #C9A86A; /* status-info */
+  --color-primary-glow: rgba(43,38,32,0.15);
+
+  /* Reference Design Theme Tokens */
+  --color-bg-page: #F1EBE3;
+  --color-bg-card: #FFFFFF;
+  --color-border-card: #E8E0D3;
+  --color-text-primary: #2B2620;
+  --color-text-secondary: #9C9387;
+  --color-active-pill: #DCD3C5;
+  --color-chart-accent: #B7A893;
+  --color-chart-track: #E8E0D3;
+  --color-status-success: #8FA888;
+  --color-status-info: #C9A86A;
 
   /* RGB helpers */
-  --color-primary-rgb: 17,17,17;
-  --color-accent-rgb: 17,17,17;
+  --color-primary-rgb: 43,38,32;
+  --color-accent-rgb: 183,168,147;
   --color-surface-rgb: 255,255,255;
-  --color-background-rgb: 247,247,248;
-  --color-background-dark-rgb: 26,37,53;
-  --color-success-rgb: 16,185,129;
+  --color-background-rgb: 241,235,227;
+  --color-background-dark-rgb: 43,38,32;
+  --color-success-rgb: 143,168,136;
 }
 
 /* ============================================================
-   DARK MODE ROOT OVERRIDES (Frappe/ERPNext exact palette)
-   bg:      #171717  – gray-950 (neutral dark, no blue tint)
-   surface: #1f1f1f  – gray-900 (cards, panels, topbar)
-   input:   #292929  – gray-700 (Frappe control-bg)
-   border:  #242424  – gray-800 (Frappe outline-gray-1)
-   text:    #d9d9d9  – gray-100 (Frappe ink-gray-8)
-   muted:   #999999  – gray-300 (Frappe ink-gray-6)
+   DARK MODE ROOT OVERRIDES (Warm Dark Palette)
    ============================================================ */
 .dark {
-  --color-background: #171717;
-  --color-background-light: #1f1f1f;
-  --color-surface: #1f1f1f;
-  --color-surface-dark: #171717;
-  --color-primary: #76bef9;
-  --color-primary-dark: #349bef;
-  --color-accent: #349bef;
-  --color-accent-dark: #2480cc;
-  --color-textMain: #d9d9d9;
-  --color-textMuted: #999999;
-  --color-border: #242424;
-  --color-success: #34d399;
-  --color-danger: #f87171;
-  --color-warning: #fbbf24;
-  --color-primary-rgb: 118,190,249;
-  --color-surface-rgb: 31,31,31;
-  --color-background-rgb: 23,23,23;
-  --color-success-rgb: 52,211,153;
+  --color-background: #2B2620; /* text-primary */
+  --color-background-light: #2B2620;
+  --color-surface: #2B2620;
+  --color-surface-dark: #2B2620;
+  --color-primary: #F1EBE3; /* bg-page */
+  --color-primary-dark: #FFFFFF; /* bg-card */
+  --color-accent: #B7A893; /* chart-accent */
+  --color-accent-dark: #DCD3C5; /* active-pill */
+  --color-ai-purple: #B7A893;
+  --color-textMain: #F1EBE3; /* bg-page */
+  --color-textMuted: #9C9387; /* text-secondary */
+  --color-border: #E8E0D3; /* border-card */
+  --color-success: #8FA888; /* status-success */
+  --color-danger: #C9A86A; /* status-info */
+  --color-warning: #C9A86A;
+  --color-primary-rgb: 241,235,227;
+  --color-surface-rgb: 43,38,32;
+  --color-background-rgb: 43,38,32;
+  --color-success-rgb: 143,168,136;
 
-  /* Semantic dark mode design tokens */
-  --dm-bg:              #171717;
-  --dm-bg-elevated:     #1f1f1f;
-  --dm-surface:         #1f1f1f;
-  --dm-surface-hover:   #292929;
-  --dm-surface-elevated:#242424;
-  --dm-sidebar:         #171717;
-  --dm-topbar:          #1f1f1f;
-  --dm-input-bg:        #292929;
-  --dm-border:          #242424;
-  --dm-border-strong:   #383838;
-  --dm-text-main:       #d9d9d9;
-  --dm-text-muted:      #999999;
-  --dm-text-subtle:     #7a7a7a;
-  --dm-nav-active-bg:   #292929;
-  --dm-nav-hover-bg:    #242424;
-  --dm-nav-accent:      #76bef9;
-  --dm-glow:            rgba(118,190,249,0.15);
+  /* Semantic dark mode design tokens mapped ONLY to 10 allowed colors */
+  --dm-bg:              #2B2620;
+  --dm-bg-elevated:     #2B2620;
+  --dm-surface:         #2B2620;
+  --dm-surface-hover:   #2B2620;
+  --dm-surface-elevated:#2B2620;
+  --dm-sidebar:         #2B2620;
+  --dm-topbar:          #2B2620;
+  --dm-input-bg:        #2B2620;
+  --dm-border:          #E8E0D3;
+  --dm-border-strong:   #E8E0D3;
+  --dm-text-main:       #F1EBE3;
+  --dm-text-muted:      #9C9387;
+  --dm-text-subtle:     #9C9387;
+  --dm-nav-active-bg:   #DCD3C5;
+  --dm-nav-hover-bg:    #DCD3C5;
+  --dm-nav-accent:      #B7A893;
+  --dm-glow:            rgba(183,168,147,0.15);
 }
 
 /* ============================================================
    GLOBAL TOKEN MAPPINGS
    ============================================================ */
-.text-primary { color: var(--color-primary) !important; }
+/* Page & card backgrounds */
+.bg-page { background-color: var(--color-background) !important; }
+.bg-card { background-color: var(--color-surface) !important; }
+.bg-primary { background-color: var(--color-textMain) !important; }
+
+/* Active pill */
+.active-pill { background-color: var(--color-active-pill) !important; }
+.bg-active-pill { background-color: var(--color-active-pill) !important; }
+.text-active-pill { color: var(--color-active-pill) !important; }
+
+/* Borders */
+.border-card { border-color: var(--color-border) !important; }
+.border-primary { border-color: var(--color-textMain) !important; }
+
+/* Text colors */
+.text-primary { color: var(--color-textMain) !important; }
+.text-secondary { color: var(--color-textMuted) !important; }
+.text-card { color: var(--color-surface) !important; }
+
+/* Status colors */
+.text-status-success { color: var(--color-status-success, #8FA888) !important; }
+.bg-status-success { background-color: var(--color-status-success, #8FA888) !important; }
+.text-status-info { color: var(--color-status-info, #C9A86A) !important; }
+.bg-status-info { background-color: var(--color-status-info, #C9A86A) !important; }
+
+/* Chart colors */
+.text-chart-accent { color: var(--color-chart-accent, #B7A893) !important; }
+.bg-chart-accent { background-color: var(--color-chart-accent, #B7A893) !important; }
+.bg-chart-track { background-color: var(--color-chart-track, #E8E0D3) !important; }
+
+/* Legacy accent mapping */
 .text-cyan-300, .text-cyan-400 { color: var(--color-accent) !important; }
 .bg-primary\/5 { background-color: rgba(var(--color-primary-rgb), 0.05) !important; }
+
 
 /* ============================================================
    BODY BASE
@@ -108,104 +198,177 @@
 }
 
 /* ============================================================
+   LIGHT MODE SURFACE & TEXT OVERRIDES
+   ============================================================ */
+
+/* bg-white → light surface */
+.bg-white {
+  background-color: var(--color-surface, #FFFFFF) !important;
+}
+
+/* bg-slate-50, bg-gray-50, etc. → background */
+.bg-slate-50,
+.bg-gray-50,
+.bg-slate-100,
+.bg-gray-100 {
+  background-color: var(--color-background, #F1EBE3) !important;
+}
+
+/* bg-slate-900, bg-gray-900, bg-black → espresso */
+.bg-slate-900,
+.bg-gray-900,
+.bg-black {
+  background-color: var(--color-textMain, #2B2620) !important;
+}
+
+/* Borders */
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.border-slate-200,
+.border-slate-300 {
+  border-color: var(--color-border, #E8E0D3) !important;
+}
+
+/* Primary Text */
+.text-slate-950,
+.text-gray-950,
+.text-slate-900,
+.text-black,
+.text-gray-900,
+.text-slate-800,
+.text-gray-800,
+.text-slate-700,
+.text-gray-700 {
+  color: var(--color-textMain, #2B2620) !important;
+}
+
+/* Secondary Text / Muted Text */
+.text-slate-500,
+.text-gray-500,
+.text-slate-400,
+.text-gray-400,
+.text-slate-650,
+.text-slate-600,
+.text-gray-600 {
+  color: var(--color-textMuted, #9C9387) !important;
+}
+
+/* ============================================================
    DARK MODE SURFACE OVERRIDES
    ============================================================ */
 
 /* bg-white → dark surface */
 .dark .bg-white {
-  background-color: var(--dm-surface, #1f1f1f) !important;
+  background-color: var(--dm-surface, #2B2620) !important;
 }
 
 /* Borders */
 .dark .border-gray-100,
 .dark .border-gray-200 {
-  border-color: var(--dm-border, #242424) !important;
+  border-color: var(--dm-border, #E8E0D3) !important;
 }
 
 .dark .border-gray-300,
 .dark .border-slate-200 {
-  border-color: var(--dm-border-strong, #383838) !important;
+  border-color: var(--dm-border-strong, #E8E0D3) !important;
 }
 
 /* Text */
 .dark .text-slate-900,
 .dark .text-black,
 .dark .text-gray-900 {
-  color: var(--dm-text-main, #d9d9d9) !important;
+  color: var(--dm-text-main, #F1EBE3) !important;
 }
 
 .dark .text-slate-700,
 .dark .text-gray-700 {
-  color: #afafaf !important;
+  color: var(--dm-text-muted, #9C9387) !important;
 }
 
 .dark .text-slate-600,
 .dark .text-gray-600 {
-  color: #999999 !important;
+  color: var(--dm-text-subtle, #9C9387) !important;
 }
 
 .dark .text-slate-500,
 .dark .text-gray-500,
 .dark .text-slate-400,
 .dark .text-gray-400 {
-  color: var(--dm-text-muted, #999999) !important;
+  color: var(--dm-text-muted, #9C9387) !important;
 }
 
 /* Slate-800 → elevated surface */
 .dark .bg-slate-800,
 .dark .bg-gray-800 {
-  background-color: var(--dm-bg-elevated, #1f1f1f) !important;
+  background-color: var(--dm-bg-elevated, #2B2620) !important;
 }
 
 /* Slate-900 → page background */
 .dark .bg-slate-900,
 .dark .bg-gray-900 {
-  background-color: var(--dm-bg, #171717) !important;
+  background-color: var(--dm-bg, #2B2620) !important;
 }
 
 /* Slate-700 → surface hover */
 .dark .bg-slate-700,
 .dark .bg-gray-700 {
-  background-color: var(--dm-surface-hover, #292929) !important;
+  background-color: var(--dm-surface-hover, #2B2620) !important;
 }
 
 /* Very light surfaces → barely-there dark */
 .dark .bg-gray-50,
 .dark .bg-slate-50 {
-  background-color: var(--dm-surface, #1f1f1f) !important;
+  background-color: var(--dm-surface, #2B2620) !important;
 }
 
 /* Gray-100 → subtle elevated */
 .dark .bg-gray-100,
 .dark .bg-slate-100 {
-  background-color: var(--dm-surface-hover, #292929) !important;
+  background-color: var(--dm-surface-hover, #2B2620) !important;
 }
 
-/* ============================================================
-   DARK MODE SIDEBAR
-   ============================================================ */
-.dark-sidebar {
-  background-color: var(--dm-sidebar, #171717) !important;
-  border-color: var(--dm-border, #242424) !important;
-}
-
-/* ============================================================
-   DARK MODE NAV ACCENT (left-border active indicator)
-   ============================================================ */
-.dark .dm-nav-active {
-  box-shadow: inset 2px 0 0 rgba(118, 190, 249, 0.70);
-}
 
 /* ============================================================
    SIDEBAR COMPONENT STYLES
    ============================================================ */
+
+/* Sidebar container uses bg-page — no border separation from page */
+aside {
+  background-color: var(--color-background) !important;
+}
+
+/* All NavLinks default: text-primary, no background */
+aside a {
+  color: var(--color-textMain) !important;
+  background-color: transparent !important;
+}
+
+/* Active NavLink: active-pill background, text-primary */
+aside a.active,
+aside a.active:hover {
+  background-color: var(--color-active-pill, #DCD3C5) !important;
+  color: var(--color-textMain, #2B2620) !important;
+}
+
+/* Inactive hover: active-pill at low opacity */
+aside a:not(.active):hover {
+  background-color: rgba(220, 211, 197, 0.2) !important;
+  color: var(--color-textMain, #2B2620) !important;
+}
+
+/* Icons follow link color */
+aside a svg {
+  color: var(--color-textMain, #2B2620) !important;
+}
+
 .sidebar-title {
   display: block;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6B7280;
+  color: var(--color-textMuted, #9C9387);
   padding: 0.5rem 1rem;
 }
 
@@ -225,12 +388,10 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: var(--color-textMuted, #9C9387);
+  opacity: 0.7;
 }
 
-.dark .sidebar-group-label {
-  color: #7a7a7a;
-}
 
 /* ============================================================
    GRADIENT & GLOW UTILITIES
@@ -240,7 +401,7 @@
 }
 
 .ai-glow {
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 15px rgba(183, 168, 147, 0.3);
 }
 
 /* ============================================================
@@ -267,7 +428,7 @@
 .apps-cards-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; }
 .apps-card { min-width: 180px; flex: 0 0 auto; padding: 12px; border-radius: 10px; }
 .apps-card + .apps-card { margin-left: 0; }
-.apps-card-icon { background: linear-gradient(180deg, rgba(var(--color-primary-rgb),0.9), rgba(10,110,209,0.8)); width: 44px; height: 44px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+.apps-card-icon { background: linear-gradient(180deg, rgba(var(--color-primary-rgb),0.9), rgba(183,168,147,0.8)); width: 44px; height: 44px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-weight:700; }
 .apps-card:hover { transform: translateY(-3px); transition: transform 160ms ease; }
 
 @media (min-width: 1280px) {
@@ -276,33 +437,24 @@
 
 /* ============================================================
    PRIMARY BUTTONS
+   — "text-primary" token (#2B2620) is the ONLY background fill used here.
+   — Text is always bg-card (#FFFFFF). Hover reduces opacity (no new color).
    ============================================================ */
-/* Light mode: dark button, white text */
 .bg-primary,
 button.bg-primary {
-  background-color: var(--color-primary) !important;
-  color: #ffffff !important;
+  background-color: var(--color-textMain, #2B2620) !important;
+  color: var(--color-surface, #FFFFFF) !important;
 }
 
 .bg-primary:hover,
-button.bg-primary:hover,
-.hover\:bg-primaryDark:hover {
-  background-color: var(--color-primary-dark) !important;
-  color: #ffffff !important;
+button.bg-primary:hover {
+  opacity: 0.85 !important;
 }
 
-/* Dark mode: Frappe blue button */
-.dark .bg-primary,
-.dark button.bg-primary {
-  background-color: #1c6ec4 !important;
-  color: #ffffff !important;
-}
-
-.dark .bg-primary:hover,
-.dark button.bg-primary:hover,
-.dark .hover\:bg-primaryDark:hover {
-  background-color: #0c59a2 !important;
-  color: #ffffff !important;
+.bg-primary:active,
+button.bg-primary:active {
+  opacity: 0.70 !important;
+  transform: scale(0.98);
 }
 
 /* ============================================================
@@ -519,27 +671,24 @@ textarea:focus {
 /* ============================================================
    DARK MODE BADGE / STATUS CHIPS
    ============================================================ */
-.dark .bg-green-100  { background-color: rgba(52,211,153,0.12) !important; }
-.dark .bg-red-100    { background-color: rgba(248,113,113,0.12) !important; }
-.dark .bg-amber-100  { background-color: rgba(251,191,36,0.12) !important; }
-.dark .bg-blue-100   { background-color: rgba(74,126,187,0.15) !important; }
-.dark .bg-indigo-100 { background-color: rgba(99,102,241,0.15) !important; }
-.dark .bg-purple-100 { background-color: rgba(167,139,250,0.15) !important; }
-.dark .bg-teal-100   { background-color: rgba(45,212,191,0.12) !important; }
-.dark .bg-emerald-100 { background-color: rgba(52,211,153,0.12) !important; }
-.dark .bg-orange-100 { background-color: rgba(251,146,60,0.12) !important; }
-.dark .bg-rose-100   { background-color: rgba(251,113,133,0.12) !important; }
+/* Custom Badge/Status Chip Override Map to 10 Theme Colors (Success / Info) */
+.bg-green-100, .bg-emerald-100, .bg-teal-100,
+.dark .bg-green-100, .dark .bg-emerald-100, .dark .bg-teal-100 {
+  background-color: rgba(143, 168, 136, 0.12) !important;
+}
+.text-green-700, .text-green-800, .text-emerald-700, .text-emerald-800, .text-teal-700, .text-teal-800,
+.dark .text-green-700, .dark .text-green-800, .dark .text-emerald-700, .dark .text-emerald-800, .dark .text-teal-700, .dark .text-teal-800 {
+  color: var(--color-status-success, #8FA888) !important;
+}
 
-.dark .text-green-700,  .dark .text-green-800  { color: #34d399 !important; }
-.dark .text-red-700,    .dark .text-red-800    { color: #f87171 !important; }
-.dark .text-amber-700,  .dark .text-amber-800  { color: #fbbf24 !important; }
-.dark .text-blue-700,   .dark .text-blue-800   { color: #60a5fa !important; }
-.dark .text-indigo-700, .dark .text-indigo-800 { color: #818cf8 !important; }
-.dark .text-purple-700, .dark .text-purple-800 { color: #c084fc !important; }
-.dark .text-teal-700,   .dark .text-teal-800   { color: #2dd4bf !important; }
-.dark .text-emerald-700, .dark .text-emerald-800 { color: #34d399 !important; }
-.dark .text-orange-700, .dark .text-orange-800 { color: #fb923c !important; }
-.dark .text-rose-700,   .dark .text-rose-800   { color: #fb7185 !important; }
+.bg-red-100, .bg-rose-100, .bg-amber-100, .bg-orange-100, .bg-yellow-100, .bg-blue-100, .bg-indigo-100, .bg-purple-100,
+.dark .bg-red-100, .dark .bg-rose-100, .dark .bg-amber-100, .dark .bg-orange-100, .dark .bg-yellow-100, .dark .bg-blue-100, .dark .bg-indigo-100, .dark .bg-purple-100 {
+  background-color: rgba(201, 168, 106, 0.12) !important;
+}
+.text-red-700, .text-red-800, .text-rose-700, .text-rose-800, .text-amber-700, .text-amber-800, .text-orange-700, .text-orange-800, .text-blue-700, .text-blue-800, .text-indigo-700, .text-indigo-800, .text-purple-700, .text-purple-800,
+.dark .text-red-700, .dark .text-red-800, .dark .text-rose-700, .dark .text-rose-800, .dark .text-amber-700, .dark .text-amber-800, .dark .text-orange-700, .dark .text-orange-800, .dark .text-blue-700, .dark .text-blue-800, .dark .text-indigo-700, .dark .text-indigo-800, .dark .text-purple-700, .dark .text-purple-800 {
+  color: var(--color-status-info, #C9A86A) !important;
+}
 
 /* ============================================================
    TOAST ANIMATIONS

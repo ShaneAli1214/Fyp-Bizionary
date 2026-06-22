@@ -8,7 +8,7 @@ const paddings = {
 
 const Card = ({ padding = 'md', className = '', children, ...props }) => (
     <div
-        className={`bg-surface rounded-xl border border-gray-100 dark:border-slate-800/60 shadow-sm ${paddings[padding]} ${className}`}
+        className={`bg-surface rounded-xl border border-card dark:border-slate-800/60 shadow-sm ${paddings[padding]} ${className}`}
         {...props}
     >
         {children}
@@ -26,7 +26,7 @@ Card.Body = ({ className = '', children }) => (
 );
 
 Card.Footer = ({ className = '', children }) => (
-    <div className={`mt-4 pt-4 border-t border-gray-100 dark:border-slate-800/60 ${className}`}>
+    <div className={`mt-4 pt-4 border-t border-card dark:border-slate-800/60 ${className}`}>
         {children}
     </div>
 );

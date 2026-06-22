@@ -18,13 +18,12 @@ import AIInsights from '../pages/insights/AIInsights';
 import SmartReorderEngine from '../pages/insights/SmartReorderEngine';
 import FrontendDiagnostic from '../pages/insights/FrontendDiagnostic';
 import Troubleshoot from '../pages/insights/Troubleshoot';
-import GrayPaletteSample from '../components/GrayPaletteSample';
 import Chatbot from '../pages/chatbot/Chatbot';
 
 // Placeholders for other pages
 const Placeholder = ({ title }) => (
-    <div className="flex h-full items-center justify-center p-8 bg-surface rounded-2xl border border-gray-100 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-400">{title} Content Coming Soon</h2>
+    <div className="flex h-full items-center justify-center p-8 bg-surface rounded-2xl border border-card shadow-sm">
+        <h2 className="text-2xl font-bold text-secondary">{title} Content Coming Soon</h2>
     </div>
 );
 
@@ -110,7 +109,6 @@ const AppRoutes = () => {
                 <Route path="insights" element={<AIInsights />} />
                 <Route path="smart-reorder" element={<SmartReorderEngine />} />
                 <Route path="chatbot" element={<Chatbot />} />
-                <Route path="palette" element={<GrayPaletteSample />} />
             </Route>
         </Routes>
     );

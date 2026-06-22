@@ -418,18 +418,24 @@ const AccountsManager = () => {
         const growth = calculateGrowth(current, previous);
         if (growth === null) {
             return (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-slate-500 bg-slate-50 border-slate-100 dark:bg-slate-950/20 dark:text-slate-400 dark:border-slate-900/40 inline-block mt-1 self-start">
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border border-border bg-background text-text-secondary inline-block mt-1 self-start">
                     N/A vs prev period
                 </span>
             );
         }
-        const isPositive = growth >= 0;
-        const colorClass = isPositive 
-            ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-900/40' 
-            : 'text-rose-700 bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:text-rose-455 dark:border-rose-900/40';
-        const sign = isPositive ? '+' : '';
+        const isPositive = growth > 0;
+        const isNegative = growth < 0;
+        
+        let colorClass = 'bg-background text-text-secondary border border-border';
+        if (isPositive) {
+            colorClass = 'bg-success/10 text-success';
+        } else if (isNegative) {
+            colorClass = 'bg-danger/10 text-danger';
+        }
+        
+        const sign = growth > 0 ? '+' : '';
         return (
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${colorClass} inline-block mt-1 self-start`}>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${colorClass} inline-block mt-1 self-start`}>
                 {sign}{growth.toFixed(1)}% vs prev period
             </span>
         );
@@ -441,8 +447,8 @@ const AccountsManager = () => {
 
         if (currVal > prevVal) {
             const colorClass = isCostType
-                ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
-                : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400';
+                ? 'bg-status-info/10 dark:bg-rose-950/20 text-status-info dark:text-rose-400'
+                : 'bg-status-success/10 dark:bg-emerald-950/20 text-status-success dark:text-emerald-400';
             return (
                 <div className={`p-1.5 rounded-lg ${colorClass}`}>
                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -450,8 +456,8 @@ const AccountsManager = () => {
             );
         } else if (currVal < prevVal) {
             const colorClass = isCostType
-                ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
-                : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-455';
+                ? 'bg-status-success/10 dark:bg-emerald-950/20 text-status-success dark:text-emerald-400'
+                : 'bg-status-info/10 dark:bg-rose-950/20 text-status-info dark:text-rose-455';
             return (
                 <div className={`p-1.5 rounded-lg ${colorClass}`}>
                     <ArrowDownRight className="w-3.5 h-3.5" />
@@ -459,7 +465,7 @@ const AccountsManager = () => {
             );
         } else {
             return (
-                <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400 dark:text-slate-500">
+                <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary dark:text-secondary">
                     <Minus className="w-3.5 h-3.5" />
                 </div>
             );
@@ -475,49 +481,49 @@ const AccountsManager = () => {
                 />
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white border border-slate-200 rounded-2xl p-2.5 gap-3 shadow-xs">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-card border border-card rounded-2xl p-2.5 gap-3 shadow-xs">
                         <div className="flex items-center gap-1.5">
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 pl-0.5">Start Date</span>
+                                <span className="text-[9px] font-black text-secondary uppercase tracking-wider mb-0.5 pl-0.5">Start Date</span>
                                 <input 
                                     type="date" 
                                     value={toISODateString(dateRange.startDate)}
                                     onChange={(e) => handleStartDateChange(e.target.value)}
-                                    className="px-2 py-1 text-xs font-bold bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-primary transition-all font-mono"
+                                    className="px-2 py-1 text-xs font-bold bg-page hover:bg-page/70 border border-card rounded-lg text-primary focus:outline-none focus:border-primary transition-all font-mono"
                                 />
                             </div>
                             <span className="text-slate-300 font-bold self-end mb-1 text-xs px-0.5">to</span>
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 pl-0.5">End Date</span>
+                                <span className="text-[9px] font-black text-secondary uppercase tracking-wider mb-0.5 pl-0.5">End Date</span>
                                 <input 
                                     type="date" 
                                     value={toISODateString(dateRange.endDate)}
                                     onChange={(e) => handleEndDateChange(e.target.value)}
-                                    className="px-2 py-1 text-xs font-bold bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-primary transition-all font-mono"
+                                    className="px-2 py-1 text-xs font-bold bg-page hover:bg-page/70 border border-card rounded-lg text-primary focus:outline-none focus:border-primary transition-all font-mono"
                                 />
                             </div>
                         </div>
 
-                        <div className="hidden sm:block w-px h-6 bg-slate-200 self-end mb-1"></div>
+                        <div className="hidden sm:block w-px h-6 bg-active-pill self-end mb-1"></div>
 
                         <div className="flex flex-col min-w-[140px] sm:min-w-[170px] justify-end">
                             <div className="flex justify-between items-center mb-0.5">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider pl-0.5">Duration</span>
+                                <span className="text-[9px] font-black text-secondary uppercase tracking-wider pl-0.5">Duration</span>
                                 <span className="text-[10px] font-black text-primary bg-sky-50 px-1.5 py-0.2 rounded border border-sky-100 font-mono">
                                     {sliderDuration} {sliderDuration === 1 ? 'day' : 'days'}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1.5 h-6">
-                                <span className="text-[9px] text-slate-400 font-bold font-mono">1d</span>
+                                <span className="text-[9px] text-secondary font-bold font-mono">1d</span>
                                 <input 
                                     type="range" 
                                     min="1" 
                                     max="365" 
                                     value={sliderDuration}
                                     onChange={(e) => handleSliderChange(e.target.value)}
-                                    className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
+                                    className="w-full h-1 bg-page rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
-                                <span className="text-[9px] text-slate-400 font-bold font-mono">1y</span>
+                                <span className="text-[9px] text-secondary font-bold font-mono">1y</span>
                             </div>
                         </div>
                     </div>
@@ -525,7 +531,7 @@ const AccountsManager = () => {
                     {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
                         <button 
                             onClick={handleAddRecord}
-                            className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg shadow-sm hover:bg-primaryDark cursor-pointer"
+                            className="flex items-center gap-2 bg-primary text-card px-4 py-2.5 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg shadow-sm hover:bg-primaryDark cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             Add Record
@@ -535,27 +541,27 @@ const AccountsManager = () => {
             </div>
 
             {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
-                <div className="bg-slate-100/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-slate-200/50 print:hidden">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide px-2">Quick Actions:</span>
+                <div className="bg-page/80 p-3 rounded-2xl flex flex-wrap items-center gap-3 border border-card print:hidden">
+                    <span className="text-xs font-bold text-secondary uppercase tracking-wide px-2">Quick Actions:</span>
                     <button 
                         onClick={handleReconcile}
-                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 bg-card hover:bg-page border border-card text-primary px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                     >
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <ShieldCheck className="w-4 h-4 text-status-success" />
                         Reconcile Ledger
                     </button>
                     <button 
                         onClick={handleExportCSV}
-                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 bg-card hover:bg-page border border-card text-primary px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                     >
-                        <Download className="w-4 h-4 text-blue-600" />
+                        <Download className="w-4 h-4 text-status-info" />
                         Export CSV
                     </button>
                     <button 
                         onClick={handleUploadReceiptClick}
-                        className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 bg-card hover:bg-page border border-card text-primary px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                     >
-                        <Upload className="w-4 h-4 text-purple-600" />
+                        <Upload className="w-4 h-4 text-status-info" />
                         Upload Receipt
                     </button>
                     <input 
@@ -571,11 +577,11 @@ const AccountsManager = () => {
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 print:hidden">
                 {/* Total Revenue */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Revenue</span>
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Revenue</span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <TrendingUp className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -583,7 +589,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}
                         </span>
                         {!loadingKpis && getGrowthBadge(kpis?.total_revenue, kpis?.prev_revenue)}
@@ -591,11 +597,11 @@ const AccountsManager = () => {
                 </div>
 
                 {/* Total COGS */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">COGS</span>
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">COGS</span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <TrendingDown className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -603,7 +609,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}
                         </span>
                         {!loadingKpis && getGrowthBadge(kpis?.total_cogs, kpis?.prev_cogs)}
@@ -611,11 +617,11 @@ const AccountsManager = () => {
                 </div>
 
                 {/* Gross Profit */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Gross Profit</span>
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Gross Profit</span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <TrendingUp className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -623,7 +629,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.gross_profit || 0)}
                         </span>
                         {!loadingKpis && (
@@ -635,11 +641,11 @@ const AccountsManager = () => {
                 </div>
 
                 {/* Total Expenses */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Expenses</span>
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Expenses</span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <TrendingDown className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -647,7 +653,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}
                         </span>
                         {!loadingKpis && getGrowthBadge(kpis?.total_expense, kpis?.prev_expense)}
@@ -655,13 +661,13 @@ const AccountsManager = () => {
                 </div>
 
                 {/* Net Profit */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">
                             {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
                         </span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <Wallet className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -669,7 +675,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}
                         </span>
                         {!loadingKpis && (
@@ -681,11 +687,11 @@ const AccountsManager = () => {
                 </div>
 
                 {/* Cash Flow */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Net Cash Flow</span>
+                        <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Net Cash Flow</span>
                         {loadingKpis ? (
-                            <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-950/20 text-slate-400">
+                            <div className="p-1.5 rounded-lg bg-page dark:bg-primary/20 text-secondary">
                                 <FileText className="w-3.5 h-3.5" />
                             </div>
                         ) : (
@@ -693,7 +699,7 @@ const AccountsManager = () => {
                         )}
                     </div>
                     <div className="flex flex-col mt-0.5">
-                        <span className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                        <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}
                         </span>
                         {!loadingKpis && getGrowthBadge(kpis?.cash_flow, kpis?.prev_cash_flow)}
@@ -701,61 +707,61 @@ const AccountsManager = () => {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200/80 dark:border-slate-800/80 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
-                <div className="flex justify-between items-center border-b border-gray-100 px-6 pt-4 print:hidden">
+            <div className="bg-card dark:bg-primary rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm overflow-hidden flex flex-col min-h-[500px] print:border-none print:shadow-none print:bg-transparent">
+                <div className="flex justify-between items-center border-b border-card px-6 pt-4 print:hidden">
                     <div className="flex gap-6">
                         <button
                             onClick={() => setActiveTab('revenues')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'revenues' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'revenues' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Revenues
                             {activeTab === 'revenues' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('expenses')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'expenses' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'expenses' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Expenses
                             {activeTab === 'expenses' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('salaries')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'salaries' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'salaries' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Salaries
                             {activeTab === 'salaries' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('utilities')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'utilities' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'utilities' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Utility Bills
                             {activeTab === 'utilities' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('operating-costs')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'operating-costs' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'operating-costs' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Operating Costs
                             {activeTab === 'operating-costs' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('invoices')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'invoices' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'invoices' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Invoices (Receivables)
                             {activeTab === 'invoices' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('chart-tree')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'chart-tree' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'chart-tree' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Chart of Accounts
                             {activeTab === 'chart-tree' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
                         </button>
                         <button
                             onClick={() => setActiveTab('financial-reports')}
-                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'financial-reports' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`pb-4 font-bold text-sm transition-colors relative cursor-pointer ${activeTab === 'financial-reports' ? 'text-primary' : 'text-secondary hover:text-primary'}`}
                         >
                             Financial Statements
                             {activeTab === 'financial-reports' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full"></div>}
@@ -764,21 +770,21 @@ const AccountsManager = () => {
 
                 </div>
 
-                <div className="p-6 flex-1 bg-slate-50/30 print:p-0 print:bg-transparent">
+                <div className="p-6 flex-1 bg-page/30 print:p-0 print:bg-transparent">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-sm text-slate-500 font-bold">Loading transactions...</p>
+                            <p className="text-sm text-secondary font-bold">Loading transactions...</p>
                         </div>
                     ) : error ? (
-                        <div className="bg-rose-50 border border-rose-100 text-rose-700 p-6 rounded-2xl text-center py-10 font-bold">
+                        <div className="bg-status-info/10 border border-rose-100 text-status-info p-6 rounded-2xl text-center py-10 font-bold">
                             {error}
                         </div>
                     ) : (
                         <>
                             {activeTab === 'revenues' && (
                                 filteredRevenuesList.length === 0 ? (
-                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                    <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">No matching database records found for this period.</div>
                                 ) : (
                                     <RevenuesTab 
                                         revenues={filteredRevenuesList}
@@ -789,7 +795,7 @@ const AccountsManager = () => {
                             )}
                             {activeTab === 'expenses' && (
                                 filteredExpensesList.length === 0 ? (
-                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                    <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">No matching database records found for this period.</div>
                                 ) : (
                                     <ExpensesTab 
                                         expenses={filteredExpensesList}
@@ -827,7 +833,7 @@ const AccountsManager = () => {
                             )}
                             {activeTab === 'invoices' && (
                                 filteredInvoices.length === 0 ? (
-                                    <div className="empty-state-message text-center py-20 font-bold text-slate-500 bg-white rounded-2xl border border-slate-100 p-6">No matching database records found for this period.</div>
+                                    <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">No matching database records found for this period.</div>
                                 ) : (
                                     <InvoicesTab 
                                         invoices={filteredInvoices}

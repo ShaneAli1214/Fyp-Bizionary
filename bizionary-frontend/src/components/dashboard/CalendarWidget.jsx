@@ -60,7 +60,7 @@ const CalendarWidget = ({ onChange }) => {
 
           <div className="grid grid-cols-7 gap-1">
             {days.map((d, idx) => (
-              <button key={idx} onClick={()=>handleSelect(d)} disabled={!d} className={`py-2 rounded focus:outline-none ${d ? 'hover:bg-primary/10' : ''} ${d && isSameDay(d, selected) ? 'bg-primary text-white font-bold' : 'text-textMain'}`}>
+              <button key={idx} onClick={()=>handleSelect(d)} disabled={!d} className={`py-2 rounded focus:outline-none ${d ? 'hover:bg-primary/10' : ''} ${d && isSameDay(d, selected) ? 'bg-primary text-card font-bold' : 'text-textMain'}`}>
                 {d ? d.getDate() : ''}
               </button>
             ))}

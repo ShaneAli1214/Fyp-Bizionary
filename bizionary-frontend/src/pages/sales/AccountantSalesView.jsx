@@ -200,7 +200,7 @@ const AccountantSalesView = () => {
     return (
         <div className="space-y-6">
             {/* Filter Bar */}
-            <div className="bg-surface/80 backdrop-blur-md p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="bg-surface/80 backdrop-blur-md p-5 rounded-2xl border border-card shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-textMain tracking-tight">Sales & Receivables Hub</h1>
                     <p className="text-xs text-textMuted mt-0.5">Finance-first analysis of sales contracts, taxes, aging, and credits.</p>
@@ -208,7 +208,7 @@ const AccountantSalesView = () => {
 
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Period Tabs */}
-                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                    <div className="flex bg-page p-1 rounded-xl">
                         {['daily', 'weekly', 'monthly', 'custom'].map((p) => (
                           <button
                             key={p}
@@ -221,7 +221,7 @@ const AccountantSalesView = () => {
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${
                               period === p
-                                ? 'bg-white text-primary shadow-sm'
+                                ? 'bg-card text-primary shadow-sm'
                                 : 'text-textMuted hover:text-textMain'
                             }`}
                           >
@@ -238,7 +238,7 @@ const AccountantSalesView = () => {
                               value={month}
                               disabled={period === 'monthly'}
                               onChange={(e) => setMonth(e.target.value)}
-                              className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs text-textMain"
+                              className="px-3 py-1.5 bg-card border border-card rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs text-textMain"
                             >
                               {analytics?.availableMonths?.map((m) => (
                                 <option key={m.key} value={m.key}>
@@ -256,7 +256,7 @@ const AccountantSalesView = () => {
 
             {/* Custom Date Range Inputs (Only visible when Custom Period selected) */}
             {period === 'custom' && (
-                <form onSubmit={handleCustomFilterSubmit} className="bg-surface/80 backdrop-blur-md p-4 rounded-xl border border-gray-100 shadow-sm flex flex-wrap items-end gap-4">
+                <form onSubmit={handleCustomFilterSubmit} className="bg-surface/80 backdrop-blur-md p-4 rounded-xl border border-card shadow-sm flex flex-wrap items-end gap-4">
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-textMuted uppercase tracking-wider">Start Date</label>
                         <input
@@ -264,7 +264,7 @@ const AccountantSalesView = () => {
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                             required
-                            className="block px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary"
+                            className="block px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
                     <div className="space-y-1.5">
@@ -274,12 +274,12 @@ const AccountantSalesView = () => {
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                             required
-                            className="block px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary"
+                            className="block px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="px-5 py-2.5 bg-primary text-white font-bold text-xs rounded-lg transition-all hover:bg-primaryDark shadow-sm active:scale-95"
+                        className="px-5 py-2.5 bg-primary text-card font-bold text-xs rounded-lg transition-all hover:bg-primaryDark shadow-sm active:scale-95"
                     >
                         Apply Filter
                     </button>
@@ -292,7 +292,7 @@ const AccountantSalesView = () => {
                     <span className="text-xs text-textMuted font-medium">Analyzing ledgers & tax filing records...</span>
                 </div>
             ) : error ? (
-                <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-800 text-sm flex items-center gap-2">
+                <div className="bg-status-info/10 border border-card p-4 rounded-xl text-rose-800 text-sm flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     <span>{error}</span>
                 </div>
@@ -301,7 +301,7 @@ const AccountantSalesView = () => {
                     {/* Financial KPI Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
                         {/* 1. Total Invoiced Revenue */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
+                        <div className="bg-card p-5 rounded-2xl border border-card shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-textMuted tracking-wider">Gross Billed Sales</span>
                             <div className="text-lg font-black text-textMain mt-1">{formatPKR(analytics?.summary?.total_revenue_billed)}</div>
                             <div className="text-[10px] text-textMuted mt-auto flex items-center gap-1.5">
@@ -311,17 +311,17 @@ const AccountantSalesView = () => {
                         </div>
 
                         {/* 2. Outstanding Balance (Receivables) */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
+                        <div className="bg-card p-5 rounded-2xl border border-card shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-textMuted tracking-wider">Accounts Receivable</span>
                             <div className="text-lg font-black text-amber-600 mt-1">{formatPKR(analytics?.summary?.ar_total_outstanding)}</div>
                             <div className="text-[10px] text-textMuted mt-auto flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                                <span className="h-2 w-2 rounded-full bg-status-info"></span>
                                 <span>Total unpaid invoice credit</span>
                             </div>
                         </div>
 
                         {/* 3. Output GST collected */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
+                        <div className="bg-card p-5 rounded-2xl border border-card shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-textMuted tracking-wider">Output Tax (GST/VAT)</span>
                             <div className="text-lg font-black text-primary mt-1">{formatPKR(analytics?.summary?.total_gst_collected)}</div>
                             <div className="text-[10px] text-textMuted mt-auto flex items-center gap-1">
@@ -331,19 +331,19 @@ const AccountantSalesView = () => {
                         </div>
 
                         {/* 4. Cost of Goods Sold */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
+                        <div className="bg-card p-5 rounded-2xl border border-card shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-textMuted tracking-wider">Cost of Goods (COGS)</span>
-                            <div className="text-lg font-black text-slate-700 mt-1">{formatPKR(analytics?.summary?.total_cogs)}</div>
+                            <div className="text-lg font-black text-primary mt-1">{formatPKR(analytics?.summary?.total_cogs)}</div>
                             <div className="text-[10px] text-textMuted mt-auto flex items-center gap-1">
-                                <Coins className="w-3.5 h-3.5 text-slate-500" />
+                                <Coins className="w-3.5 h-3.5 text-secondary" />
                                 <span>Real-time POS stock cost</span>
                             </div>
                         </div>
 
                         {/* 5. Profit Margin percentage */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
+                        <div className="bg-card p-5 rounded-2xl border border-card shadow-sm hover:shadow-md transition-all flex flex-col gap-1">
                             <span className="text-[10px] uppercase font-bold text-textMuted tracking-wider">Gross Profit Margin</span>
-                            <div className="text-lg font-black text-emerald-600 mt-1">{analytics?.summary?.profit_margin?.toFixed(2)}%</div>
+                            <div className="text-lg font-black text-status-success mt-1">{analytics?.summary?.profit_margin?.toFixed(2)}%</div>
                             <div className="text-[10px] text-textMuted mt-auto flex items-center gap-1.5">
                                 <Percent className="w-3.5 h-3.5 text-emerald-500" />
                                 <span>Net Gross profit: {formatCompactPKR(analytics?.summary?.gross_profit)}</span>
@@ -352,14 +352,14 @@ const AccountantSalesView = () => {
                     </div>
 
                     {/* Chart Section */}
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="bg-card p-5 rounded-2xl border border-card shadow-sm">
                         <div className="flex justify-between items-start gap-4 mb-6">
                             <div>
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-textMain">Sales Profitability & Trend Dynamics</h3>
                                 <p className="text-xs text-textMuted mt-0.5">Visualizing invoiced revenue (net of returns) vs inventory cost cost.</p>
                             </div>
                             {analytics?.summary?.total_refunded > 0 && (
-                                <div className="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-xs font-bold">
+                                <div className="px-3 py-1 bg-status-info/10 text-status-info border border-rose-100 rounded-lg text-xs font-bold">
                                     Refund Deductions: {formatPKR(analytics?.summary?.total_refunded)}
                                 </div>
                             )}
@@ -370,40 +370,40 @@ const AccountantSalesView = () => {
                                 <ComposedChart data={analytics?.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                                     <defs>
                                         <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.25} />
-                                            <stop offset="100%" stopColor="#4F46E5" stopOpacity={0} />
+                                            <stop offset="0%" stopColor="#A6764F" stopOpacity={0.25} />
+                                            <stop offset="100%" stopColor="#A6764F" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E0D3" />
                                     <XAxis 
                                         dataKey="period" 
-                                        tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
+                                        tick={{ fill: '#8A7F6E', fontSize: 10, fontWeight: 500 }} 
                                         axisLine={false} 
                                         tickLine={false} 
                                     />
                                     <YAxis 
                                         tickFormatter={formatCompactPKR} 
-                                        tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
+                                        tick={{ fill: '#8A7F6E', fontSize: 10, fontWeight: 500 }} 
                                         axisLine={false} 
                                         tickLine={false} 
                                     />
                                     <Tooltip 
                                         formatter={(val) => [formatPKR(val), '']} 
-                                        contentStyle={{ backgroundColor: '#1e293b', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '11px' }} 
+                                        contentStyle={{ backgroundColor: '#FFFCF7', color: '#2E2620', border: '1px solid #E8E0D3', borderRadius: '12px', fontSize: '11px' }} 
                                     />
                                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                                    <Area type="monotone" name="Billed Revenue" dataKey="revenue" fill="url(#revGrad)" stroke="#4F46E5" strokeWidth={2.5} />
-                                    <Line type="monotone" name="Inventory Cost (COGS)" dataKey="cogs" stroke="#64748b" strokeWidth={1.5} strokeDasharray="5 5" dot={false} />
-                                    <Line type="monotone" name="Gross Profit" dataKey="profit" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} />
+                                    <Area type="monotone" name="Billed Revenue" dataKey="revenue" fill="url(#revGrad)" stroke="#A6764F" strokeWidth={2.5} />
+                                    <Line type="monotone" name="Inventory Cost (COGS)" dataKey="cogs" stroke="#8A7F6E" strokeWidth={1.5} strokeDasharray="5 5" dot={false} />
+                                    <Line type="monotone" name="Gross Profit" dataKey="profit" stroke="#6B8E4E" strokeWidth={2} dot={{ r: 3 }} />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
                     {/* Detailed Tab Panels */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                    <div className="bg-card rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
                         {/* Tab Headers */}
-                        <div className="flex border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex border-b border-card bg-page/50">
                             {[
                                 { key: 'receivables', label: 'Accounts Receivable' },
                                 { key: 'tax', label: 'Sales Tax / GST Details' },
@@ -415,8 +415,8 @@ const AccountantSalesView = () => {
                                     onClick={() => setActiveTab(tab.key)}
                                     className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-all ${
                                         activeTab === tab.key
-                                            ? 'border-primary text-primary bg-white'
-                                            : 'border-transparent text-textMuted hover:text-textMain hover:bg-gray-50/50'
+                                            ? 'border-primary text-primary bg-card'
+                                            : 'border-transparent text-textMuted hover:text-textMain hover:bg-page/50'
                                     }`}
                                 >
                                     {tab.label}
@@ -433,10 +433,10 @@ const AccountantSalesView = () => {
                                         {/* Aging Summary cards */}
                                         <div className="lg:col-span-1 space-y-3">
                                             <h4 className="text-xs font-black uppercase text-textMuted tracking-wider">AR Aging Summary</h4>
-                                            <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden bg-surface">
+                                            <div className="divide-y divide-gray-100 border border-card rounded-xl overflow-hidden bg-surface">
                                                 <div className="flex justify-between items-center p-3">
                                                     <span className="text-xs text-textMuted font-semibold">Current (Not Overdue)</span>
-                                                    <span className="text-xs font-bold text-emerald-600">{formatPKR(analytics?.ar_aging_buckets?.current)}</span>
+                                                    <span className="text-xs font-bold text-status-success">{formatPKR(analytics?.ar_aging_buckets?.current)}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center p-3">
                                                     <span className="text-xs text-textMuted font-semibold">1 - 30 Days Overdue</span>
@@ -448,7 +448,7 @@ const AccountantSalesView = () => {
                                                 </div>
                                                 <div className="flex justify-between items-center p-3">
                                                     <span className="text-xs text-textMuted font-semibold">61 - 90 Days Overdue</span>
-                                                    <span className="text-xs font-bold text-red-700">{formatPKR(analytics?.ar_aging_buckets?.['61_90_days'])}</span>
+                                                    <span className="text-xs font-bold text-status-info">{formatPKR(analytics?.ar_aging_buckets?.['61_90_days'])}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center p-3">
                                                     <span className="text-xs text-textMuted font-semibold">90+ Days Overdue</span>
@@ -477,9 +477,9 @@ const AccountantSalesView = () => {
                                     {/* Outstanding receivables listing */}
                                     <div className="space-y-3">
                                         <h4 className="text-xs font-black uppercase text-textMuted tracking-wider">Outstanding Invoices & Pending Sales</h4>
-                                        <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                                        <div className="overflow-x-auto border border-card rounded-2xl">
                                             <table className="w-full text-xs text-left">
-                                                <thead className="bg-gray-50 text-textMuted text-[10px] uppercase font-semibold">
+                                                <thead className="bg-page text-textMuted text-[10px] uppercase font-semibold">
                                                     <tr>
                                                         <th className="px-4 py-3">Doc Ref</th>
                                                         <th className="px-4 py-3">Customer</th>
@@ -492,22 +492,22 @@ const AccountantSalesView = () => {
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-50 font-medium">
                                                     {analytics?.outstanding_invoices?.map((inv) => (
-                                                        <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                                                        <tr key={inv.id} className="hover:bg-page transition-colors">
                                                             <td className="px-4 py-3 font-mono font-bold text-primary">{inv.invoice_number}</td>
                                                             <td className="px-4 py-3 text-textMain font-bold">{inv.customer_name}</td>
                                                             <td className="px-4 py-3 text-textMuted">{inv.due_date}</td>
                                                             <td className="px-4 py-3 text-center">
                                                                 <span className={`px-2 py-0.5 rounded text-[10px] ${
-                                                                    inv.days_overdue > 90 ? 'bg-red-100 text-red-950 font-black' :
-                                                                    inv.days_overdue > 30 ? 'bg-rose-100 text-rose-700' :
-                                                                    inv.days_overdue > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-800'
+                                                                    inv.days_overdue > 90 ? 'bg-status-info/20 text-red-950 font-black' :
+                                                                    inv.days_overdue > 30 ? 'bg-status-info/20 text-status-info' :
+                                                                    inv.days_overdue > 0 ? 'bg-status-info/20 text-status-info' : 'bg-status-success/10 text-status-success'
                                                                 }`}>
                                                                     {inv.days_overdue} days
                                                                 </span>
                                                             </td>
                                                             <td className="px-4 py-3 text-textMuted">{inv.aging_tier}</td>
                                                             <td className="px-4 py-3 text-right text-textMuted">{formatPKR(inv.total_amount)}</td>
-                                                            <td className="px-4 py-3 text-right text-rose-600 font-bold">{formatPKR(inv.balance_due)}</td>
+                                                            <td className="px-4 py-3 text-right text-status-info font-bold">{formatPKR(inv.balance_due)}</td>
                                                         </tr>
                                                     ))}
                                                     {!analytics?.outstanding_invoices?.length && (
@@ -536,9 +536,9 @@ const AccountantSalesView = () => {
                                         </div>
                                     </div>
 
-                                    <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                                    <div className="overflow-x-auto border border-card rounded-2xl">
                                         <table className="w-full text-xs text-left">
-                                            <thead className="bg-gray-50 text-textMuted text-[10px] uppercase font-semibold">
+                                            <thead className="bg-page text-textMuted text-[10px] uppercase font-semibold">
                                                 <tr>
                                                     <th className="px-4 py-3">Doc Type</th>
                                                     <th className="px-4 py-3">Reference</th>
@@ -551,10 +551,10 @@ const AccountantSalesView = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-50 font-medium text-textMain">
                                                 {analytics?.tax_details?.map((item, idx) => (
-                                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                    <tr key={idx} className="hover:bg-page transition-colors">
                                                         <td className="px-4 py-3">
                                                             <span className={`inline-flex px-2 py-0.5 rounded text-[10px] ${
-                                                                item.type === 'Invoice' ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                                                                item.type === 'Invoice' ? 'bg-accent/10 text-accent' : 'bg-success/10 text-success'
                                                             }`}>
                                                                 {item.type}
                                                             </span>
@@ -588,15 +588,15 @@ const AccountantSalesView = () => {
                                         </div>
                                         <button 
                                             onClick={() => setIsReturnModalOpen(true)}
-                                            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary to-accent text-white font-bold text-xs rounded-xl shadow-sm hover:-translate-y-0.5 transition-all"
+                                            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary to-accent text-card font-bold text-xs rounded-xl shadow-sm hover:-translate-y-0.5 transition-all"
                                         >
                                             Record Sale Return
                                         </button>
                                     </div>
 
-                                    <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                                    <div className="overflow-x-auto border border-card rounded-2xl">
                                         <table className="w-full text-xs text-left">
-                                            <thead className="bg-gray-50 text-textMuted text-[10px] uppercase font-semibold">
+                                            <thead className="bg-page text-textMuted text-[10px] uppercase font-semibold">
                                                 <tr>
                                                     <th className="px-4 py-3">Return ID</th>
                                                     <th className="px-4 py-3">Original Sale</th>
@@ -610,15 +610,15 @@ const AccountantSalesView = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-50 font-medium text-textMain">
                                                 {analytics?.returns_list?.map((ret) => (
-                                                    <tr key={ret.id} className="hover:bg-slate-50 transition-colors">
+                                                    <tr key={ret.id} className="hover:bg-page transition-colors">
                                                         <td className="px-4 py-3 font-mono font-bold text-textMuted">#RET-{String(ret.id).padStart(4, '0')}</td>
                                                         <td className="px-4 py-3 font-mono font-bold text-primary">{ret.sale_invoice}</td>
                                                         <td className="px-4 py-3 font-bold">{ret.customer_name}</td>
-                                                        <td className="px-4 py-3 font-bold">{ret.product_name} <code className="bg-gray-100 px-1 rounded text-textMuted font-mono text-[10px]">{ret.product_code}</code></td>
-                                                        <td className="px-4 py-3 text-center font-bold text-rose-600">{ret.quantity_returned}</td>
+                                                        <td className="px-4 py-3 font-bold">{ret.product_name} <code className="bg-page px-1 rounded text-textMuted font-mono text-[10px]">{ret.product_code}</code></td>
+                                                        <td className="px-4 py-3 text-center font-bold text-status-info">{ret.quantity_returned}</td>
                                                         <td className="px-4 py-3 text-textMuted">{ret.return_date}</td>
                                                         <td className="px-4 py-3 text-textMuted max-w-xs truncate" title={ret.reason}>{ret.reason || '—'}</td>
-                                                        <td className="px-4 py-3 text-right text-rose-600 font-bold">{formatPKR(ret.refund_amount)}</td>
+                                                        <td className="px-4 py-3 text-right text-status-info font-bold">{formatPKR(ret.refund_amount)}</td>
                                                     </tr>
                                                 ))}
                                                 {!analytics?.returns_list?.length && (
@@ -640,9 +640,9 @@ const AccountantSalesView = () => {
                                         <p className="text-[10px] text-textMuted mt-0.5">Integrates snapshotted acquisition costs directly against revenues for live gross margin tracking.</p>
                                     </div>
 
-                                    <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                                    <div className="overflow-x-auto border border-card rounded-2xl">
                                         <table className="w-full text-xs text-left">
-                                            <thead className="bg-gray-50 text-textMuted text-[10px] uppercase font-semibold">
+                                            <thead className="bg-page text-textMuted text-[10px] uppercase font-semibold">
                                                 <tr>
                                                     <th className="px-4 py-3">Doc Reference</th>
                                                     <th className="px-4 py-3">Product Summary</th>
@@ -656,18 +656,18 @@ const AccountantSalesView = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-50 font-medium text-textMain">
                                                 {analytics?.profitability_details?.map((sale, idx) => (
-                                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                    <tr key={idx} className="hover:bg-page transition-colors">
                                                         <td className="px-4 py-3 font-mono font-bold text-primary">{sale.reference}</td>
                                                         <td className="px-4 py-3 font-bold">{sale.product_name}</td>
                                                         <td className="px-4 py-3 text-center font-bold">{sale.quantity_sold}</td>
                                                         <td className="px-4 py-3 text-right text-textMuted">{formatPKR(sale.unit_cost_price)} / unit</td>
                                                         <td className="px-4 py-3 text-right font-bold">{formatPKR(sale.revenue)}</td>
-                                                        <td className="px-4 py-3 text-right text-slate-700 font-bold">{formatPKR(sale.cogs)}</td>
-                                                        <td className="px-4 py-3 text-right text-emerald-600 font-bold">{formatPKR(sale.profit)}</td>
+                                                        <td className="px-4 py-3 text-right text-primary font-bold">{formatPKR(sale.cogs)}</td>
+                                                        <td className="px-4 py-3 text-right text-status-success font-bold">{formatPKR(sale.profit)}</td>
                                                         <td className="px-4 py-3 text-right font-black">
                                                             <span className={`inline-block px-2 py-0.5 rounded text-[10px] ${
-                                                                sale.margin > 40 ? 'bg-emerald-50 text-emerald-700' :
-                                                                sale.margin > 20 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'
+                                                                sale.margin > 40 ? 'bg-status-success/10 text-status-success' :
+                                                                sale.margin > 20 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-status-info'
                                                             }`}>
                                                                 {sale.margin.toFixed(1)}%
                                                             </span>
@@ -691,12 +691,12 @@ const AccountantSalesView = () => {
 
             {/* RECORD RETURN MODAL */}
             {isReturnModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg flex flex-col animate-in fade-in zoom-in-95 duration-200">
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-card">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                                <div className="p-2 bg-status-info/10 text-status-info rounded-xl">
                                     <Undo2 className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -712,22 +712,22 @@ const AccountantSalesView = () => {
                                     setSaleSearchId('');
                                     setModalError('');
                                 }} 
-                                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                                className="p-2 hover:bg-page rounded-xl transition-colors"
                             >
-                                <X className="w-4 h-4 text-gray-500" />
+                                <X className="w-4 h-4 text-secondary" />
                             </button>
                         </div>
 
                         {/* Form */}
                         <form onSubmit={handleRecordReturn} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
                             {modalError && (
-                                <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
+                                <div className="p-3.5 bg-status-info/10 border border-rose-100 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
                                     <AlertCircle className="w-4 h-4 shrink-0" />
                                     <span>{modalError}</span>
                                 </div>
                             )}
                             {modalSuccess && (
-                                <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                                <div className="p-3.5 bg-status-success/10 border border-emerald-100 rounded-xl text-status-success text-xs font-semibold flex items-center gap-2">
                                     <Check className="w-4 h-4 shrink-0" />
                                     <span>{modalSuccess}</span>
                                 </div>
@@ -743,7 +743,7 @@ const AccountantSalesView = () => {
                                         value={saleSearchId}
                                         onChange={(e) => setSaleSearchId(e.target.value)}
                                         disabled={!!matchedSale || submittingReturn}
-                                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                        className="flex-1 px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                                     />
                                     {matchedSale ? (
                                         <button
@@ -754,7 +754,7 @@ const AccountantSalesView = () => {
                                                 setSaleSearchId('');
                                                 setModalError('');
                                             }}
-                                            className="px-4 py-2 border border-gray-200 text-textMuted hover:text-textMain hover:bg-gray-50 rounded-lg text-xs font-bold transition-all"
+                                            className="px-4 py-2 border border-card text-textMuted hover:text-textMain hover:bg-page rounded-lg text-xs font-bold transition-all"
                                         >
                                             Reset
                                         </button>
@@ -762,7 +762,7 @@ const AccountantSalesView = () => {
                                         <button
                                             type="button"
                                             onClick={handleFetchSaleDetails}
-                                            className="px-4 py-2 bg-slate-800 text-white font-bold rounded-lg text-xs hover:bg-slate-900 active:scale-95 transition-all"
+                                            className="px-4 py-2 bg-primary text-card font-bold rounded-lg text-xs hover:bg-primary active:scale-95 transition-all"
                                         >
                                             Verify Sale
                                         </button>
@@ -772,12 +772,12 @@ const AccountantSalesView = () => {
 
                             {/* Step 2: Show product and details once sale verified */}
                             {matchedSale && (
-                                <div className="space-y-4 border-t border-gray-100 pt-4 animate-in slide-in-from-top-4 duration-200">
+                                <div className="space-y-4 border-t border-card pt-4 animate-in slide-in-from-top-4 duration-200">
                                     {/* Sale info snapshot */}
-                                    <div className="p-3 bg-gray-50 rounded-xl text-xs space-y-1.5 font-medium text-textMuted border border-gray-100">
+                                    <div className="p-3 bg-page rounded-xl text-xs space-y-1.5 font-medium text-textMuted border border-card">
                                         <div className="flex justify-between"><span>Customer:</span><span className="font-bold text-textMain">{matchedSale.customer_name}</span></div>
                                         <div className="flex justify-between"><span>Sale Date:</span><span className="font-bold text-textMain">{matchedSale.sale_date}</span></div>
-                                        <div className="flex justify-between"><span>Paid total:</span><span className="font-bold text-emerald-600">{formatPKR(matchedSale.total_price)}</span></div>
+                                        <div className="flex justify-between"><span>Paid total:</span><span className="font-bold text-status-success">{formatPKR(matchedSale.total_price)}</span></div>
                                     </div>
 
                                     {/* Product picker */}
@@ -790,7 +790,7 @@ const AccountantSalesView = () => {
                                                 setSelectedProduct(productObj);
                                                 setQtyToReturn(1);
                                             }}
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary cursor-pointer font-bold text-xs"
+                                            className="w-full px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary cursor-pointer font-bold text-xs"
                                         >
                                             {matchedSale.line_items?.map((item) => (
                                                 <option key={item.product} value={item.product}>
@@ -817,7 +817,7 @@ const AccountantSalesView = () => {
                                                     value={qtyToReturn}
                                                     onChange={(e) => setQtyToReturn(Math.min(Number(e.target.value), selectedProduct.quantity_sold || selectedProduct.quantity))}
                                                     disabled={submittingReturn}
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary"
+                                                    className="w-full px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary"
                                                 />
                                             </div>
 
@@ -830,7 +830,7 @@ const AccountantSalesView = () => {
                                                     value={refundAmount}
                                                     onChange={(e) => setRefundAmount(e.target.value)}
                                                     disabled={submittingReturn}
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary font-bold"
+                                                    className="w-full px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary font-bold"
                                                 />
                                             </div>
                                         </div>
@@ -845,7 +845,7 @@ const AccountantSalesView = () => {
                                                 value={returnDate}
                                                 onChange={(e) => setReturnDate(e.target.value)}
                                                 disabled={submittingReturn}
-                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary"
+                                                className="w-full px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary"
                                             />
                                         </div>
                                     </div>
@@ -859,7 +859,7 @@ const AccountantSalesView = () => {
                                             value={returnReason}
                                             onChange={(e) => setReturnReason(e.target.value)}
                                             disabled={submittingReturn}
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-textMain outline-none focus:ring-2 focus:ring-primary resize-none"
+                                            className="w-full px-3 py-2 border border-card rounded-lg text-sm bg-card text-textMain outline-none focus:ring-2 focus:ring-primary resize-none"
                                         />
                                     </div>
 
@@ -867,9 +867,9 @@ const AccountantSalesView = () => {
                                     <button
                                         type="submit"
                                         disabled={submittingReturn}
-                                        className="w-full py-3 bg-gradient-to-r from-rose-600 to-red-700 text-white font-bold text-xs rounded-xl hover:shadow-[0_12px_24px_-4px_rgba(220,38,38,0.25)] hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-gradient-to-r from-rose-600 to-red-700 text-card font-bold text-xs rounded-xl hover:shadow-[0_12px_24px_-4px_rgba(220,38,38,0.25)] hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {submittingReturn && <span className="h-4.5 w-4.5 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" />}
+                                        {submittingReturn && <span className="h-4.5 w-4.5 rounded-full border-2 border-card/30 border-t-white animate-spin inline-block" />}
                                         {submittingReturn ? 'Reversing ledger balances...' : 'Issue Refund & Record Return'}
                                     </button>
                                 </div>

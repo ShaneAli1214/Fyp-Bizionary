@@ -18,7 +18,7 @@ const LayoutShell = () => {
     const isChatbotRoute = location.pathname.startsWith('/chatbot');
 
     return (
-        <div className="flex h-screen bg-background dark:bg-[color:var(--dm-bg,#1a2535)] overflow-hidden transition-colors duration-300">
+        <div className="flex h-screen bg-page overflow-hidden transition-colors duration-300">
 
             {/* Persistent Sidebar */}
             <Sidebar />
@@ -51,12 +51,12 @@ const LayoutShell = () => {
                 }`}>
                     {/* AI Insights */}
                     <div className="relative flex items-center group pointer-events-auto">
-                        <div className="absolute right-9 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-800/10 dark:border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
+                        <div className="absolute right-9 bg-primary text-card text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
                             AI Insights
                         </div>
                         <button
                             onClick={() => { setIsInsightsOpen(true); setIsMenuOpen(false); }}
-                            className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full shadow-md hover:shadow-lg hover:shadow-emerald-500/30 border-2 border-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
+                            className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-r from-emerald-500 to-teal-600 text-card rounded-full shadow-md hover:shadow-lg hover:shadow-emerald-500/30 border-2 border-card/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
                             aria-label="AI Insights"
                         >
                             <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-300 animate-pulse pointer-events-none" />
@@ -66,12 +66,12 @@ const LayoutShell = () => {
                     {/* AI Chatbot */}
                     {!isChatbotRoute && (
                         <div className="relative flex items-center group pointer-events-auto">
-                            <div className="absolute right-9 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-800/10 dark:border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
+                            <div className="absolute right-9 bg-primary text-card text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
                                 AI Chatbot
                             </div>
                             <button
                                 onClick={() => { setIsChatbotOpen(true); setIsMenuOpen(false); }}
-                                className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-[#1C3A5A] to-[#2B527E] text-white rounded-full shadow-md hover:shadow-lg hover:shadow-slate-900/30 border-2 border-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
+                                className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-[#2B2620] to-[#2B2620] text-card rounded-full shadow-md hover:shadow-lg hover:shadow-slate-900/30 border-2 border-card/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
                                 aria-label="AI Chatbot"
                             >
                                 <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none" />
@@ -83,10 +83,10 @@ const LayoutShell = () => {
                 {/* Main FAB */}
                 <button
                     onClick={() => setIsMenuOpen(prev => !prev)}
-                    className="flex items-center justify-center w-8 h-8 md:w-9.5 md:h-9.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl border-2 border-white/20 pointer-events-auto transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer relative"
+                    className="flex items-center justify-center w-8 h-8 md:w-9.5 md:h-9.5 bg-status-success hover:bg-status-success text-card rounded-full shadow-lg hover:shadow-xl border-2 border-card/50 pointer-events-auto transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer relative"
                     aria-label="Toggle Quick AI Options"
                 >
-                    <Plus className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 ${isMenuOpen ? 'rotate-45 text-emerald-100' : 'text-white'}`} />
+                    <Plus className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 ${isMenuOpen ? 'rotate-45 text-emerald-100' : 'text-card'}`} />
                 </button>
             </div>
 

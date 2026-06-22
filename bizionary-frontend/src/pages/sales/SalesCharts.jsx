@@ -24,9 +24,9 @@ const CustomActiveDot = (props) => {
   return (
     <g>
       {/* Outer pulsing ring */}
-      <circle cx={cx} cy={cy} r={8} fill="#4f46e5" opacity={0.3} className="animate-ping" />
+      <circle cx={cx} cy={cy} r={8} fill="#A6764F" opacity={0.3} className="animate-ping" />
       {/* Inner solid white-bordered dot */}
-      <circle cx={cx} cy={cy} r={4.5} fill="#4f46e5" stroke="#ffffff" strokeWidth={1.5} />
+      <circle cx={cx} cy={cy} r={4.5} fill="#A6764F" stroke="#ffffff" strokeWidth={1.5} />
     </g>
   );
 };
@@ -35,16 +35,16 @@ const SalesTooltip = ({ active, payload, label }) => {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/95 backdrop-blur-md p-3.5 shadow-2xl text-white min-w-[200px] animate-in fade-in zoom-in-95 duration-100">
-      <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{label}</div>
+    <div className="rounded-2xl border border-border bg-surface/95 backdrop-blur-md p-3.5 shadow-2xl text-text-primary min-w-[200px] animate-in fade-in zoom-in-95 duration-100">
+      <div className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2">{label}</div>
       <div className="space-y-1.5">
         {payload.map((item) => (
           <div key={item.name} className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || '#4f46e5' }} />
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color || '#A6764F' }} />
               <span>{item.name}</span>
             </div>
-            <span className="font-mono text-sm font-bold text-white">{formatPKR(item.value)}</span>
+            <span className="font-mono text-sm font-bold text-text-primary">{formatPKR(item.value)}</span>
           </div>
         ))}
       </div>
@@ -155,21 +155,21 @@ const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
   return (
     <div className={className}>
       {/* Premium Chart Filter Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-gray-100 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-border gap-4">
         <div>
-          <div className="text-sm font-bold text-textMain tracking-tight">Sales Performance</div>
-          <p className="text-xs text-textMuted mt-0.5">Track revenue and growth dynamics over custom periods.</p>
+          <div className="text-sm font-bold text-text-primary tracking-tight">Sales Performance</div>
+          <p className="text-xs text-text-secondary mt-0.5">Track revenue and growth dynamics over custom periods.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
           {/* Month Selector dropdown */}
-          <div className="flex items-center gap-1.5 text-xs font-bold text-textMuted">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-text-secondary">
             <span>Month:</span>
             <select
               value={selectedMonth}
               disabled={selectedPeriod === 'monthly'}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs text-textMain"
+              className="px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs text-text-primary"
             >
               {availableMonths.map((m) => (
                 <option key={m.key} value={m.key}>
@@ -183,15 +183,15 @@ const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
           </div>
 
           {/* Period Toggle Tabs */}
-          <div className="flex bg-gray-100 p-1 rounded-xl">
+          <div className="flex bg-background p-1 rounded-xl">
             {['daily', 'weekly', 'monthly'].map((p) => (
               <button
                 key={p}
                 onClick={() => setSelectedPeriod(p)}
                 className={`px-3 py-1 text-xs font-bold rounded-lg transition-all capitalize ${
                   selectedPeriod === p
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-textMuted hover:text-textMain'
+                    ? 'bg-surface text-accent shadow-sm'
+                    : 'text-text-secondary hover:text-text-primary'
                 }`}
               >
                 {p}
@@ -202,12 +202,12 @@ const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center text-sm text-textMuted">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2" />
+        <div className="h-64 flex items-center justify-center text-sm text-text-secondary">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-accent mr-2" />
           Loading chart data...
         </div>
       ) : chartData.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-sm text-textMuted">
+        <div className="h-64 flex items-center justify-center text-sm text-text-secondary">
           No sales data found for the selected filter combination.
         </div>
       ) : (
@@ -224,33 +224,33 @@ const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
                 }
               `}</style>
               <linearGradient id="strokeRevenueGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#4F46E5" />
-                <stop offset="50%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#06B6D4" />
+                <stop offset="0%" stopColor="#A6764F" />
+                <stop offset="50%" stopColor="#966945" />
+                <stop offset="100%" stopColor="#8C5F3C" />
               </linearGradient>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.45 * amplitudeFactor} />
-                <stop offset="50%" stopColor="#8b5cf6" stopOpacity={0.2 * amplitudeFactor} />
-                <stop offset="100%" stopColor="#06B6D4" stopOpacity={0} />
+                <stop offset="0%" stopColor="#A6764F" stopOpacity={0.45 * amplitudeFactor} />
+                <stop offset="50%" stopColor="#966945" stopOpacity={0.2 * amplitudeFactor} />
+                <stop offset="100%" stopColor="#8C5F3C" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E0D3" />
             <XAxis
               dataKey="label"
               interval={selectedPeriod === 'daily' ? 4 : 0}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+              tick={{ fill: '#8A7F6E', fontSize: 10, fontWeight: 500 }}
               tickMargin={10}
               height={30}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }} 
+              tick={{ fill: '#8A7F6E', fontSize: 10, fontWeight: 500 }} 
               tickFormatter={formatCompactPKR} 
             />
-            <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#f1f5f9', strokeWidth: 1 }} />
+            <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#E8E0D3', strokeWidth: 1 }} />
             <Area 
               type="monotone" 
               dataKey="revenue" 
@@ -268,7 +268,7 @@ const SalesCharts = ({ className, categoryFilter, searchTerm }) => {
               type="monotone" 
               dataKey="previousRevenue" 
               name={selectedPeriod === 'daily' ? "Previous Day Revenue" : selectedPeriod === 'weekly' ? "Previous Week Revenue" : "Previous Month Revenue"} 
-              stroke="#cbd5e1" 
+              stroke="#6B8E4E" 
               strokeWidth={1.5} 
               strokeDasharray="4 4" 
               dot={false} 

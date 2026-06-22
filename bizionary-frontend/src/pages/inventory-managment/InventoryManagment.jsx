@@ -227,9 +227,9 @@ const InventoryManagment = () => {
     }, [inventoryRows]);
 
     const metricCards = [
-        { title: 'Total Products', value: dashboardMetrics.totalProducts, icon: Package, tone: 'bg-slate-50 text-slate-700 border-slate-200' },
-        { title: 'Total Stock Value', value: formatPKR(dashboardMetrics.totalStockValue), icon: CircleDollarSign, tone: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-        { title: 'Low Stock Items', value: lowStockRows.length, icon: AlertTriangle, tone: 'bg-amber-50 text-amber-700 border-amber-100', interactive: true },
+        { title: 'Total Products', value: dashboardMetrics.totalProducts, icon: Package, tone: 'bg-page text-primary border-card' },
+        { title: 'Total Stock Value', value: formatPKR(dashboardMetrics.totalStockValue), icon: CircleDollarSign, tone: 'bg-status-success/10 text-status-success border-emerald-100' },
+        { title: 'Low Stock Items', value: lowStockRows.length, icon: AlertTriangle, tone: 'bg-amber-50 text-status-info border-amber-100', interactive: true },
         { title: 'Incoming Stock', value: dashboardMetrics.incomingStock, icon: ArrowUpRight, tone: 'bg-sky-50 text-sky-700 border-sky-100' },
     ];
 
@@ -237,7 +237,7 @@ const InventoryManagment = () => {
         return (
             <div className="space-y-6 p-1">
                 <Skeleton.KPICard />
-                <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
                     <Skeleton.TableRows count={8} cols={5} />
                 </div>
             </div>
@@ -259,7 +259,7 @@ const InventoryManagment = () => {
                                 setFormMode('existing');
                                 setIsFormOpen(true);
                             }}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primaryDark text-sm font-bold transition-all shadow-md shadow-primary/20"
+                            className="inline-flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Order Products
@@ -269,14 +269,14 @@ const InventoryManagment = () => {
                                 setFormMode('custom');
                                 setIsFormOpen(true);
                             }}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-white text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-all border border-primary/20 shadow-sm"
+                            className="inline-flex items-center justify-center px-5 py-2 bg-card text-primary rounded-full text-sm font-bold transition-all hover:bg-active-pill/30 border border-card shadow-sm"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             Quick Add / Custom Order
                         </button>
                         <button
                             onClick={() => navigate('/ordered-slips')}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-white text-textMain rounded-xl hover:bg-slate-50 text-sm font-bold transition-all border border-gray-200 shadow-sm"
+                            className="inline-flex items-center justify-center px-5 py-2 bg-card text-primary rounded-full text-sm font-bold transition-all hover:bg-active-pill/30 border border-card shadow-sm"
                         >
                             <Receipt className="h-4 w-4 mr-2" />
                             Ordered Slips
@@ -289,7 +289,7 @@ const InventoryManagment = () => {
                         const Icon = card.icon;
                         if (card.interactive) {
                             return (
-                                <div key={card.title} className={`rounded-2xl border bg-white p-4 shadow-sm ${card.tone} xl:col-span-2`}>
+                                <div key={card.title} className={`rounded-2xl border bg-card p-4 shadow-sm ${card.tone} xl:col-span-2`}>
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-wider text-textMuted">{card.title}</p>
@@ -306,7 +306,7 @@ const InventoryManagment = () => {
                                                 }
                                                 return next;
                                             })}
-                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-surface/20 bg-white/80 text-textMuted transition hover:bg-surface hover:text-textMain"
+                                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-surface/20 bg-card/80 text-textMuted transition hover:bg-surface hover:text-textMain"
                                         >
                                             <ChevronDown className={`h-4 w-4 transition-transform ${lowStockOpen ? 'rotate-180' : ''}`} />
                                         </button>
@@ -323,7 +323,7 @@ const InventoryManagment = () => {
                                                     step="1"
                                                     value={stockThreshold}
                                                     onChange={(event) => setStockThreshold(Math.max(0, Number(event.target.value || 0)))}
-                                                    className="w-20 rounded-md border border-transparent bg-white px-2 py-1 text-sm font-semibold text-textMain text-center outline-none transition hover:border-slate-300 focus:border-primary focus:bg-white"
+                                                    className="w-20 rounded-md border border-transparent bg-card px-2 py-1 text-sm font-semibold text-textMain text-center outline-none transition hover:border-card focus:border-primary focus:bg-card"
                                                 />
                                             </div>
                                         </div>
@@ -333,8 +333,8 @@ const InventoryManagment = () => {
                                     </div>
 
                                     {lowStockOpen && (
-                                        <div className="mt-4 rounded-xl border border-surface/20 bg-white shadow-lg overflow-hidden">
-                                            <div className="px-4 py-3 border-b border-surface/10 bg-white">
+                                        <div className="mt-4 rounded-xl border border-surface/20 bg-card shadow-lg overflow-hidden">
+                                            <div className="px-4 py-3 border-b border-surface/10 bg-card">
                                                 <div className="grid grid-cols-[minmax(180px,220px)_1fr_auto] gap-4 items-center text-sm font-semibold text-textMain">
                                                     <div>Category</div>
                                                     <div>Product Name</div>
@@ -342,7 +342,7 @@ const InventoryManagment = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="max-h-80 overflow-y-auto bg-white">
+                                            <div className="max-h-80 overflow-y-auto bg-card">
                                                 {lowStockCategoryKeys.length > 0 ? (
                                                     lowStockCategoryKeys.map((categoryKey) => {
                                                         const categoryLabel = categoryKey;
@@ -364,7 +364,7 @@ const InventoryManagment = () => {
                                                                 </button>
 
                                                                 {isOpen && (
-                                                                    <div className="border-t border-surface/10 bg-white">
+                                                                    <div className="border-t border-surface/10 bg-card">
                                                                         {categoryItems.map((item) => (
                                                                             <div
                                                                                 key={item.id}
@@ -376,7 +376,7 @@ const InventoryManagment = () => {
                                                                                 <div className="min-w-0 text-textMain font-medium whitespace-normal break-words">
                                                                                     {item.product_name}
                                                                                 </div>
-                                                                                <div className="shrink-0 text-right font-semibold text-rose-700">
+                                                                                <div className="shrink-0 text-right font-semibold text-status-info">
                                                                                     {item.quantity} in stock
                                                                                 </div>
                                                                             </div>
@@ -397,13 +397,13 @@ const InventoryManagment = () => {
                         }
 
                         return (
-                            <div key={card.title} className={`rounded-2xl border bg-white p-4 shadow-sm ${card.tone}`}>
+                            <div key={card.title} className={`rounded-2xl border bg-card p-4 shadow-sm ${card.tone}`}>
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-wider text-textMuted">{card.title}</p>
                                         <p className="mt-2 text-2xl font-extrabold text-textMain">{card.value}</p>
                                     </div>
-                                    <div className="rounded-xl border p-2.5 bg-white/70">
+                                    <div className="rounded-xl border p-2.5 bg-card/70">
                                         <Icon className="h-5 w-5" />
                                     </div>
                                 </div>
@@ -414,7 +414,7 @@ const InventoryManagment = () => {
             </div>
 
             {formSuccess && (
-                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700 text-sm font-medium">
+                <div className="px-4 py-3 rounded-xl border border-emerald-100 bg-status-success/10 text-status-success text-sm font-medium">
                     {formSuccess}
                     {selectedOrderSlip?.id ? (
                         <button
@@ -428,15 +428,15 @@ const InventoryManagment = () => {
                 </div>
             )}
             {formError && (
-                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-rose-700 text-sm font-medium">
+                <div className="px-4 py-3 rounded-xl border border-rose-100 bg-status-info/10 text-status-info text-sm font-medium">
                     {formError}
                 </div>
             )}
 
             {/* Inventory Stock Table removed */}
 
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden">
+                <div className="px-6 pt-5 pb-3 border-b border-card flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-bold text-textMain">Registered Companies</h2>
                         <p className="text-xs text-textMuted mt-1">Delete saved company records from the dropdown source.</p>
@@ -449,14 +449,14 @@ const InventoryManagment = () => {
                     )}
 
                     {registeredCompanies.map((company) => (
-                        <div key={company.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                        <div key={company.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-page/70 transition-colors">
                             <div>
                                 <p className="text-sm font-bold text-textMain">{company.name}</p>
                                 <p className="text-xs text-textMuted mt-0.5">{company.categoryId || company.category || 'Uncategorized'}</p>
                             </div>
                             <button
                                 onClick={() => handleDeleteCompany(company.id)}
-                                className="inline-flex items-center px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                                className="inline-flex items-center px-3 py-2 rounded-xl border border-card bg-status-info/10 text-sm font-semibold text-status-info hover:bg-status-info/20"
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete

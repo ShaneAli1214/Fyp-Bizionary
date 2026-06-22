@@ -88,13 +88,13 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-slate-50/50">
-                    <h2 className="text-lg font-bold text-slate-900">{record ? 'Edit Operating Cost' : 'Record Operating Cost'}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-card rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center p-5 border-b border-card bg-page/50">
+                    <h2 className="text-lg font-bold text-primary">{record ? 'Edit Operating Cost' : 'Record Operating Cost'}</h2>
                     <button 
                         onClick={onClose}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -102,20 +102,20 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
 
                 <form id="operating-cost-form" onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                     {errors.general && (
-                        <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100">
+                        <div className="p-3 bg-status-info/10 text-status-info text-xs font-bold rounded-xl border border-red-100">
                             {errors.general}
                         </div>
                     )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Cost Type *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Cost Type *</label>
                             <select
                                 name="cost_type"
                                 required
                                 value={formData.cost_type || 'SUBSCRIPTION'}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                             >
                                 <option value="RENT">Rent</option>
                                 <option value="SUBSCRIPTION">Subscription</option>
@@ -127,14 +127,14 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Name / Description *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Name / Description *</label>
                             <input
                                 type="text"
                                 name="name"
                                 required
                                 value={formData.name || ''}
                                 onChange={handleChange}
-                                className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
+                                className={`w-full px-4 py-2.5 bg-page border ${errors.name ? 'border-red-500' : 'border-card'} rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
                                 placeholder="e.g. Adobe Creative Cloud"
                             />
                             {errors.name && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.name}</span>}
@@ -143,7 +143,7 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Amount (Rs) *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Amount (Rs) *</label>
                             <input
                                 type="number"
                                 name="amount"
@@ -152,20 +152,20 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
                                 step="0.01"
                                 value={formData.amount || ''}
                                 onChange={handleChange}
-                                className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.amount ? 'border-red-500' : 'border-gray-200'} rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
+                                className={`w-full px-4 py-2.5 bg-page border ${errors.amount ? 'border-red-500' : 'border-card'} rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
                                 placeholder="e.g. 12500"
                             />
                             {errors.amount && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.amount}</span>}
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Payment Method *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Payment Method *</label>
                             <select
                                 name="payment_method"
                                 required
                                 value={formData.payment_method || 'CREDIT_CARD'}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                             >
                                 <option value="CREDIT_CARD">Credit Card</option>
                                 <option value="CASH">Cash</option>
@@ -176,25 +176,25 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Due Date *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Due Date *</label>
                             <input
                                 type="date"
                                 name="due_date"
                                 required
                                 value={formData.due_date || ''}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Status *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Status *</label>
                             <select
                                 name="status"
                                 required
                                 value={formData.status || 'UNPAID'}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                             >
                                 <option value="UNPAID">Unpaid</option>
                                 <option value="PAID">Paid</option>
@@ -204,36 +204,36 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
 
                     {formData.status === 'PAID' && (
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-2">Payment Date *</label>
+                            <label className="block text-xs font-bold text-secondary mb-2">Payment Date *</label>
                             <input
                                 type="date"
                                 name="payment_date"
                                 required
                                 value={formData.payment_date || ''}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                             />
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-2">Notes</label>
+                        <label className="block text-xs font-bold text-secondary mb-2">Notes</label>
                         <textarea
                             name="notes"
                             rows="2"
                             value={formData.notes || ''}
                             onChange={handleChange}
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                            className="w-full px-4 py-2.5 bg-page border border-card rounded-xl text-sm focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
                             placeholder="Optional operational cost notes..."
                         />
                     </div>
                 </form>
 
-                <div className="p-5 border-t border-gray-100 bg-slate-50/50 flex justify-end gap-3">
+                <div className="p-5 border-t border-card bg-page/50 flex justify-end gap-3">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all shadow-sm cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-xl transition-all shadow-sm cursor-pointer"
                         disabled={saving}
                     >
                         Cancel
@@ -242,9 +242,9 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
                         type="submit"
                         form="operating-cost-form"
                         disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primaryDark rounded-xl shadow-sm transition-all disabled:opacity-70 cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-primary hover:bg-primaryDark rounded-xl shadow-sm transition-all disabled:opacity-70 cursor-pointer"
                     >
-                        {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                        {saving && <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>}
                         {record ? 'Save Changes' : 'Record Cost'}
                     </button>
                 </div>
