@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -48,6 +49,15 @@ def sale_list(request):
                 Q(product__category__iexact=db_category) |
                 Q(product__category__iexact=category_clean)
             )
+
+        # Server-side Date Filter (YYYY-MM-DD)
+        date_filter = request.GET.get('date', '').strip()
+        if date_filter:
+            try:
+                parsed_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+                sales = sales.filter(sale_date=parsed_date)
+            except ValueError:
+                pass
 
         # Server-side Pagination
         page_number = request.GET.get('page')
@@ -147,18 +157,41 @@ def _parse_sale_row(row: dict, row_num: int):
 
     # Resolve product
     product = None
-    if row.get('product_id'):
+    prod_id_val = str(row.get('product_id', '')).strip()
+    prod_code_val = str(row.get('product_code', '')).strip()
+    prod_name_val = str(row.get('product_name', '')).strip()
+
+    if prod_id_val:
         try:
-            product = Product.objects.get(pk=int(row['product_id']))
-        except (Product.DoesNotExist, ValueError):
-            errors.append(f"Row {row_num}: product_id={row['product_id']} not found")
-    elif row.get('product_code'):
-        try:
-            product = Product.objects.get(sku=row['product_code'].strip())
+            if prod_id_val.isdigit():
+                try:
+                    product = Product.objects.get(pk=int(prod_id_val))
+                except Product.DoesNotExist:
+                    product = Product.objects.get(sku=prod_id_val)
+            else:
+                product = Product.objects.get(sku=prod_id_val)
         except Product.DoesNotExist:
-            errors.append(f"Row {row_num}: product_code='{row['product_code']}' not found")
+            # Fall back to name lookup
+            if prod_name_val:
+                product = Product.objects.filter(name__iexact=prod_name_val).first()
+            
+            if not product:
+                errors.append(f"Row {row_num}: product_id='{prod_id_val}' not found by ID or SKU")
+    elif prod_code_val:
+        try:
+            product = Product.objects.get(sku=prod_code_val)
+        except Product.DoesNotExist:
+            if prod_name_val:
+                product = Product.objects.filter(name__iexact=prod_name_val).first()
+            
+            if not product:
+                errors.append(f"Row {row_num}: product_code='{prod_code_val}' not found")
+    elif prod_name_val:
+        product = Product.objects.filter(name__iexact=prod_name_val).first()
+        if not product:
+            errors.append(f"Row {row_num}: product_name='{prod_name_val}' not found")
     else:
-        errors.append(f"Row {row_num}: must provide product_id or product_code")
+        errors.append(f"Row {row_num}: must provide product_id, product_code, or product_name")
 
     if errors:
         return None, errors[0]
@@ -176,21 +209,34 @@ def _parse_sale_row(row: dict, row_num: int):
     except (KeyError, InvalidOperation):
         return None, f"Row {row_num}: unit_price is invalid"
 
-    # Parse date
-    sale_date_raw = row.get('sale_date', '')
-    try:
-        sale_date = datetime.strptime(str(sale_date_raw).strip(), '%Y-%m-%d').date()
-    except ValueError:
-        return None, f"Row {row_num}: sale_date '{sale_date_raw}' must be YYYY-MM-DD"
+    # Parse date (flexible format parsing)
+    sale_date_raw = str(row.get('sale_date', '')).strip()
+    sale_date = None
+    for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y', '%Y/%m/%d', '%d-%m-%Y', '%m-%d-%Y', '%Y-%m-%d %H:%M:%S', '%m/%d/%Y %H:%M:%S'):
+        try:
+            sale_date = datetime.strptime(sale_date_raw, fmt).date()
+            break
+        except ValueError:
+            continue
+
+    if not sale_date:
+        return None, f"Row {row_num}: sale_date '{sale_date_raw}' is not in a recognized format (e.g. YYYY-MM-DD or MM/DD/YYYY)"
 
     # Optional fields
     customer_name   = str(row.get('customer_name', 'Walk-in Customer')).strip() or 'Walk-in Customer'
     payment_status  = str(row.get('payment_status', 'PAID')).upper()
-    payment_method  = str(row.get('payment_method', 'CASH')).upper()
+    payment_method_raw = str(row.get('payment_method', 'CASH')).strip().upper().replace(' ', '_').replace('-', '_')
 
     if payment_status not in ('PAID', 'PENDING', 'FAILED'):
         payment_status = 'PAID'
-    if payment_method not in ('CASH', 'CARD', 'EASYPAY_JAZZCASH', 'BANK_TRANSFER', 'OTHER'):
+        
+    if 'EASY' in payment_method_raw or 'JAZZ' in payment_method_raw:
+        payment_method = 'EASYPAY_JAZZCASH'
+    elif 'BANK' in payment_method_raw or 'TRANSFER' in payment_method_raw:
+        payment_method = 'BANK_TRANSFER'
+    elif payment_method_raw in ('CASH', 'CARD', 'OTHER'):
+        payment_method = payment_method_raw
+    else:
         payment_method = 'CASH'
 
     total_price = unit_price * qty
@@ -217,6 +263,7 @@ def _parse_sale_row(row: dict, row_num: int):
 
 
 @api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def bulk_upload_sales(request):
     """
     Bulk upload sales records.
@@ -276,28 +323,36 @@ def bulk_upload_sales(request):
     created_sales = []
     runtime_errors = []
 
-    with transaction.atomic():
-        for i, data in enumerate(parsed_rows, start=1):
-            try:
-                product = data.pop('product')
-                sale = Sale(product=product, **data)
-                sale.save()
-                created_sales.append({
-                    'row': i,
-                    'sale_id': sale.id,
-                    'product': product.name,
-                    'qty': sale.quantity_sold,
-                    'total': float(sale.total_price),
-                    'date': str(sale.sale_date),
-                })
-            except Exception as e:
-                runtime_errors.append(f"Row {i}: {str(e)}")
+    try:
+        with transaction.atomic():
+            for i, data in enumerate(parsed_rows, start=1):
+                try:
+                    product = data.pop('product')
+                    sale = Sale(product=product, **data)
+                    sale.save()
+                    created_sales.append({
+                        'row': i,
+                        'sale_id': sale.id,
+                        'product': product.name,
+                        'qty': sale.quantity_sold,
+                        'total': float(sale.total_price),
+                        'date': str(sale.sale_date),
+                    })
+                except Exception as e:
+                    runtime_errors.append(f"Row {i}: {str(e)}")
 
-        if runtime_errors:
-            # Roll back everything if any row failed
-            raise transaction.TransactionManagementError(
-                f"{len(runtime_errors)} rows failed during save"
-            )
+            if runtime_errors:
+                # Roll back everything if any row failed
+                raise transaction.TransactionManagementError(
+                    f"{len(runtime_errors)} rows failed during save"
+                )
+    except Exception as e:
+        return Response({
+            'error': 'Database transaction failed. No records were saved.',
+            'validation_errors': runtime_errors or [str(e)],
+            'total_rows': len(rows),
+            'failed_rows': len(runtime_errors) or 1,
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     # ── Return summary ───────────────────────────────────────
     total_revenue = sum(s['total'] for s in created_sales)

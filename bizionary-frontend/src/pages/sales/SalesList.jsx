@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PageHeader from '../../components/ui/PageHeader';
 import Skeleton from '../../components/ui/Skeleton';
-import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import SaleForm from './SaleForm';
@@ -74,6 +74,7 @@ const SalesList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -146,7 +147,8 @@ const SalesList = () => {
                     page: pageNumber,
                     page_size: 10,
                     search: debouncedSearch,
-                    category: categoryFilter
+                    category: categoryFilter,
+                    date: dateFilter
                 }
             });
             const dataPayload = res.data;
@@ -170,12 +172,12 @@ const SalesList = () => {
     // Trigger API call when page or filters change
     useEffect(() => {
         fetchSales(page);
-    }, [page, debouncedSearch, categoryFilter]);
+    }, [page, debouncedSearch, categoryFilter, dateFilter]);
 
     // Reset to first page on search or category filter change
     useEffect(() => {
         setPage(1);
-    }, [debouncedSearch, categoryFilter]);
+    }, [debouncedSearch, categoryFilter, dateFilter]);
 
     const handleCreateOrUpdate = async (saleData) => {
         let savedSale = null;
@@ -263,7 +265,29 @@ const SalesList = () => {
             window.dispatchEvent(new CustomEvent('saleCreated', { detail: { timestamp: Date.now() } }));
             emitInventoryRefresh('sales', 'bulk-created');
         } catch (err) {
-            setBulkError(err.response?.data || { error: 'Upload failed. Please try again.' });
+            const errorData = err.response?.data;
+            if (typeof errorData === 'string') {
+                setBulkError({ error: errorData });
+            } else if (errorData && typeof errorData === 'object') {
+                let mainError = errorData.error || errorData.detail || errorData.message;
+                if (!mainError) {
+                    const keys = Object.keys(errorData).filter(k => k !== 'validation_errors');
+                    if (keys.length > 0) {
+                        const firstVal = errorData[keys[0]];
+                        mainError = Array.isArray(firstVal) 
+                            ? `${keys[0]}: ${firstVal.join(', ')}` 
+                            : `${keys[0]}: ${firstVal}`;
+                    } else {
+                        mainError = 'Upload failed. Please try again.';
+                    }
+                }
+                setBulkError({
+                    error: mainError,
+                    validation_errors: errorData.validation_errors || null
+                });
+            } else {
+                setBulkError({ error: err.message || 'Upload failed. Please try again.' });
+            }
         } finally {
             setBulkUploading(false);
         }
@@ -327,6 +351,25 @@ const SalesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-xl border border-card bg-surface flex items-center">
+                        <Calendar className="h-4 w-4 absolute left-3 text-secondary pointer-events-none" />
+                        <input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-full sm:w-40 pl-9 pr-8 py-2 bg-transparent text-textMain outline-none rounded-xl cursor-pointer text-sm font-bold"
+                        />
+                        {dateFilter && (
+                            <button
+                                type="button"
+                                onClick={() => setDateFilter('')}
+                                className="absolute right-2 p-1 bg-page hover:bg-card-hover text-secondary hover:text-danger rounded-lg transition-colors"
+                                title="Clear Date"
+                            >
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
                     <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-2xl border border-card bg-surface">
                         <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                         <select

@@ -19,17 +19,13 @@ def _get_groq_model():
 
 
 def _is_revenue_question(message):
-    text = (message or '').lower()
-    # Do not bypass the LLM if the user is asking for a visual chart/graph/trend of revenue
-    if any(k in text for k in ['chart', 'graph', 'trend', 'comparison', 'visual']):
+    msg = str(message).lower()
+    keywords = ['revenue', 'income', 'aamdani', 'revanue', 'revenu', 'sales amount', 'sales total', 'current revenue']
+    # If the message mentions specific days, dates, months, yesterday, or today, let the LLM execute tools instead of returning a hardcoded overall total.
+    date_keywords = ['today', 'yesterday', 'month', 'date', 'year', 'day', 'week', 'last', 'breakdown', 'detail']
+    if any(dk in msg for dk in date_keywords) or any(char.isdigit() for char in msg):
         return False
-    return any(keyword in text for keyword in [
-        'revenue',
-        'total revenue',
-        'current revenue',
-        'sales amount',
-        'sales total',
-    ])
+    return any(k in msg for k in keywords)
 
 
 def _get_current_revenue_text():
@@ -253,7 +249,8 @@ IMPORTANT:
                 '- In your response, present the download URL returned by the tool as a standard link button in markdown: `[Download <type> Report](url)` where url is the download_url returned by the tool.\n\n'
                 'CONVERSATIONAL SALE RECORDING RULES:\n'
                 '- When the user asks to record, create, register, add, or make a sale, you MUST NOT execute the `create_sale` tool immediately.\n'
-                '- Instead, first search for the product details using `search_products` to confirm its availability, unit price, and stock.\n'
+                '- CRITICAL: If the user has not specified a quantity for the product they wish to sell, you MUST NOT draft the sale or ask for confirmation yet. Instead, you MUST ask the user to specify the quantity first (e.g. "How many units of that product would you like to sell?"). Once they provide the quantity, you can proceed.\n'
+                '- Once product and quantity are known, first search for the product details using `search_products` to confirm its availability, unit price, and stock.\n'
                 '- Present a drafted sale summary to the user including Product Name, Quantity, Unit Price, Total Price (applying any discount), Payment Method, and Customer Name.\n'
                 '- Ask the user: "Would you like to confirm recording this sale? Please reply with \'Confirm\' to proceed."\n'
                 '- ONLY execute the `create_sale` tool in the subsequent turn if the user explicitly replies with "Confirm", "Yes", "Go ahead", or similar confirmation. If they cancel or do not confirm, do not create the sale.\n\n'
@@ -1475,7 +1472,7 @@ def execute_tool(name, arguments):
             from datetime import datetime
             start_date = arguments.get("start_date", "")
             end_date = arguments.get("end_date", "")
-            qs = Sale.objects.filter(sale_date__date__gte=start_date, sale_date__date__lte=end_date)
+            qs = Sale.objects.filter(sale_date__gte=start_date, sale_date__lte=end_date)
             agg = qs.aggregate(
                 total_revenue=Sum('total_price'),
                 total_qty=Sum('quantity_sold'),
@@ -1563,9 +1560,9 @@ def execute_tool(name, arguments):
                     pids = list(Product.objects.filter(category=exact).values_list('id', flat=True))
                     qs = qs.filter(product__in=pids)
             if start_date:
-                qs = qs.filter(sale_date__date__gte=start_date)
+                qs = qs.filter(sale_date__gte=start_date)
             if end_date:
-                qs = qs.filter(sale_date__date__lte=end_date)
+                qs = qs.filter(sale_date__lte=end_date)
             agg = qs.aggregate(
                 total_revenue=Sum('total_price'),
                 total_cost=Sum(F('unit_cost_price') * F('quantity_sold'))
@@ -1625,9 +1622,9 @@ def execute_tool(name, arguments):
             end_date = arguments.get("end_date", "")
             qs = Sale.objects.all()
             if start_date:
-                qs = qs.filter(sale_date__date__gte=start_date)
+                qs = qs.filter(sale_date__gte=start_date)
             if end_date:
-                qs = qs.filter(sale_date__date__lte=end_date)
+                qs = qs.filter(sale_date__lte=end_date)
             agg = qs.aggregate(
                 total_discount=Sum('discount'),
                 avg_discount=Avg('discount'),
@@ -1784,10 +1781,10 @@ def execute_tool(name, arguments):
             sale_qs = Sale.objects.all()
             exp_qs = Expense.objects.filter(voided=False)
             if start_date:
-                sale_qs = sale_qs.filter(sale_date__date__gte=start_date)
+                sale_qs = sale_qs.filter(sale_date__gte=start_date)
                 exp_qs = exp_qs.filter(date__gte=start_date)
             if end_date:
-                sale_qs = sale_qs.filter(sale_date__date__lte=end_date)
+                sale_qs = sale_qs.filter(sale_date__lte=end_date)
                 exp_qs = exp_qs.filter(date__lte=end_date)
             total_revenue = float(sale_qs.aggregate(t=Sum('total_price'))['t'] or 0)
             total_expenses = float(exp_qs.aggregate(t=Sum('amount'))['t'] or 0)
@@ -2105,7 +2102,7 @@ def execute_tool(name, arguments):
             active_products = Product.objects.filter(status='ACTIVE', stock_quantity__gt=0)
             # Get product IDs with a sale in the last N days
             recently_sold_ids = set(
-                Sale.objects.filter(sale_date__date__gte=cutoff)
+                Sale.objects.filter(sale_date__gte=cutoff)
                 .values_list('product_id', flat=True)
                 .distinct()
             )
@@ -2138,7 +2135,7 @@ def execute_tool(name, arguments):
             targets = SalesTarget.objects.all().order_by('-start_date')
             result = []
             for t in targets:
-                actual_qs = Sale.objects.filter(sale_date__date__gte=t.start_date, sale_date__date__lte=t.end_date)
+                actual_qs = Sale.objects.filter(sale_date__gte=t.start_date, sale_date__lte=t.end_date)
                 actual_revenue = float(actual_qs.aggregate(r=Sum('total_price'))['r'] or 0)
                 actual_units = int(actual_qs.aggregate(u=Sum('quantity_sold'))['u'] or 0)
                 target_amount = float(t.target_amount or 0)
@@ -2183,11 +2180,15 @@ def parse_text_tool_call(text):
     
     normalized = text.strip()
     
-    # Try pattern: <function=name>{"arg": "val"} or <function=name{"arg": "val"}
-    match = re.search(r'<function=(\w+)>\s*(\{.*?\})', normalized)
+    # 1. Match format: <function>name{"args"}</function> or <function>name{"args"}
+    match = re.search(r'<function>\s*(\w+)\s*(\{.*?\})(?:\s*</function>)?', normalized)
     if not match:
+        # 2. Match format: <function=name>{"args"}</function> or <function=name>{"args"}
+        match = re.search(r'<function=(\w+)>(?:\s*)(\{.*?\})(?:\s*</function>)?', normalized)
+    if not match:
+        # 3. Match format: <function=name{"args"}
         match = re.search(r'<function=(\w+)\s*(\{.*?\})', normalized)
-    
+        
     if match:
         name = match.group(1)
         args_str = match.group(2).strip()
@@ -2211,6 +2212,19 @@ def parse_text_tool_call(text):
                 pass
         return name, arguments
         
+    # Try pattern: <function>name</function> ... with possible JSON later
+    match = re.search(r'<function>\s*(\w+)\s*(?:</function>)?', normalized)
+    if match:
+        name = match.group(1)
+        args_match = re.search(r'\{.*?\}', normalized)
+        arguments = {}
+        if args_match:
+            try:
+                arguments = json.loads(args_match.group(0))
+            except Exception:
+                pass
+        return name, arguments
+
     return None, None
 
 
