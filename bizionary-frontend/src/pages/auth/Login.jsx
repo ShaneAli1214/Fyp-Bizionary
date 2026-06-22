@@ -94,7 +94,7 @@ const Login = () => {
                         { icon: ShieldCheck, title: 'Secure & Reliable', desc: 'Enterprise-grade security for your business data.' },
                     ].map(({ icon: Icon, title, desc }) => (
                         <div key={title} className="flex items-start gap-4">
-                            <div className="bg-card/10 p-2.5 rounded-xl border border-card/8 flex items-center justify-center shrink-0">
+                            <div className="bg-card/10 p-2.5 rounded-2xl border border-card/8 flex items-center justify-center shrink-0">
                                 <Icon className="w-5 h-5 text-card" />
                             </div>
                             <div>
@@ -216,7 +216,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-card bg-[#111111] hover:bg-primary active:scale-[0.985] transition-all duration-200 shadow-sm focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full flex justify-center py-3.5 px-4 rounded-full text-sm font-bold text-card bg-[#111111] hover:bg-primary active:scale-[0.985] transition-all duration-200 shadow-sm focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <div className="w-5 h-5 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>
@@ -240,7 +240,7 @@ const Login = () => {
                             <button
                                 type="button"
                                 onClick={() => alert('Google Sign-In is managed by the directory administrator. Please request integration or use your corporate credentials.')}
-                                className="w-full py-3 px-4 border border-card rounded-xl text-sm font-bold text-primary bg-card hover:bg-page active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2.5 shadow-sm"
+                                className="w-full py-3 px-4 border border-card rounded-full text-sm font-bold text-primary bg-card hover:bg-page active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2.5 shadow-sm"
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                     <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582l3.51-3.51C17.642 1.09 14.974 0 12 0 7.354 0 3.307 2.69 1.302 6.613l3.964 3.152z" />

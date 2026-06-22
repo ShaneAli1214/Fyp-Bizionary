@@ -450,7 +450,7 @@ const AccountsManager = () => {
                 ? 'bg-status-info/10 dark:bg-rose-950/20 text-status-info dark:text-rose-400'
                 : 'bg-status-success/10 dark:bg-emerald-950/20 text-status-success dark:text-emerald-400';
             return (
-                <div className={`p-1.5 rounded-lg ${colorClass}`}>
+                <div className={`p-1.5 rounded-xl ${colorClass}`}>
                     <ArrowUpRight className="w-3.5 h-3.5" />
                 </div>
             );
@@ -459,7 +459,7 @@ const AccountsManager = () => {
                 ? 'bg-status-success/10 dark:bg-emerald-950/20 text-status-success dark:text-emerald-400'
                 : 'bg-status-info/10 dark:bg-rose-950/20 text-status-info dark:text-rose-455';
             return (
-                <div className={`p-1.5 rounded-lg ${colorClass}`}>
+                <div className={`p-1.5 rounded-xl ${colorClass}`}>
                     <ArrowDownRight className="w-3.5 h-3.5" />
                 </div>
             );

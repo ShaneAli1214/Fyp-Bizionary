@@ -31,7 +31,7 @@ const ToastItem = ({ toast }) => {
     const Icon = cfg.icon;
 
     return (
-        <div className="toast-enter flex items-start gap-3 bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-xl shadow-xl px-4 py-3 min-w-[300px] max-w-[420px] relative overflow-hidden">
+        <div className="toast-enter flex items-start gap-3 bg-card dark:bg-primary border border-card dark:border-slate-700 rounded-2xl shadow-xl px-4 py-3 min-w-[300px] max-w-[420px] relative overflow-hidden">
             {/* colored left bar */}
             <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${cfg.bar}`} />
             <div className="pl-2 flex items-start gap-3 flex-1">

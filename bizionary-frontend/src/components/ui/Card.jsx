@@ -8,7 +8,7 @@ const paddings = {
 
 const Card = ({ padding = 'md', className = '', children, ...props }) => (
     <div
-        className={`bg-surface rounded-xl border border-card dark:border-slate-800/60 shadow-sm ${paddings[padding]} ${className}`}
+        className={`bg-surface rounded-2xl border border-card dark:border-slate-800/60 shadow-sm ${paddings[padding]} ${className}`}
         {...props}
     >
         {children}

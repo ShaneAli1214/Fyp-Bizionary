@@ -91,7 +91,7 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                     <h2 className="text-lg font-bold text-primary">{getTitle()}</h2>
                     <button 
                         onClick={onClose}
-                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-lg transition-colors"
+                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-xl transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -333,7 +333,7 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-xl transition-all shadow-sm cursor-pointer"
+                        className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-full transition-all shadow-sm cursor-pointer"
                         disabled={saving}
                     >
                         Cancel
@@ -342,7 +342,7 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                         type="submit"
                         form="record-form"
                         disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-primary hover:bg-primaryDark rounded-xl shadow-sm transition-all disabled:opacity-70 cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-primary hover:bg-primaryDark rounded-full shadow-sm transition-all disabled:opacity-70 cursor-pointer"
                     >
                         {saving && <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>}
                         {record ? 'Save Changes' : 'Add Record'}

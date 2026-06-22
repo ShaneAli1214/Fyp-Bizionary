@@ -94,7 +94,7 @@ const SalaryPaymentsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
 
     if (loading && salaries.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-xl border border-card shadow-sm">
+            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-2xl border border-card shadow-sm">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-sm text-secondary font-bold">Loading salaries...</p>
             </div>
@@ -130,7 +130,7 @@ const SalaryPaymentsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
                     No matching salary payments found.
                 </div>
             ) : (
-                <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden flex flex-col">
+                <div className="bg-card rounded-2xl border border-card shadow-sm overflow-hidden flex flex-col">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -196,7 +196,7 @@ const SalaryPaymentsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
                                                 {item.status === 'PENDING' && (
                                                     <button
                                                         onClick={() => handleMarkAsPaid(item.id, item)}
-                                                        className="p-1.5 text-secondary hover:text-status-success hover:bg-status-success/10 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                        className="p-1.5 text-secondary hover:text-status-success hover:bg-status-success/10 rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                         title="Mark as Paid"
                                                     >
                                                         <CheckCircle2 className="w-4 h-4" />
@@ -204,14 +204,14 @@ const SalaryPaymentsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
                                                 )}
                                                 <button
                                                     onClick={() => onEdit(item)}
-                                                    className="p-1.5 text-secondary hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                    className="p-1.5 text-secondary hover:text-primary hover:bg-sky-50 rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                     title="Edit"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(item.id)}
-                                                    className="p-1.5 text-secondary hover:text-status-info hover:bg-status-info/10 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                    className="p-1.5 text-secondary hover:text-status-info hover:bg-status-info/10 rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -233,14 +233,14 @@ const SalaryPaymentsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
                                 <button
                                     disabled={page <= 1}
                                     onClick={() => setPage(prev => prev - 1)}
-                                    className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                                    className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-full text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     disabled={page >= numPages}
                                     onClick={() => setPage(prev => prev + 1)}
-                                    className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                                    className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-full text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                                 >
                                     Next
                                 </button>

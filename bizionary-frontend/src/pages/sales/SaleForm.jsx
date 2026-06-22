@@ -304,7 +304,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveLineItem(index)}
-                                                        className="inline-flex items-center justify-center rounded-lg border border-rose-100 bg-status-info/10 p-2 text-status-info transition-colors hover:bg-status-info/20"
+                                                        className="inline-flex items-center justify-center rounded-xl border border-rose-100 bg-status-info/10 p-2 text-status-info transition-colors hover:bg-status-info/20"
                                                         title="Remove line item"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -374,7 +374,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveLineItem(index)}
-                                                            className="inline-flex w-full items-center justify-center rounded-lg border border-rose-100 bg-status-info/10 px-3 py-2.5 text-status-info transition-colors hover:bg-status-info/20 lg:w-auto"
+                                                            className="inline-flex w-full items-center justify-center rounded-xl border border-rose-100 bg-status-info/10 px-3 py-2.5 text-status-info transition-colors hover:bg-status-info/20 lg:w-auto"
                                                             title="Remove line item"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -393,7 +393,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                 <button
                                     type="button"
                                     onClick={handleAddLineItem}
-                                    className="inline-flex items-center justify-center rounded-xl border border-dashed border-primary/30 bg-card px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                                    className="inline-flex items-center justify-center rounded-full border border-dashed border-primary/30 bg-card px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
                                     Add Another Product
@@ -425,14 +425,14 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                         type="button"
                                         onClick={onClose}
                                         disabled={submitting}
-                                        className="rounded-xl border border-card bg-page px-4 py-2 text-sm font-medium text-textMain transition-colors hover:bg-page/80"
+                                        className="rounded-full border border-card bg-page px-4 py-2 text-sm font-medium text-textMain transition-colors hover:bg-page/80"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {submitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Sale')}
                                     </button>
@@ -440,7 +440,7 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                         <button
                                             type="button"
                                             onClick={onGenerateCreatedSaleSlip}
-                                            className="rounded-xl bg-amber-300 px-4 py-2 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-400"
+                                            className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-400"
                                         >
                                             Generate Slip
                                         </button>

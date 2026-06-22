@@ -237,7 +237,7 @@ const InventoryManagment = () => {
         return (
             <div className="space-y-6 p-1">
                 <Skeleton.KPICard />
-                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
+                <div className="bg-surface rounded-2xl border border-card shadow-sm p-6">
                     <Skeleton.TableRows count={8} cols={5} />
                 </div>
             </div>
@@ -333,7 +333,7 @@ const InventoryManagment = () => {
                                     </div>
 
                                     {lowStockOpen && (
-                                        <div className="mt-4 rounded-xl border border-surface/20 bg-card shadow-lg overflow-hidden">
+                                        <div className="mt-4 rounded-2xl border border-surface/20 bg-card shadow-lg overflow-hidden">
                                             <div className="px-4 py-3 border-b border-surface/10 bg-card">
                                                 <div className="grid grid-cols-[minmax(180px,220px)_1fr_auto] gap-4 items-center text-sm font-semibold text-textMain">
                                                     <div>Category</div>
@@ -403,7 +403,7 @@ const InventoryManagment = () => {
                                         <p className="text-xs font-semibold uppercase tracking-wider text-textMuted">{card.title}</p>
                                         <p className="mt-2 text-2xl font-extrabold text-textMain">{card.value}</p>
                                     </div>
-                                    <div className="rounded-xl border p-2.5 bg-card/70">
+                                    <div className="rounded-2xl border p-2.5 bg-card/70">
                                         <Icon className="h-5 w-5" />
                                     </div>
                                 </div>
@@ -435,7 +435,7 @@ const InventoryManagment = () => {
 
             {/* Inventory Stock Table removed */}
 
-            <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden">
+            <div className="bg-card rounded-2xl border border-card shadow-sm overflow-hidden">
                 <div className="px-6 pt-5 pb-3 border-b border-card flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-bold text-textMain">Registered Companies</h2>
@@ -456,7 +456,7 @@ const InventoryManagment = () => {
                             </div>
                             <button
                                 onClick={() => handleDeleteCompany(company.id)}
-                                className="inline-flex items-center px-3 py-2 rounded-xl border border-card bg-status-info/10 text-sm font-semibold text-status-info hover:bg-status-info/20"
+                                className="inline-flex items-center px-3 py-2 rounded-full border border-card bg-status-info/10 text-sm font-semibold text-status-info hover:bg-status-info/20"
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete

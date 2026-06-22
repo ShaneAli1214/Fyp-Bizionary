@@ -246,14 +246,14 @@ const ProductList = () => {
             )}
 
             {loading ? (
-                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
+                <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm p-6">
                     <Skeleton.TableRows count={7} cols={5} />
                 </div>
             ) : (
                 <div className="space-y-5">
                     {productsByCategory.map((section) => (
-                        <div key={section.value} className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-card bg-card flex items-center justify-between">
+                        <div key={section.value} className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-border-card flex items-center justify-between">
                                 <h3 className="text-base font-bold text-textMain">{section.label} Section</h3>
                                 <span className="text-xs font-semibold text-textMuted bg-page px-2.5 py-1 rounded-lg">
                                     {section.items.length} item(s)
@@ -261,7 +261,7 @@ const ProductList = () => {
                             </div>
                             <div className="overflow-x-auto">
                                         <table className="w-full text-sm text-left">
-                                    <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
+                                    <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
                                         <tr>
                                                     <th className="px-6 py-4 font-semibold">SKU</th>
                                                     <th className="px-6 py-4 font-semibold">Product Name</th>
@@ -276,7 +276,7 @@ const ProductList = () => {
                                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
+                                    <tbody className="divide-y divide-border-card">
                                         {section.items.length === 0 ? (
                                             <tr>
                                                 <td colSpan="9" className="px-6 py-8 text-center text-textMuted">
@@ -297,12 +297,12 @@ const ProductList = () => {
                                                     <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-status-success' : 'text-status-info'}`}>{formatPKR(profitMargin)}</td>
                                                     {/* Supplier cell removed */}
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-page text-primary border border-card">
+                                                        <span className="text-xs font-bold text-text-primary">
                                                             {toNumber(p.current_stock)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${p.status === 'INACTIVE' ? 'bg-page text-primary border border-card' : 'bg-status-success/10 text-status-success border border-emerald-100'}`}>
+                                                        <span className={`text-xs font-bold ${p.status === 'INACTIVE' ? 'text-text-secondary' : 'text-status-success'}`}>
                                                             {p.status === 'INACTIVE' ? 'Inactive' : 'Active'}
                                                         </span>
                                                     </td>
@@ -334,7 +334,7 @@ const ProductList = () => {
                     ))}
 
                     {noResults && (
-                        <div className="bg-surface rounded-3xl border border-card shadow-sm px-6 py-12 text-center text-textMuted">
+                        <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm px-6 py-12 text-center text-textMuted">
                             <Search className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                             <p>No products found matching your search.</p>
                         </div>

@@ -38,7 +38,7 @@ const VoidModal = ({ isOpen, onClose, onSubmit, recordType }) => {
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-lg transition-colors"
+                        className="p-1.5 text-secondary hover:text-secondary hover:bg-page rounded-xl transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -65,14 +65,14 @@ const VoidModal = ({ isOpen, onClose, onSubmit, recordType }) => {
                         <button 
                             type="button"
                             onClick={onClose}
-                            className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-xl transition-all"
+                            className="px-5 py-2.5 text-sm font-semibold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-full transition-all"
                             disabled={submitting}
                         >
                             Cancel
                         </button>
                         <button 
                             type="submit"
-                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-all disabled:opacity-75"
+                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-amber-600 hover:bg-amber-700 rounded-full shadow-sm transition-all disabled:opacity-75"
                             disabled={submitting || !reason.trim()}
                         >
                             {submitting && <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>}

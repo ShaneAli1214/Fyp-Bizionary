@@ -176,7 +176,7 @@ const UsersTable = ({ users, loading, onEdit, onToggleStatus, onResetPassword })
                                                 className="fixed inset-0 z-20" 
                                                 onClick={() => setOpenMenuId(null)}
                                             />
-                                            <div className="absolute right-0 mt-1.5 w-48 rounded-xl bg-card border border-card shadow-xl z-30 py-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-100">
+                                            <div className="absolute right-0 mt-1.5 w-48 rounded-2xl bg-card border border-card shadow-xl z-30 py-1.5 text-left animate-in fade-in slide-in-from-top-1 duration-100">
                                                 <button
                                                     onClick={() => { onEdit(user); setOpenMenuId(null); }}
                                                     className="w-full px-4 py-2.5 text-xs text-primary hover:bg-page flex items-center gap-2 font-medium transition-colors"

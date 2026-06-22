@@ -101,48 +101,38 @@ const AuditLogsTable = () => {
         setCurrentPage(1);
     };
 
-    // ── Action badge colour ───────────────────────────────────────────────────
-    const getActionBadgeStyle = (action) => {
+    // ── Action text colour ────────────────────────────────────────────────────
+    const getActionColor = (action) => {
         switch (action) {
             case 'LOGIN':
             case '2FA_ENABLE':
-                return 'bg-status-success/10 text-status-success border-card';
+            case 'CREATE':
+                return 'text-status-success';
             case 'LOGOUT':
             case '2FA_DISABLE':
-                return 'bg-status-info/10 text-status-info border-card';
-            case 'CREATE':
-                return 'bg-sky-50 text-sky-700 border-sky-200';
             case 'UPDATE':
             case 'ROLE_CHANGE':
             case 'PERMISSION_CHANGE':
             case 'PASSWORD_CHANGE':
-                return 'bg-amber-50 text-status-info border-amber-200';
+                return 'text-status-info';
             case 'DELETE':
-                return 'bg-status-info/10 text-status-info border-card';
             default:
-                return 'bg-page text-primary border-card';
+                return 'text-text-secondary';
         }
     };
 
-    // ── Module badge colour ───────────────────────────────────────────────────
-    const getModuleBadgeStyle = (module) => {
+    // ── Module text colour ────────────────────────────────────────────────────
+    const getModuleColor = (module) => {
         switch ((module || '').toLowerCase()) {
-            case 'products':
-                return 'bg-violet-50 text-violet-700 border-violet-200';
-            case 'purchases':
-                return 'bg-orange-50 text-status-info border-orange-200';
-            case 'sales':
-                return 'bg-sky-50 text-sky-700 border-sky-200';
             case 'accounts':
-                return 'bg-status-success/10 text-status-success border-card';
+                return 'text-status-success';
+            case 'sales':
+            case 'purchases':
             case 'user management':
-                return 'bg-active-pill/20 text-status-info border-indigo-200';
             case 'security':
-                return 'bg-status-info/10 text-status-info border-card';
-            case 'dashboard':
-                return 'bg-page text-primary border-card';
+                return 'text-status-info';
             default:
-                return 'bg-page text-secondary border-card';
+                return 'text-text-secondary';
         }
     };
 
@@ -301,7 +291,7 @@ const AuditLogsTable = () => {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm text-primary dark:text-slate-300">
-                                <thead className="bg-page dark:bg-primary border-b border-card dark:border-slate-700 uppercase text-xs font-bold text-secondary dark:text-secondary tracking-wider">
+                                <thead className="border-b border-border-card uppercase text-xs font-bold text-text-secondary tracking-wider">
                                     <tr>
                                         <th className="px-5 py-4 whitespace-nowrap">Timestamp</th>
                                         <th className="px-5 py-4">Operator</th>
@@ -312,7 +302,7 @@ const AuditLogsTable = () => {
                                         <th className="px-5 py-4 whitespace-nowrap">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-border-card">
                                     {logs.map((log) => (
                                         <tr
                                             key={log.id}
@@ -343,21 +333,21 @@ const AuditLogsTable = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Event type badge */}
+                                            {/* Event type */}
                                             <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${getActionBadgeStyle(log.action)}`}>
+                                                <span className={`text-xs font-bold ${getActionColor(log.action)}`}>
                                                     {log.action}
                                                 </span>
                                             </td>
 
-                                            {/* Module badge */}
+                                            {/* Module */}
                                             <td className="px-5 py-3.5 whitespace-nowrap">
                                                 {log.module ? (
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${getModuleBadgeStyle(log.module)}`}>
+                                                    <span className={`text-xs font-semibold ${getModuleColor(log.module)}`}>
                                                         {log.module}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-xs text-secondary italic">—</span>
+                                                    <span className="text-xs text-text-secondary italic">—</span>
                                                 )}
                                             </td>
 
@@ -381,15 +371,7 @@ const AuditLogsTable = () => {
 
                                             {/* Status */}
                                             <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                                    log.status === 'SUCCESS'
-                                                        ? 'bg-status-success/10 text-status-success border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
-                                                        : 'bg-status-info/10 text-status-info border-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
-                                                }`}>
-                                                    {log.status === 'SUCCESS'
-                                                        ? <CheckCircle2 className="w-3 h-3" />
-                                                        : <AlertTriangle className="w-3 h-3" />
-                                                    }
+                                                <span className={`text-xs font-bold ${log.status === 'SUCCESS' ? 'text-status-success' : 'text-text-secondary'}`}>
                                                     {log.status}
                                                 </span>
                                             </td>

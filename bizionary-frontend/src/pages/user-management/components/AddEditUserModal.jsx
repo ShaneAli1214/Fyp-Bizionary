@@ -383,14 +383,14 @@ const AddEditUserModal = ({ isOpen, onClose, onSave, user, roles, departments })
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-xs font-bold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-xl transition-all"
+                        className="px-5 py-2.5 text-xs font-bold text-secondary hover:text-primary bg-card border border-card hover:bg-page rounded-full transition-all"
                     >
                         Cancel
                     </button>
                     <button 
                         type="submit"
                         form="user-form"
-                        className="px-5 py-2.5 text-xs font-bold text-card bg-[#2B2620] hover:bg-[#2B2620] active:bg-[#152e4a] rounded-xl shadow-md transition-all transform hover:-translate-y-0.5"
+                        className="px-5 py-2.5 text-xs font-bold text-card bg-[#2B2620] hover:bg-[#2B2620] active:bg-[#152e4a] rounded-full shadow-md transition-all transform hover:-translate-y-0.5"
                     >
                         {user ? 'Save Changes' : 'Create User'}
                     </button>

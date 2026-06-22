@@ -42,13 +42,13 @@ const InvoicesList = () => {
         (inv.invoice_number && inv.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const getStatusStyle = (status, isOverdue) => {
-        if (isOverdue) return 'bg-status-info/10 text-danger border-red-100';
+    const getStatusColor = (status, isOverdue) => {
+        if (isOverdue) return 'text-text-secondary';
         switch (status?.toLowerCase()) {
-            case 'paid': return 'bg-status-success/10 text-success border-green-100';
-            case 'sent': return 'bg-sky-50 text-sky-700 border-sky-100';
-            case 'draft': return 'bg-page text-secondary border-card';
-            default: return 'bg-page text-secondary border-card';
+            case 'paid': return 'text-status-success';
+            case 'sent': return 'text-status-info';
+            case 'draft':
+            default: return 'text-text-secondary';
         }
     };
 
@@ -72,13 +72,13 @@ const InvoicesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <button className="flex items-center justify-center px-4 py-2 border border-card text-textMuted bg-surface rounded-xl hover:bg-page text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto">
+                    <button className="flex items-center justify-center px-4 py-2 border border-card text-textMuted bg-surface rounded-full hover:bg-page text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto">
                         <Filter className="h-4 w-4 mr-2" />
                         Filters
                     </button>
                     <button
                         onClick={handlePrint}
-                        className="flex items-center justify-center px-4 py-2 bg-card border border-card text-textMain rounded-xl hover:bg-page text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
+                        className="flex items-center justify-center px-4 py-2 bg-card border border-card text-textMain rounded-full hover:bg-page text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
                     >
                         <Printer className="h-4 w-4 mr-2 text-textMuted" />
                         Print View
@@ -87,7 +87,7 @@ const InvoicesList = () => {
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={8} />
@@ -95,7 +95,7 @@ const InvoicesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
+                            <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Invoice #</th>
                                     <th className="px-6 py-4 font-semibold">Client</th>
@@ -107,7 +107,7 @@ const InvoicesList = () => {
                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-border-card">
                                 {filteredInvoices.map((inv) => (
                                     <tr key={inv.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap font-bold text-primary text-xs">{inv.invoice_number}</td>
@@ -115,9 +115,9 @@ const InvoicesList = () => {
                                         <td className="px-6 py-4 text-textMuted">{inv.issue_date}</td>
                                         <td className="px-6 py-4 text-textMuted">{inv.due_date}</td>
                                         <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(inv.total_amount)}</td>
-                                        <td className="px-6 py-4 font-bold text-danger text-right">{formatPKR(inv.balance_due)}</td>
+                                        <td className="px-6 py-4 font-bold text-text-primary text-right">{formatPKR(inv.balance_due)}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusStyle(inv.status, inv.is_overdue)}`}>
+                                            <span className={`text-xs font-bold ${getStatusColor(inv.status, inv.is_overdue)}`}>
                                                 {inv.is_overdue ? 'OVERDUE' : (inv.status || 'N/A').toUpperCase()}
                                             </span>
                                         </td>
@@ -125,7 +125,7 @@ const InvoicesList = () => {
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => handleExport(inv.id)}
-                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-primary bg-page hover:bg-sky-50 rounded-lg transition-colors border border-card hover:border-sky-100"
+                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-primary bg-page hover:bg-sky-50 rounded-xl transition-colors border border-card hover:border-sky-100"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />

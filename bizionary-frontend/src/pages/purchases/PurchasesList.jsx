@@ -123,7 +123,7 @@ const PurchasesList = () => {
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={6} />
@@ -131,7 +131,7 @@ const PurchasesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
+                            <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">PO #</th>
                                     <th className="px-6 py-4 font-semibold">Date</th>
@@ -143,7 +143,7 @@ const PurchasesList = () => {
                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-border-card">
                                 {filteredPurchases.map((p) => (
                                     <tr key={p.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">PO-{p.id.toString().padStart(4, '0')}</td>
@@ -152,11 +152,11 @@ const PurchasesList = () => {
                                         <td className="px-6 py-4 text-textMuted">{getCategoryLabel(p.product_category) || 'N/A'}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">{p.product_name || `Product ID: ${p.product}`}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-background text-text-secondary border border-border">
+                                            <span className="text-xs font-bold text-text-secondary">
                                                 {p.quantity_purchased}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-danger text-right">{formatPKR(p.total_cost)}</td>
+                                        <td className="px-6 py-4 font-bold text-text-primary text-right">{formatPKR(p.total_cost)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-3">
                                                 <button

@@ -62,7 +62,7 @@ const Topbar = () => {
                     <div className="hidden lg:flex items-center gap-2 mr-2">
                         <button
                             onClick={toggleCollapsed}
-                            className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-xl transition-colors cursor-pointer"
                             aria-label="Open navigation"
                         >
                             <Menu className="w-4.5 h-4.5" />
@@ -76,7 +76,7 @@ const Topbar = () => {
                 {/* Mobile hamburger */}
                 <button
                     onClick={() => setMobileOpen(true)}
-                    className="lg:hidden p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-lg transition-colors"
+                    className="lg:hidden p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-xl transition-colors"
                     aria-label="Open navigation"
                 >
                     <Menu className="w-5 h-5" />
@@ -97,7 +97,7 @@ const Topbar = () => {
                     <input
                         type="text"
                         placeholder="Search..."
-                        className="w-full pl-9 pr-3 py-1.5 text-sm bg-card border border-card rounded-lg text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-active-pill focus:border-active-pill transition-all"
+                        className="w-full pl-9 pr-3 py-1.5 text-sm bg-card border border-card rounded-xl text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-active-pill focus:border-active-pill transition-all"
                     />
                 </div>
             </div>
@@ -107,7 +107,7 @@ const Topbar = () => {
                 {/* Dark mode toggle */}
                 <button
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-lg transition-colors"
+                    className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-xl transition-colors"
                     aria-label="Toggle dark mode"
                 >
                     {theme === 'dark'
@@ -170,7 +170,7 @@ const Topbar = () => {
                                 <button
                                     key={label}
                                     onClick={() => { setIsDropdownOpen(false); navigate(to); }}
-                                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
+                                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-left text-xs font-semibold text-primary hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
                                 >
                                     <Icon className="h-3.5 w-3.5 text-secondary" />
                                     <span>{label}</span>
@@ -196,7 +196,7 @@ const Topbar = () => {
                             {!isAccountant && (
                                 <button
                                     onClick={() => { setIsDropdownOpen(false); navigate('/settings'); }}
-                                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-semibold text-primary hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
+                                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-left text-xs font-semibold text-primary hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
                                 >
                                     <Sliders className="h-3.5 w-3.5 text-secondary" />
                                     <span>API Configuration</span>
@@ -208,7 +208,7 @@ const Topbar = () => {
                         <div className="border-t border-card pt-3">
                             <button
                                 onClick={() => { setIsDropdownOpen(false); logout(); }}
-                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-xs font-bold text-status-info hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
+                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-left text-xs font-bold text-status-info hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
                             >
                                 <LogOut className="h-3.5 w-3.5 text-status-info" />
                                 <span>Logout</span>

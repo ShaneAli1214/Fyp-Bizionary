@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         const totalVolume = categoryItems.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
 
         return (
-            <div className="bg-surface/90 backdrop-blur-md p-4 rounded-xl border border-border shadow-xl text-xs font-sans transition-all duration-150 ease-out">
+            <div className="bg-surface/90 backdrop-blur-md p-4 rounded-2xl border border-border shadow-xl text-xs font-sans transition-all duration-150 ease-out">
                 <div className="font-bold text-text-primary border-b border-border pb-1.5 mb-2">
                     Date: {label}
                 </div>

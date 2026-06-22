@@ -515,7 +515,7 @@ const Settings = () => {
                 <button
                     type="submit"
                     disabled={isUpdatingProfile || !profileData.firstName.trim() || !profileData.email.trim()}
-                    className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
+                    className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
                 >
                     {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
                 </button>
@@ -758,7 +758,7 @@ const Settings = () => {
                     <button
                         type="submit"
                         disabled={isUpdatingPassword}
-                        className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
                     >
                         {isUpdatingPassword ? 'Updating Password...' : 'Update Password'}
                     </button>
@@ -797,7 +797,7 @@ const Settings = () => {
                 {(!preferences.twoFactorEnabled) && (
                     <div className="border-t border-gray-150 dark:border-slate-700/60 mt-4 pt-4 flex flex-col sm:flex-row gap-5 items-start animate-in fade-in duration-300">
                         {/* Dynamic QR Code from provisioning URI */}
-                        <div className="p-3 bg-card rounded-xl border border-card flex flex-col items-center justify-center shrink-0">
+                        <div className="p-3 bg-card rounded-2xl border border-card flex flex-col items-center justify-center shrink-0">
                             {setupProvisioningUri ? (
                                 <img 
                                     src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(setupProvisioningUri)}&size=120x120`}
@@ -825,7 +825,7 @@ const Settings = () => {
                                 <span className="font-mono text-xs font-bold text-primary dark:text-emerald-400 flex-1">{setupSecret2FA || 'Generating Secret Key...'}</span>
                                 <button 
                                     onClick={copySecretKey}
-                                    className="p-1.5 bg-card dark:bg-primary border border-card dark:border-slate-700 hover:text-primary rounded-lg transition-all"
+                                    className="p-1.5 bg-card dark:bg-primary border border-card dark:border-slate-700 hover:text-primary rounded-xl transition-all"
                                     title="Copy Secret Key"
                                 >
                                     {secretKeyCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-secondary" />}
@@ -844,7 +844,7 @@ const Settings = () => {
                                 <button
                                     type="submit"
                                     disabled={isVerifying2FA || verificationCode.length !== 6}
-                                    className="px-4 py-2.5 bg-status-success hover:bg-status-success text-card text-xs font-bold rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50"
+                                    className="px-4 py-2.5 bg-status-success hover:bg-status-success text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50"
                                 >
                                     {isVerifying2FA ? 'Verifying...' : 'Verify & Enable'}
                                 </button>
@@ -862,7 +862,7 @@ const Settings = () => {
                             </div>
                             <button
                                 onClick={handleDisable2FA}
-                                className="px-3 py-1.5 bg-status-info/10 hover:bg-status-info/20 text-status-info text-[10px] font-bold rounded-lg border border-card/40 transition-all duration-200 ease-in-out active:scale-95"
+                                className="px-3 py-1.5 bg-status-info/10 hover:bg-status-info/20 text-status-info text-[10px] font-bold rounded-full border border-card/40 transition-all duration-200 ease-in-out active:scale-95"
                             >
                                 Disable
                             </button>
@@ -882,7 +882,7 @@ const Settings = () => {
                         <button
                             onClick={handleLogoutOtherSessions}
                             disabled={isLoggingOutSessions}
-                            className="px-4 py-2 bg-status-info/10 dark:bg-rose-500/10 text-status-info dark:text-rose-450 text-[10.5px] font-bold rounded-xl transition-all duration-200 ease-in-out hover:bg-status-info/20 dark:hover:bg-rose-500/20 hover:shadow-sm active:scale-95 border border-card/30 disabled:opacity-50"
+                            className="px-4 py-2 bg-status-info/10 dark:bg-rose-500/10 text-status-info dark:text-rose-450 text-[10.5px] font-bold rounded-full transition-all duration-200 ease-in-out hover:bg-status-info/20 dark:hover:bg-rose-500/20 hover:shadow-sm active:scale-95 border border-card/30 disabled:opacity-50"
                         >
                             {isLoggingOutSessions ? 'Terminating...' : 'Log Out All Other Sessions'}
                         </button>
@@ -905,7 +905,7 @@ const Settings = () => {
                                 {!session.isCurrent && (
                                     <button
                                         onClick={() => handleRevokeSession(session.id)}
-                                        className="p-1 text-rose-500 hover:text-rose-750 hover:bg-status-info/10/50 rounded-lg transition-colors border border-rose-150/40"
+                                        className="p-1 text-rose-500 hover:text-rose-750 hover:bg-status-info/10/50 rounded-xl transition-colors border border-rose-150/40"
                                         title="Revoke session"
                                     >
                                         <X className="w-3.5 h-3.5" />
@@ -971,7 +971,7 @@ const Settings = () => {
                         <button
                             type="submit"
                             disabled={isSavingApi || !apiKey.trim()}
-                            className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
+                            className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
                         >
                             {isSavingApi ? 'Saving Key...' : 'Save API Configuration'}
                         </button>
@@ -981,7 +981,7 @@ const Settings = () => {
                                 type="button"
                                 onClick={handleTestConnection}
                                 disabled={isTestingConnection}
-                                className="px-5 py-2.5 bg-page hover:bg-active-pill/20 dark:bg-primary dark:hover:bg-primary/60 text-primary dark:text-card text-xs font-bold rounded-xl border border-card dark:border-slate-700 transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-sm active:scale-95"
+                                className="px-5 py-2.5 bg-page hover:bg-active-pill/20 dark:bg-primary dark:hover:bg-primary/60 text-primary dark:text-card text-xs font-bold rounded-full border border-card dark:border-slate-700 transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-sm active:scale-95"
                             >
                                 {isTestingConnection ? 'Testing Handshake...' : 'Test Connection'}
                             </button>

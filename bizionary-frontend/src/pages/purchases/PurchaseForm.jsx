@@ -208,13 +208,13 @@ const PurchaseForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-card rounded-xl hover:bg-page transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-card rounded-full hover:bg-page transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-xl hover:bg-primaryDark transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-full hover:bg-primaryDark transition-colors"
                             >
                                 {isEditing ? 'Save Changes' : 'Create Purchase'}
                             </button>

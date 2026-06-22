@@ -34,10 +34,10 @@ const TableRows = ({ count = 5, cols = 4 }) => (
 );
 
 const KPICard = () => (
-    <div className="bg-surface rounded-xl border border-card dark:border-slate-800/60 shadow-sm p-5 space-y-3">
+    <div className="bg-surface rounded-2xl border border-card dark:border-slate-800/60 shadow-sm p-5 space-y-3">
         <div className="flex items-center justify-between">
             <div className={`${base} h-3 w-24`} />
-            <div className={`${base} rounded-lg w-8 h-8`} />
+            <div className={`${base} rounded-xl w-8 h-8`} />
         </div>
         <div className={`${base} h-7 w-32`} />
         <div className={`${base} h-3 w-20`} />

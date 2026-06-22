@@ -245,7 +245,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 href={backendUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1.5 bg-status-success hover:bg-emerald-700 text-card rounded-lg text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1.5 bg-status-success hover:bg-emerald-700 text-card rounded-full text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer align-middle no-underline"
                             >
                                 <Download className="w-3.5 h-3.5 mr-1 inline-block align-middle" />
                                 {label}
@@ -256,7 +256,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                             <button
                                 key={matchIndex}
                                 onClick={() => navigate(url)}
-                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary dark:text-sky-300 rounded-lg text-[10px] font-bold border border-primary/20 transition active:scale-95 cursor-pointer align-middle"
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary dark:text-sky-300 rounded-full text-[10px] font-bold border border-primary/20 transition active:scale-95 cursor-pointer align-middle"
                             >
                                 {label}
                             </button>
@@ -443,7 +443,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
             <div className="absolute inset-0 bg-primary/10 pointer-events-auto" onClick={onClose} />
 
             {/* Modal Drawer Layout */}
-            <div className="relative z-50 w-full max-w-[22rem] rounded-3xl bg-card shadow-2xl border border-card flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
+            <div className="relative z-50 w-full max-w-[22rem] rounded-2xl bg-card shadow-2xl border border-card flex flex-col max-h-[520px] overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-5 duration-300">
                 
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3.5 bg-[#2B2620] text-card border-b border-[#0f1f33] shadow-sm">
@@ -459,14 +459,14 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleClearHistory}
-                            className="text-card/80 hover:text-card p-1 rounded-lg hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+                            className="text-card/80 hover:text-card p-1 rounded-xl hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Clear History"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                         <button
                             onClick={onClose}
-                            className="text-card/80 hover:text-card p-1 rounded-lg hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+                            className="text-card/80 hover:text-card p-1 rounded-xl hover:bg-card/10 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
                             title="Close"
                         >
                             <X className="w-4.5 h-4.5" />
@@ -573,7 +573,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                             <button
                                 type="button"
                                 onClick={toggleListening}
-                                className={`p-1.5 rounded-lg transition-all duration-300 ease-in-out ${isListening ? 'bg-rose-500 text-card animate-pulse' : 'text-secondary hover:bg-page hover:scale-105'}`}
+                                className={`p-1.5 rounded-xl transition-all duration-300 ease-in-out ${isListening ? 'bg-rose-500 text-card animate-pulse' : 'text-secondary hover:bg-page hover:scale-105'}`}
                                 title="Speak"
                             >
                                 {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -582,7 +582,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-1.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
+                                className="p-1.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>

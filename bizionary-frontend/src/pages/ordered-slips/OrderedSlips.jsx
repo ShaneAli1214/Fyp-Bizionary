@@ -468,7 +468,7 @@ const OrderedSlips = () => {
                 <div className="px-4 py-3 rounded-xl border border-rose-100 bg-status-info/10 text-status-info text-sm font-medium">{formError}</div>
             )}
 
-            <div className="bg-surface rounded-3xl border border-card shadow-sm p-4 sm:p-5">
+            <div className="bg-surface rounded-2xl border border-card shadow-sm p-4 sm:p-5">
                 <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
                     <div className="relative flex-1 max-w-xl">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -510,13 +510,13 @@ const OrderedSlips = () => {
             </div>
 
             {loading ? (
-                <div className="bg-surface rounded-3xl border border-card shadow-sm p-6">
+                <div className="bg-surface rounded-2xl border border-card shadow-sm p-6">
                     <Skeleton.TableRows count={6} cols={5} />
                 </div>
             ) : (
                 <div className="space-y-4">
                     {filteredSlips.length === 0 ? (
-                        <div className="bg-surface rounded-3xl border border-card shadow-sm px-6 py-12 text-center text-textMuted">
+                        <div className="bg-surface rounded-2xl border border-card shadow-sm px-6 py-12 text-center text-textMuted">
                             <Clock3 className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                             <p>No ordered slips found.</p>
                         </div>
@@ -524,7 +524,7 @@ const OrderedSlips = () => {
                         const receivedPercent = slip.quantity_ordered ? Math.round((Number(slip.quantity_received || 0) / Number(slip.quantity_ordered || 1)) * 100) : 0;
 
                         return (
-                            <div key={slip.id} className="bg-card rounded-3xl border border-card shadow-sm overflow-hidden">
+                            <div key={slip.id} className="bg-card rounded-2xl border border-card shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 border-b border-card flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -632,7 +632,7 @@ const OrderedSlips = () => {
                 </div>
             )}
 
-            <div className="bg-card rounded-3xl border border-card shadow-sm p-6">
+            <div className="bg-card rounded-2xl border border-card shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div>
                         <h2 className="text-lg font-bold text-textMain">Supplier Purchase History</h2>
@@ -652,28 +652,28 @@ const OrderedSlips = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-page border-b border-card">
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Purchase #</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Supplier</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Product</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider">Status</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Quantity</th>
-                                    <th className="px-4 py-3 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Amount</th>
+                                <tr className="border-b border-border-card">
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider">Purchase #</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider">Supplier</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider">Product</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider">Date</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Quantity</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border-card">
                                 {purchases.map((purchase) => (
                                     <tr key={purchase.id} className="hover:bg-page/50">
                                         <td className="px-4 py-3 text-sm font-semibold text-primary">PO-{String(purchase.id).padStart(5, '0')}</td>
                                         <td className="px-4 py-3 text-sm text-textMain">{purchase.company_name}</td>
                                         <td className="px-4 py-3 text-sm text-textMain">{purchase.product_name}</td>
                                         <td className="px-4 py-3 text-sm text-secondary">{purchase.purchase_date}</td>
-                                        <td className="px-4 py-3 text-sm text-primary">
-                                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
-                                                purchase.payment_status === 'PAID' ? 'bg-status-success/10 text-status-success border-emerald-100' :
-                                                purchase.payment_status === 'PARTIAL' ? 'bg-amber-50 text-status-info border-amber-100' :
-                                                'bg-status-info/10 text-status-info border-rose-100'
+                                        <td className="px-4 py-3 text-sm">
+                                            <span className={`text-xs font-bold ${
+                                                purchase.payment_status === 'PAID' ? 'text-status-success' :
+                                                purchase.payment_status === 'PARTIAL' ? 'text-status-info' :
+                                                'text-text-secondary'
                                             }`}>
                                                 {purchase.payment_status}
                                             </span>

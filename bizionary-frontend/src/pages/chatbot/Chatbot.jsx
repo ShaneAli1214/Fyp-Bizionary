@@ -390,7 +390,7 @@ const Chatbot = () => {
                             <button
                                 key={matchIndex}
                                 onClick={() => navigate(url)}
-                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary dark:text-sky-300 rounded-lg text-[10px] font-bold border border-primary/20 transition active:scale-95 cursor-pointer align-middle"
+                                className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 bg-primary/10 hover:bg-primary/20 text-primary dark:text-sky-300 rounded-full text-[10px] font-bold border border-primary/20 transition active:scale-95 cursor-pointer align-middle"
                             >
                                 {label}
                             </button>
@@ -564,7 +564,7 @@ const Chatbot = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto h-[calc(100vh-6rem)] min-h-[500px]">
             {/* Left Chat Screen (Takes 3 columns on desktop) */}
-            <div className="lg:col-span-3 flex flex-col h-full bg-card dark:bg-primary border border-card dark:border-slate-800 shadow-sm rounded-3xl overflow-hidden relative">
+            <div className="lg:col-span-3 flex flex-col h-full bg-card dark:bg-primary border border-card dark:border-slate-800 shadow-sm rounded-2xl overflow-hidden relative">
                 {/* Header Actions */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-card dark:border-slate-800 bg-page/50 dark:bg-primary/50">
                     <div className="flex items-center gap-2">
@@ -623,13 +623,13 @@ const Chatbot = () => {
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => setDemoMode(true)}
-                                className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${demoMode ? 'bg-orange-600 text-card shadow-sm' : 'border border-orange-300 text-orange-800 dark:text-orange-400 hover:bg-orange-100'}`}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded-full transition ${demoMode ? 'bg-orange-600 text-card shadow-sm' : 'border border-orange-300 text-orange-800 dark:text-orange-400 hover:bg-orange-100'}`}
                             >
                                 Use Demo Mode
                             </button>
                             <a
                                 href="/settings"
-                                className="px-2.5 py-1 text-[10px] font-bold bg-orange-100 hover:bg-orange-200 text-orange-900 rounded-lg transition"
+                                className="px-2.5 py-1 text-[10px] font-bold bg-orange-100 hover:bg-orange-200 text-orange-900 rounded-full transition"
                             >
                                 Set Key
                             </a>
@@ -653,7 +653,7 @@ const Chatbot = () => {
                                 <span>{msg.timestamp}</span>
                             </div>
                             
-                            <div className={`p-4 rounded-3xl shadow-sm border text-xs leading-relaxed transition ${
+                            <div className={`p-4 rounded-2xl shadow-sm border text-xs leading-relaxed transition ${
                                 msg.sender === 'user'
                                     ? 'bg-primary text-card border-primary/20 rounded-tr-none'
                                     : 'bg-card dark:bg-slate-850 text-primary dark:text-slate-100 border-card dark:border-slate-800/80 rounded-tl-none'
@@ -666,14 +666,14 @@ const Chatbot = () => {
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => speakText(msg.text, index)}
-                                                className={`p-1.5 rounded-lg transition ${activeSpeech === index ? 'text-primary bg-primary/10' : 'text-textMuted hover:bg-page dark:hover:bg-primary'}`}
+                                                className={`p-1.5 rounded-xl transition ${activeSpeech === index ? 'text-primary bg-primary/10' : 'text-textMuted hover:bg-page dark:hover:bg-primary'}`}
                                                 title="Read text out loud"
                                             >
                                                 <Volume2 className="w-3.5 h-3.5" />
                                             </button>
                                             <button 
                                                 onClick={() => handleCopy(msg.text, index)}
-                                                className="p-1.5 rounded-lg text-textMuted hover:bg-page dark:hover:bg-primary transition"
+                                                className="p-1.5 rounded-xl text-textMuted hover:bg-page dark:hover:bg-primary transition"
                                                 title="Copy to clipboard"
                                             >
                                                 {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -682,13 +682,13 @@ const Chatbot = () => {
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => handleRate(index, 'up')}
-                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'up' ? 'text-status-success bg-status-success/10 dark:bg-emerald-950/20' : 'text-textMuted hover:bg-page'}`}
+                                                className={`p-1.5 rounded-xl transition ${ratings[index] === 'up' ? 'text-status-success bg-status-success/10 dark:bg-emerald-950/20' : 'text-textMuted hover:bg-page'}`}
                                             >
                                                 <ThumbsUp className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                                 onClick={() => handleRate(index, 'down')}
-                                                className={`p-1.5 rounded-lg transition ${ratings[index] === 'down' ? 'text-status-info bg-status-info/10 dark:bg-rose-950/20' : 'text-textMuted hover:bg-page'}`}
+                                                className={`p-1.5 rounded-xl transition ${ratings[index] === 'down' ? 'text-status-info bg-status-info/10 dark:bg-rose-950/20' : 'text-textMuted hover:bg-page'}`}
                                             >
                                                 <ThumbsDown className="w-3.5 h-3.5" />
                                             </button>
@@ -702,7 +702,7 @@ const Chatbot = () => {
                     {loading && (
                         <div className="mr-auto items-start max-w-[80%] flex flex-col animate-pulse">
                             <div className="text-[10px] text-textMuted mb-1">🤖 AI Assistant • Thinking...</div>
-                            <div className="bg-card dark:bg-slate-850 p-4 rounded-3xl border border-card dark:border-slate-800 rounded-tl-none flex items-center gap-2">
+                            <div className="bg-card dark:bg-slate-850 p-4 rounded-2xl border border-card dark:border-slate-800 rounded-tl-none flex items-center gap-2">
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -759,7 +759,7 @@ const Chatbot = () => {
             {/* Right Guide Screen (Takes 1 column on desktop, hidden on mobile/tablet) */}
             <div className="hidden lg:flex flex-col gap-6 h-full">
                 {/* Shortcuts & Guide */}
-                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-3xl shadow-sm space-y-4">
+                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
                     <h3 className="text-xs font-bold text-primary dark:text-card uppercase tracking-wider flex items-center gap-1.5">
                         <HelpCircle className="w-4 h-4 text-primary" />
                         Quick Shortcuts
@@ -782,7 +782,7 @@ const Chatbot = () => {
                 </div>
 
                 {/* Dashboard Metrics (Cached in state) */}
-                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-3xl shadow-sm flex-1 flex flex-col justify-between space-y-4">
+                <div className="bg-card dark:bg-primary border border-card dark:border-slate-800 p-5 rounded-2xl shadow-sm flex-1 flex flex-col justify-between space-y-4">
                     <div>
                         <h3 className="text-xs font-bold text-primary dark:text-card uppercase tracking-wider flex items-center gap-1.5 mb-2">
                             <Database className="w-4 h-4 text-emerald-500" />

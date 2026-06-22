@@ -259,7 +259,7 @@ const AIInsights = () => {
     }
 
     const errorBanner = insightsError ? (
-        <div className="rounded-3xl bg-status-info/10 p-4 border border-card mb-4">
+        <div className="rounded-2xl bg-status-info/10 p-4 border border-card mb-4">
             <div className="flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-status-info" />
                 <div>
@@ -316,7 +316,7 @@ const AIInsights = () => {
             <div className="space-y-6">
                 <PageHeader title="AI Insights" subtitle="Powered by Advanced Analytics & AI" />
                 {/* Feature Banner */}
-                <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
+                <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-card">
                             <Brain className="w-6 h-6" />
@@ -329,7 +329,7 @@ const AIInsights = () => {
                 </div>
 
                 {/* Empty State / Compilation Placeholder */}
-                <div className="rounded-3xl bg-card border border-card p-12 text-center flex flex-col items-center justify-center min-h-[350px] shadow-sm">
+                <div className="rounded-2xl bg-card border border-card p-12 text-center flex flex-col items-center justify-center min-h-[350px] shadow-sm">
                     <div className="w-16 h-16 bg-page border border-slate-150 rounded-2xl flex items-center justify-center mb-5 animate-pulse">
                         <Brain className="w-8 h-8 text-secondary" />
                     </div>
@@ -345,7 +345,7 @@ const AIInsights = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="rounded-3xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
+            <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/20 p-8 border border-primary/20">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-card">
                         <Brain className="w-6 h-6" />
@@ -387,7 +387,7 @@ const AIInsights = () => {
             {activeTab === 'nlp' ? (
                 <div className="space-y-6">
                     {nlpReportError ? (
-                        <div className="rounded-3xl bg-status-info/10 p-8 border border-card">
+                        <div className="rounded-2xl bg-status-info/10 p-8 border border-card">
                             <div className="flex items-center gap-3 mb-4">
                                 <AlertCircle className="w-6 h-6 text-status-info" />
                                 <div>
@@ -400,18 +400,18 @@ const AIInsights = () => {
                                     setNlpReportError('');
                                     fetchNlpReport(selectedNlpPeriod);
                                 }}
-                                className="px-4 py-2 bg-status-info text-card rounded-lg hover:bg-red-700 transition"
+                                className="px-4 py-2 bg-status-info text-card rounded-full hover:bg-red-700 transition"
                             >
                                 Retry
                             </button>
                         </div>
                     ) : !nlpReport ? (
-                        <div className="rounded-3xl bg-yellow-50 p-8 border border-yellow-200">
+                        <div className="rounded-2xl bg-yellow-50 p-8 border border-yellow-200">
                             <p className="text-yellow-800">NLP report is not available right now.</p>
                         </div>
                     ) : (
                         <>
-                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                            <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Customer Reviews</h3>
                                 <p className="text-sm text-textMuted mb-5">Submit a live review and it will flow into NLP report metrics immediately.</p>
                                 <form onSubmit={submitCustomerReview} className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -455,7 +455,7 @@ const AIInsights = () => {
                                         <button
                                             type="submit"
                                             disabled={isSubmittingReview}
-                                            className="px-4 py-2 rounded-lg bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
+                                            className="px-4 py-2 rounded-full bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
                                         >
                                             {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                                         </button>
@@ -466,7 +466,7 @@ const AIInsights = () => {
                                 </form>
                             </div>
 
-                            <div className="rounded-3xl bg-card p-5 shadow-sm border border-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="rounded-2xl bg-card p-5 shadow-sm border border-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-textMain">NLP Report Controls</h3>
                                     <p className="text-sm text-textMuted mt-1">View and export live report data by period.</p>
@@ -483,7 +483,7 @@ const AIInsights = () => {
                                     </select>
                                     <button
                                         onClick={downloadNlpReportCsv}
-                                        className="px-4 py-2 rounded-lg bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition"
+                                        className="px-4 py-2 rounded-full bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition"
                                     >
                                         Download CSV
                                     </button>
@@ -491,30 +491,30 @@ const AIInsights = () => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Reviews ({(NLP_PERIODS[selectedNlpPeriod] || NLP_PERIODS.monthly).label})</p>
                                     <p className="text-3xl font-bold text-primary mt-2">{nlpReport.review_summary?.total_reviews || 0}</p>
                                 </div>
-                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Avg Rating</p>
                                     <p className="text-3xl font-bold text-success mt-2">{nlpReport.review_summary?.average_rating || 0}/5</p>
                                 </div>
-                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Positive Ratio</p>
                                     <p className="text-3xl font-bold text-success mt-2">{nlpReport.review_summary?.positive_ratio || 0}%</p>
                                 </div>
-                                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                     <p className="text-sm text-textMuted font-semibold">Sales in Report</p>
                                     <p className="text-3xl font-bold text-warning mt-2">{nlpReport.sales_summary?.total_sales || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
+                            <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
                                 <h3 className="text-lg font-bold text-textMain mb-3">NLP Recommendation</h3>
                                 <p className="text-textMain leading-7">{nlpReport.recommendation}</p>
                             </div>
 
-                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                            <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Key Findings</h3>
                                 <ul className="space-y-3">
                                     {(nlpReport.key_findings || []).map((item, idx) => (
@@ -525,7 +525,7 @@ const AIInsights = () => {
                                 </ul>
                             </div>
 
-                            <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                            <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                                 <h3 className="text-lg font-bold text-textMain mb-4">Recent Customer Reviews</h3>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
@@ -568,7 +568,7 @@ const AIInsights = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Revenue (30d)</p>
@@ -582,7 +582,7 @@ const AIInsights = () => {
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Total Sales</p>
@@ -594,7 +594,7 @@ const AIInsights = () => {
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-textMuted font-semibold">Avg Order Value</p>
@@ -612,7 +612,7 @@ const AIInsights = () => {
             {/* Charts Row 1 */}
             <div className={`grid grid-cols-1 ${isAccountant ? 'grid-cols-1' : 'lg:grid-cols-2'} gap-6`}>
                 {/* Sales Trend */}
-                <div className={`rounded-3xl bg-card p-6 shadow-sm border border-card ${isAccountant ? 'col-span-full' : ''}`}>
+                <div className={`rounded-2xl bg-card p-6 shadow-sm border border-card ${isAccountant ? 'col-span-full' : ''}`}>
                     <h3 className="text-lg font-bold text-textMain mb-4">Sales Trend (30 Days)</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={salesTrendData}>
@@ -627,7 +627,7 @@ const AIInsights = () => {
 
                 {/* Hot Selling Products */}
                 {!isAccountant && (
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">🔥 Hot Selling Products</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={hotProductsChartData}>
@@ -646,7 +646,7 @@ const AIInsights = () => {
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Cold Selling Products */}
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">❄️ Low Selling Products</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={coldProductsChartData}>
@@ -660,7 +660,7 @@ const AIInsights = () => {
                     </div>
 
                     {/* Restocking Needed */}
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">⚠️ Products Needing Restocking</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={restockingChartData}>
@@ -677,7 +677,7 @@ const AIInsights = () => {
             )}
 
             {/* AI Analysis */}
-            <div className="rounded-3xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
+            <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-accent/5 to-warning/5 p-8 border border-primary/20">
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                         <Brain className="w-6 h-6 text-primary" />
@@ -694,7 +694,7 @@ const AIInsights = () => {
             {/* Daily Top Products (Quantity & Revenue) */}
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Quantity)</h3>
                         <p className="text-sm text-textMuted mb-3">Date: {latestQuantity?.date || 'N/A'}</p>
                         <ul className="space-y-2">
@@ -712,7 +712,7 @@ const AIInsights = () => {
                         </ul>
                     </div>
 
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-3">Top Products (Daily by Revenue)</h3>
                         <p className="text-sm text-textMuted mb-3">Date: {latestRevenue?.date || 'N/A'}</p>
                         <ul className="space-y-2">
@@ -736,7 +736,7 @@ const AIInsights = () => {
             {!isAccountant && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Hot Products Table */}
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">Top Performers</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -763,7 +763,7 @@ const AIInsights = () => {
                     </div>
 
                     {/* Restocking Table */}
-                    <div className="rounded-3xl bg-card p-6 shadow-sm border border-card">
+                    <div className="rounded-2xl bg-card p-6 shadow-sm border border-card">
                         <h3 className="text-lg font-bold text-textMain mb-4">Urgent: Low Stock</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">

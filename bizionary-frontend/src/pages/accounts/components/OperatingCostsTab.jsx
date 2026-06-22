@@ -101,7 +101,7 @@ const OperatingCostsTab = ({ onEdit, triggerRefresh, startDate, endDate, refresh
 
     if (loading && costs.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-xl border border-card shadow-sm">
+            <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-2xl border border-card shadow-sm">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-sm text-secondary font-bold">Loading operating costs...</p>
             </div>

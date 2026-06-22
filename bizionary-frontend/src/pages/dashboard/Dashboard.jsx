@@ -469,7 +469,7 @@ const Dashboard = () => {
                                 {revenueLoading && (
                                     <RefreshCw className="h-3 w-3 text-accent animate-spin" />
                                 )}
-                                <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                                <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                     <Coins className="w-3.5 h-3.5" />
                                 </div>
                             </div>
@@ -529,7 +529,7 @@ const Dashboard = () => {
                     >
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Accounts</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <CreditCard className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -555,7 +555,7 @@ const Dashboard = () => {
                     >
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Products</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <Package className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -584,7 +584,7 @@ const Dashboard = () => {
                     >
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Ordered Slips</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <ClipboardList className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -610,7 +610,7 @@ const Dashboard = () => {
                     <div className="bg-surface p-4.5 rounded-xl border border-border shadow-sm flex flex-col justify-between h-[128px]">
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Gross Profit</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <TrendingUp className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -638,7 +638,7 @@ const Dashboard = () => {
                     <div className="bg-surface p-4.5 rounded-xl border border-border shadow-sm flex flex-col justify-between h-[128px]">
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Net Profit</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <Coins className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -671,7 +671,7 @@ const Dashboard = () => {
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
                                 {isAccountant ? 'Total Sales' : 'Sales'}
                             </span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <ShoppingCart className="w-3.5 h-3.5" />
                             </div>
                         </div>
@@ -702,7 +702,7 @@ const Dashboard = () => {
                         >
                             <div className="flex items-start justify-between">
                                 <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Pending Customer Payments</span>
-                                <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                                <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                     <AlertCircle className="w-3.5 h-3.5" />
                                 </div>
                             </div>
@@ -723,7 +723,7 @@ const Dashboard = () => {
                         <div className="bg-surface p-4.5 rounded-xl border border-border shadow-sm flex flex-col justify-between h-[128px]">
                             <div className="flex items-start justify-between">
                                 <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Pending Vendor Payables</span>
-                                <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                                <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                     <TrendingDown className="w-3.5 h-3.5" />
                                 </div>
                             </div>
@@ -747,7 +747,7 @@ const Dashboard = () => {
                     >
                         <div className="flex items-start justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Stock Batches</span>
-                            <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <Boxes className="w-3.5 h-3.5" />
                             </div>
                         </div>

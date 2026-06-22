@@ -47,7 +47,7 @@ const CalendarWidget = ({ onChange }) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-surface p-3 rounded-xl border border-surface/10 shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-surface p-3 rounded-2xl border border-surface/10 shadow-lg z-50">
           <div className="flex items-center justify-between mb-2">
             <button onClick={()=>setViewMonth(m=>addMonths(m,-1))} className="p-1 rounded hover:bg-surface/50"><ChevronLeft className="w-4 h-4 text-textMuted" /></button>
             <div className="text-sm font-semibold">{viewMonth.toLocaleString(undefined,{month:'long', year:'numeric'})}</div>

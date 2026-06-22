@@ -44,23 +44,23 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
     }
 
     return (
-        <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-page border-b border-card">
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Vendor</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Description</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Method</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Tax Amount</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Total Amount</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-center">Receipt</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Actions</th>
+                        <tr className="border-b border-border-card">
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Vendor</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Description</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Method</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Tax Amount</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Total Amount</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-center">Receipt</th>
+                            <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-border-card">
                         {paginatedExpenses.map((item) => (
                             <tr key={item.id} className={`hover:bg-page/50 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
                                 <td className="px-6 py-4 text-sm font-medium text-textMain">
@@ -74,7 +74,7 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                                         <Store className="w-4 h-4 text-secondary" />
                                         {item.vendor || 'N/A'}
                                     </div>
-                                    {item.voided && <span className="ml-2 bg-status-info/20 text-status-info text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
+                                    {item.voided && <span className="ml-2 text-[10px] font-bold text-text-secondary uppercase">Voided</span>}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-secondary">
                                     <div className="flex items-center gap-1.5">
@@ -97,7 +97,7 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                                     {item.tax_amount > 0 ? formatPKR(item.tax_amount) : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <span className={`text-sm font-bold bg-status-info/10 px-2 py-1 rounded inline-block ${item.voided ? 'text-secondary line-through bg-page' : 'text-status-info'}`}>
+                                    <span className={`text-sm font-bold ${item.voided ? 'text-text-secondary line-through' : 'text-status-info'}`}>
                                         {formatPKR(item.amount)}
                                     </span>
                                 </td>
@@ -117,16 +117,16 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                                 <td className="px-6 py-4 text-right space-x-2">
                                     {!item.voided && (
                                         <>
-                                            <button 
+                                            <button
                                                 onClick={() => onEdit(item)}
-                                                className="p-1.5 text-secondary hover:text-primary hover:bg-sky-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Edit"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => handleVoidClick(item.id)}
-                                                className="p-1.5 text-secondary hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Void"
                                             >
                                                 <Ban className="w-4 h-4" />
@@ -154,14 +154,14 @@ const ExpensesTab = ({ expenses = [], onEdit, triggerRefresh }) => {
                         <button
                             disabled={page <= 1}
                             onClick={() => setPage(prev => prev - 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-full text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Previous
                         </button>
                         <button
                             disabled={page >= numPages}
                             onClick={() => setPage(prev => prev + 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-full text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
                         >
                             Next
                         </button>

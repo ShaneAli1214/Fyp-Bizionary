@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {/* Double Chevron left collapse icon */}
                     <button
                         onClick={toggleCollapsed}
-                        className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-xl transition-colors cursor-pointer"
                         aria-label="Collapse sidebar"
                     >
                         <ChevronsLeft className="w-5 h-5 text-primary" />
@@ -96,7 +96,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {mobileOpen && (
                         <button
                             onClick={closeMobile}
-                            className="text-secondary hover:text-primary p-1.5 hover:bg-active-pill/30 rounded-lg transition-colors lg:hidden cursor-pointer"
+                            className="text-secondary hover:text-primary p-1.5 hover:bg-active-pill/30 rounded-xl transition-colors lg:hidden cursor-pointer"
                             aria-label="Close menu"
                         >
                             <X className="w-5 h-5 text-primary" />
@@ -118,7 +118,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 if (window.innerWidth < 1024) closeMobile();
                             }}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-primary
+                                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group text-primary
                                 ${isActive
                                     ? 'bg-active-pill font-bold shadow-xs'
                                     : 'hover:bg-active-pill/20'
@@ -173,7 +173,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                     setIsProfileDropdownOpen(false);
                                     navigate('/settings');
                                 }}
-                                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-primary hover:bg-active-pill/20 transition-all cursor-pointer"
+                                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left text-xs font-semibold text-primary hover:bg-active-pill/20 transition-all cursor-pointer"
                             >
                                 <User className="w-3.5 h-3.5 text-primary" />
                                 <span>My Profile</span>
@@ -183,7 +183,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                     setIsProfileDropdownOpen(false);
                                     logout();
                                 }}
-                                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all cursor-pointer"
+                                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all cursor-pointer"
                             >
                                 <LogOut className="w-3.5 h-3.5 text-rose-500" />
                                 <span>Logout</span>

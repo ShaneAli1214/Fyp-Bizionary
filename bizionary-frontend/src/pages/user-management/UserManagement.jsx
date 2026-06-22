@@ -156,7 +156,7 @@ const UserManagement = () => {
                 {activeTab === 'users' && (
                     <button 
                         onClick={handleAddUser}
-                        className="flex items-center justify-center gap-2 bg-[#2B2620] hover:bg-[#2B2620] text-card px-5 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
+                        className="flex items-center justify-center gap-2 bg-[#2B2620] hover:bg-[#2B2620] text-card px-5 py-3 rounded-full font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm active:translate-y-0"
                     >
                         <UserPlus className="w-5 h-5" />
                         Add New User
@@ -304,7 +304,7 @@ const UserManagement = () => {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                                             disabled={currentPage === 1}
-                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-lg text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-full text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Previous
                                         </button>
@@ -314,7 +314,7 @@ const UserManagement = () => {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                                             disabled={currentPage === totalPages}
-                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-lg text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-3 py-1.5 text-xs font-semibold bg-card border border-card rounded-full text-secondary hover:bg-page active:bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                         >
                                             Next
                                         </button>

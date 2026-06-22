@@ -172,7 +172,7 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange, startDate, endDate }) 
                     No matching database records found for this period.
                 </div>
             ) : (
-                <div className="bg-card p-8 rounded-3xl border border-card shadow-sm space-y-8 print:border-none print:shadow-none print:p-0">
+                <div className="bg-card p-8 rounded-2xl border border-card shadow-sm space-y-8 print:border-none print:shadow-none print:p-0">
                     {/* Report Header */}
                     <div className="text-center space-y-2 border-b-2 border-slate-900 pb-6 print:border-b-2 print:border-slate-900">
                         <div className="flex justify-between items-center text-[10px] font-mono text-secondary uppercase tracking-widest print:text-secondary">
@@ -346,7 +346,7 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange, startDate, endDate }) 
                                 <div className="bg-[#003A6B] text-card px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-page print:text-primary">
                                     Assets
                                 </div>
-                                <div className="border border-card/60 rounded-xl overflow-hidden bg-card shadow-xs print:border-card">
+                                <div className="border border-card/60 rounded-2xl overflow-hidden bg-card shadow-xs print:border-card">
                                     <table className="w-full text-left text-xs border-collapse">
                                         <thead>
                                             <tr className="border-b border-card bg-page/70 text-secondary font-bold uppercase tracking-wider print:bg-page print:text-secondary">
@@ -380,7 +380,7 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange, startDate, endDate }) 
                                     <div className="bg-[#003A6B] text-card px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-page print:text-primary">
                                         Liabilities
                                     </div>
-                                    <div className="border border-card/60 rounded-xl overflow-hidden bg-card shadow-xs print:border-card">
+                                    <div className="border border-card/60 rounded-2xl overflow-hidden bg-card shadow-xs print:border-card">
                                         <table className="w-full text-left text-xs border-collapse">
                                             <thead>
                                                 <tr className="border-b border-card bg-page/70 text-secondary font-bold uppercase tracking-wider print:bg-page print:text-secondary">
@@ -412,7 +412,7 @@ const FinancialReportsTab = ({ refreshTrigger, dateRange, startDate, endDate }) 
                                     <div className="bg-[#003A6B] text-card px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded print:bg-page print:text-primary">
                                         Owner's Equity
                                     </div>
-                                    <div className="border border-card/60 rounded-xl overflow-hidden bg-card shadow-xs print:border-card">
+                                    <div className="border border-card/60 rounded-2xl overflow-hidden bg-card shadow-xs print:border-card">
                                         <table className="w-full text-left text-xs border-collapse">
                                             <thead>
                                                 <tr className="border-b border-card bg-page/70 text-secondary font-bold uppercase tracking-wider print:bg-page print:text-secondary">

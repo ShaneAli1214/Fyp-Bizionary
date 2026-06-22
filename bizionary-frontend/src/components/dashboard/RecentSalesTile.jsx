@@ -20,7 +20,7 @@ const RecentSalesTile = ({ periodOptions = [], selectedPeriod, onPeriodChange, s
     };
 
     return (
-        <div className="bg-surface p-4 rounded-xl border border-surface/10 shadow-sm relative overflow-visible z-30">
+        <div className="bg-surface p-4 rounded-2xl border border-surface/10 shadow-sm relative overflow-visible z-30">
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                     <div className="text-xs text-textMuted">Recent Sales</div>
@@ -70,7 +70,7 @@ const RecentSalesTile = ({ periodOptions = [], selectedPeriod, onPeriodChange, s
             </button>
 
             {detailsOpen && (
-                <div className="mt-3 rounded-xl border border-surface/20 bg-card shadow-sm overflow-hidden">
+                <div className="mt-3 rounded-2xl border border-surface/20 bg-card shadow-sm overflow-hidden">
                     <div className="px-4 py-3 border-b border-surface/10 bg-surface/40">
                         <div className="grid grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr] gap-3 text-xs font-semibold text-textMain whitespace-nowrap">
                             <div>Product Category Name</div>

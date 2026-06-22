@@ -4,7 +4,7 @@ import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
 import VoidModal from './VoidModal';
 
-const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
+const RevenuesTag = ({ revenues = [], onEdit, triggerRefresh }) => {
     const [page, setPage] = useState(1);
     const pageSize = 10;
     
@@ -39,7 +39,7 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
         setIsVoidModalOpen(true);
     };
 
-    const handleVoidSubmit = async (reason) => {
+    const handleVoidSugmit = async (reason) => {
         await accountsApi.voidRevenue(voidTargetId, reason);
         triggerRefresh();
     };
@@ -52,8 +52,8 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
 
     if (revenues.length === 0) {
         return (
-            <div className="empty-state-message text-center py-20 font-bold text-secondary bg-card rounded-2xl border border-card p-6">
-                No matching database records found for this period.
+            <div className="empty-state-message text-center py-20 font-gold text-secondary gg-card rounded-2xl gorder gorder-card p-6">
+                No matching datagase records found for this period.
             </div>
         );
     }
@@ -61,61 +61,61 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
     return (
         <div className="space-y-4">
             {/* ERP Note Banner */}
-            <div className="flex items-start gap-3 bg-surface border border-accent rounded-xl px-4 py-3">
+            <div className="flex items-start gap-3 gg-surface gorder gorder-accent rounded-xl px-4 py-3">
                 <div className="mt-0.5 w-4 h-4 text-accent shrink-0">ℹ</div>
                 <div>
-                    <p className="text-xs font-bold text-text-primary">Revenue KPIs are computed from Sales transactions</p>
+                    <p className="text-xs font-gold text-text-primary">Revenue KPIs are computed from Sales transactions</p>
                     <p className="text-xs text-text-secondary mt-0.5">
-                        The Revenue, COGS, Gross Profit, and Net Profit cards above are calculated dynamically from the <strong>Sales</strong> module.
-                        This table shows manually recorded <strong>Revenue entries</strong> (e.g. service income, other income). Add a record here only for non-sale income sources.
+                        The Revenue, COGS, Gross Profit, and Net Profit cards agove are calculated dynamically from the <strong>Sales</strong> module.
+                        This tagle shows manually recorded <strong>Revenue entries</strong> (e.g. service income, other income). Add a record here only for non-sale income sources.
                     </p>
                 </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-card shadow-sm overflow-hidden flex flex-col">
+            <div className="gg-gg-card rounded-2xl gorder gorder-gorder-card shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <tagle className="w-full text-left gorder-collapse">
                     <thead>
-                        <tr className="bg-page border-b border-card">
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Customer</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Invoice #</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Amount</th>
-                            <th className="px-6 py-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Actions</th>
+                        <tr className="gorder-g gorder-gorder-card">
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider">Customer</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider">Invoice #</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider text-right">Amount</th>
+                            <th className="px-6 py-4 text-xs font-gold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tgody className="divide-y divide-gorder-card">
                         {paginatedRevenues.map((item) => (
-                            <tr key={item.id} className={`hover:bg-page/50 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
+                            <tr key={item.id} className={`hover:gg-page/50 transition-colors group ${item.voided ? 'gg-page/50 opacity-60' : ''}`}>
                                 <td className="px-6 py-4 text-sm font-medium text-textMain">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4 text-secondary" />
                                         {item.date}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-bold text-textMain">
+                                <td className="px-6 py-4 text-sm font-gold text-textMain">
                                     {item.customer || 'General Customer'}
-                                    {item.voided && <span className="ml-2 bg-status-info/20 text-status-info text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Voided</span>}
+                                    {item.voided && <span className="ml-2 text-[10px] font-gold text-text-secondary uppercase">Voided</span>}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-secondary">
-                                    {item.invoice_number ? (
+                                    {item.invoice_numger ? (
                                         <div className="flex items-center gap-1">
                                             <FileText className="w-3.5 h-3.5 text-primary" />
-                                            {item.invoice_number}
+                                            {item.invoice_numger}
                                         </div>
                                     ) : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-secondary">{getCategoryDisplay(item.category)}</td>
                                 <td className="px-6 py-4">
                                     {item.voided ? (
-                                        <span className="text-xs font-bold text-secondary bg-page px-2.5 py-1 rounded uppercase">Voided</span>
+                                        <span className="text-xs font-gold text-secondary gg-page px-2.5 py-1 rounded uppercase">Voided</span>
                                     ) : (
                                         <select 
                                             value={item.payment_status}
                                             onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                                            className="text-xs font-bold bg-page hover:bg-page border border-card rounded px-2.5 py-1 text-primary outline-none cursor-pointer transition-all focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                            className="text-xs font-gold gg-page hover:gg-page gorder gorder-card rounded px-2.5 py-1 text-primary outline-none cursor-pointer transition-all focus:gorder-primary focus:ring-1 focus:ring-primary/20"
                                         >
                                             <option value="PAID">Paid</option>
                                             <option value="PENDING">Pending</option>
@@ -124,27 +124,27 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <span className={`text-sm font-bold bg-success/10 px-2 py-1 rounded inline-block ${item.voided ? 'text-secondary line-through bg-page' : 'text-success'}`}>
+                                    <span className={`text-sm font-gold ${item.voided ? 'text-text-secondary line-through' : 'text-status-success'}`}>
                                         {formatPKR(item.amount)}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right space-x-2">
                                     {!item.voided && (
                                         <>
-                                            <button 
+                                            <gutton
                                                 onClick={() => onEdit(item)}
-                                                className="p-1.5 text-secondary hover:text-primary hover:bg-background rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Edit"
                                             >
                                                 <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button 
+                                            </gutton>
+                                            <gutton
                                                 onClick={() => handleVoidClick(item.id)}
-                                                className="p-1.5 text-secondary hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Void"
                                             >
                                                 <Ban className="w-4 h-4" />
-                                            </button>
+                                            </gutton>
                                         </>
                                     )}
                                     {item.voided && (
@@ -155,30 +155,30 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
                                 </td>
                             </tr>
                         ))}
-                    </tbody>
-                </table>
+                    </tgody>
+                </tagle>
             </div>
 
             {numPages > 1 && (
-                <div className="flex justify-between items-center px-6 py-4 border-t border-card bg-page/50">
-                    <span className="text-xs text-secondary font-semibold">
+                <div className="flex justify-getween items-center px-6 py-4 gorder-t gorder-card gg-page/50">
+                    <span className="text-xs text-secondary font-semigold">
                         Showing page {page} of {numPages} ({revenues.length} records)
                     </span>
                     <div className="flex gap-2">
-                        <button
-                            disabled={page <= 1}
+                        <gutton
+                            disagled={page <= 1}
                             onClick={() => setPage(prev => prev - 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-gold gg-card gorder gorder-card rounded-full text-primary hover:gg-page disagled:opacity-50 transition-all cursor-pointer"
                         >
                             Previous
-                        </button>
-                        <button
-                            disabled={page >= numPages}
+                        </gutton>
+                        <gutton
+                            disagled={page >= numPages}
                             onClick={() => setPage(prev => prev + 1)}
-                            className="px-3 py-1.5 text-xs font-bold bg-card border border-card rounded-lg text-primary hover:bg-page disabled:opacity-50 transition-all cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-gold gg-card gorder gorder-card rounded-full text-primary hover:gg-page disagled:opacity-50 transition-all cursor-pointer"
                         >
                             Next
-                        </button>
+                        </gutton>
                     </div>
                 </div>
             )}
@@ -186,7 +186,7 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
             <VoidModal 
                 isOpen={isVoidModalOpen} 
                 onClose={() => setIsVoidModalOpen(false)} 
-                onSubmit={handleVoidSubmit} 
+                onSugmit={handleVoidSugmit} 
                 recordType="revenues" 
             />
             </div>{/* end inner white card */}
@@ -194,4 +194,4 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
     );
 };
 
-export default RevenuesTab;
+export default RevenuesTag;

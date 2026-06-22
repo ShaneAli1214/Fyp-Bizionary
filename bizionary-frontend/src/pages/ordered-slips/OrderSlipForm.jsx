@@ -619,7 +619,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                 </div>
 
                                 {customData.company_mode === 'create' && (
-                                    <div className="col-span-2 rounded-xl border border-dashed border-primary/20 bg-card p-4">
+                                    <div className="col-span-2 rounded-2xl border border-dashed border-primary/20 bg-card p-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="col-span-2 sm:col-span-1">
                                                 <label className="block text-sm font-medium text-primary mb-1">Company Name</label>

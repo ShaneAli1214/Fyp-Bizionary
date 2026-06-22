@@ -327,7 +327,7 @@ const SalesList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-xl border border-card bg-surface">
+                    <div className="relative w-full sm:w-auto transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] rounded-2xl border border-card bg-surface">
                         <Filter className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                         <select
                             value={categoryFilter}
@@ -343,14 +343,14 @@ const SalesList = () => {
                     </div>
                     <button
                         onClick={openBulkModal}
-                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Upload className="h-4 w-4 mr-2" />
                         Bulk Upload
                     </button>
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-card rounded-xl text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-card rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         New Sale
@@ -378,8 +378,8 @@ const SalesList = () => {
                             {/* Tab switcher */}
                             {!bulkResult && (
                                 <div className="flex gap-1 bg-page p-1 rounded-xl w-fit">
-                                    <button onClick={() => setBulkTab('csv')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'csv' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>CSV File</button>
-                                    <button onClick={() => setBulkTab('json')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${bulkTab === 'json' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>JSON Paste</button>
+                                    <button onClick={() => setBulkTab('csv')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${bulkTab === 'csv' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>CSV File</button>
+                                    <button onClick={() => setBulkTab('json')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${bulkTab === 'json' ? 'bg-card text-primary shadow-sm' : 'text-textMuted'}`}>JSON Paste</button>
                                 </div>
                             )}
 
@@ -460,7 +460,7 @@ const SalesList = () => {
                                                     <p className="font-bold text-status-success text-sm">{bulkFile.name}</p>
                                                     <p className="text-xs text-status-success">{(bulkFile.size / 1024).toFixed(1)} KB — Ready to upload</p>
                                                 </div>
-                                                <button onClick={(e) => { e.stopPropagation(); setBulkFile(null); }} className="ml-auto p-1 hover:bg-status-success/20 rounded-lg"><X className="w-3.5 h-3.5 text-status-success" /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); setBulkFile(null); }} className="ml-auto p-1 hover:bg-status-success/20 rounded-xl"><X className="w-3.5 h-3.5 text-status-success" /></button>
                                             </div>
                                         ) : (
                                             <>
@@ -499,7 +499,7 @@ const SalesList = () => {
                             {bulkResult ? (
                                 <>
                                     <p className="text-xs text-textMuted">{bulkResult.summary?.total_records_created} records uploaded. KPIs refreshed.</p>
-                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary text-card rounded-xl text-sm font-bold hover:bg-primaryDark">Done</button>
+                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary text-card rounded-full text-sm font-bold hover:bg-primaryDark">Done</button>
                                 </>
                             ) : (
                                 <>
@@ -507,7 +507,7 @@ const SalesList = () => {
                                     <button
                                         onClick={handleBulkUpload}
                                         disabled={bulkUploading || (bulkTab === 'csv' && !bulkFile) || (bulkTab === 'json' && !bulkJson.trim())}
-                                        className="flex items-center gap-2 px-5 py-2 bg-primary text-card rounded-xl text-sm font-bold hover:bg-primaryDark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="flex items-center gap-2 px-5 py-2 bg-primary text-card rounded-full text-sm font-bold hover:bg-primaryDark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
                                         {bulkUploading ? <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
                                         {bulkUploading ? 'Uploading...' : 'Upload & Save'}
@@ -525,7 +525,7 @@ const SalesList = () => {
             </div>
 
             {/* Main Table */}
-            <div className="bg-surface rounded-3xl border border-card shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden flex flex-col">
                 {loading ? (
                     <div className="p-6">
                         <Skeleton.TableRows count={7} cols={7} />
@@ -533,7 +533,7 @@ const SalesList = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-card text-textMuted text-xs uppercase tracking-wider border-b border-card">
+                            <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Ref ID</th>
                                     <th className="px-6 py-4 font-semibold">Date</th>
@@ -546,7 +546,7 @@ const SalesList = () => {
                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-border-card">
                                 {filteredSales.map((s) => (
                                     <tr key={s.id} className="hover:bg-page transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap text-textMuted font-mono text-xs">#SL-{s.id.toString().padStart(4, '0')}</td>
@@ -559,19 +559,19 @@ const SalesList = () => {
                                                 : (s.product_name || `Product ID: ${s.product}`)}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 text-sky-700 border border-sky-100">
+                                            <span className="text-xs font-bold text-text-secondary">
                                                 {s.quantity_sold}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-center text-xs font-semibold text-textMuted">
                                             {s.remaining_stock ?? 'N/A'}
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-success text-right">{formatPKR(s.total_price)}</td>
+                                        <td className="px-6 py-4 font-bold text-status-success text-right">{formatPKR(s.total_price)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => handleViewSlip(s)}
-                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-amber-600 bg-page hover:bg-amber-50 rounded-lg transition-colors border border-card hover:border-amber-100"
+                                                    className="inline-flex items-center justify-center p-1.5 text-secondary hover:text-amber-600 bg-page hover:bg-amber-50 rounded-xl transition-colors border border-card hover:border-amber-100"
                                                     title="View Slip"
                                                 >
                                                     <Receipt className="h-4 w-4" />
