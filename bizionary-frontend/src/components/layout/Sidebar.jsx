@@ -110,26 +110,50 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {visibleItems.map((item) => {
                     const Icon = item.icon;
                     return (
-                        <NavLink
-                            key={item.name}
-                            to={item.href}
-                            end={item.href === '/'}
-                            onClick={() => {
-                                if (window.innerWidth < 1024) closeMobile();
-                            }}
-                            className={({ isActive }) =>
-                                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group text-primary
-                                ${isActive
-                                    ? 'bg-active-pill font-bold shadow-xs'
-                                    : 'hover:bg-active-pill/20'
-                                }`
-                            }
-                        >
-                            <Icon className="w-4.5 h-4.5 shrink-0 text-primary" />
-                            <span className="text-[13px] truncate font-semibold">
-                                {item.name}
-                            </span>
-                        </NavLink>
+                        <div key={item.name} className="space-y-1">
+                            <NavLink
+                                to={item.href}
+                                end={item.href === '/'}
+                                onClick={() => {
+                                    if (window.innerWidth < 1024 && !item.subItems) closeMobile();
+                                }}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group text-primary
+                                    ${isActive
+                                        ? 'bg-active-pill font-bold shadow-xs'
+                                        : 'hover:bg-active-pill/20'
+                                    }`
+                                }
+                            >
+                                <Icon className="w-4.5 h-4.5 shrink-0 text-primary" />
+                                <span className="text-[13px] truncate font-semibold">
+                                    {item.name}
+                                </span>
+                            </NavLink>
+                            {item.subItems && !isCollapsed && (
+                                <div className="pl-9 space-y-1 mt-1 border-l border-card/45 ml-5">
+                                    {item.subItems.map((sub) => (
+                                        <NavLink
+                                            key={sub.name}
+                                            to={sub.href}
+                                            end={sub.href === item.href}
+                                            onClick={() => {
+                                                if (window.innerWidth < 1024) closeMobile();
+                                            }}
+                                            className={({ isActive }) =>
+                                                `flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150
+                                                ${isActive 
+                                                    ? 'text-primary font-bold bg-active-pill/10 shadow-xs' 
+                                                    : 'text-secondary hover:text-primary hover:bg-active-pill/5'
+                                                }`
+                                            }
+                                        >
+                                            <span className="truncate font-semibold">{sub.name}</span>
+                                        </NavLink>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     );
                 })}
             </div>

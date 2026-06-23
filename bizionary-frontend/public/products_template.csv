@@ -1,0 +1,4 @@
+product_name,sku,category,purchase_price,selling_price,quantity,supplier_company,supplier_contact,unit,description,reorder_level
+Logitech MX Master 3S,TECH-001,Electronics,8500.00,12000.00,45,Logitech Distributors,+923001234567,pcs,Wireless ergonomic mouse with high precision sensor,10
+Crewneck Cotton T-Shirt,APRL-002,Clothing,450.00,999.00,120,Al-Karam Studio,+923219876543,pcs,100% premium cotton black crewneck t-shirt,30
+Panadol Extend 665mg,MED-003,Pharmaceuticals,180.00,240.00,350,GSK Pakistan,+923334445556,box,Modified release paracetamol for long-lasting pain relief,50

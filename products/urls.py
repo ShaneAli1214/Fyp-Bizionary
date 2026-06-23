@@ -13,6 +13,7 @@ app_name = 'products'
 urlpatterns = [
     # ==================== Product CRUD ====================
     path('', views.product_list, name='product-list'),
+    path('bulk-upload/', views.bulk_upload_products, name='bulk-upload'),
     path('<int:pk>/', views.product_detail, name='product-detail'),
 
     # ==================== ERP Inventory Intelligence ====================

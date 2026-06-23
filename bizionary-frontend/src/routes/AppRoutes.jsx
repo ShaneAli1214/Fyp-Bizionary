@@ -6,6 +6,7 @@ import ResetDefaultPassword from '../pages/auth/ResetDefaultPassword';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Dashboard from '../pages/dashboard/Dashboard';
 import ProductList from '../pages/products/ProductList';
+import BulkProductUpload from '../pages/products/BulkProductUpload';
 import SalesList from '../pages/sales/SalesList';
 import PurchasesList from '../pages/purchases/PurchasesList';
 import InvoicesList from '../pages/invoices/InvoicesList';
@@ -52,6 +53,14 @@ const AppRoutes = () => {
                     element={
                         <ProtectedRoute forbiddenRoles={['Accountant']}>
                             <ProductList />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path="products/bulk-upload" 
+                    element={
+                        <ProtectedRoute>
+                            <BulkProductUpload />
                         </ProtectedRoute>
                     } 
                 />

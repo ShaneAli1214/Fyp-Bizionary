@@ -1,17 +1,22 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count, F, Q, ExpressionWrapper, DecimalField, Avg
 from django.db.models.functions import TruncMonth
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import date, timedelta
 from functools import wraps
+import csv, io
+from django.db import transaction
 
-from .models import Product, InventoryTransaction
+from .models import Product, InventoryTransaction, BulkProduct
 from .serializers import ProductSerializer
 from sales.models import Sale
+from purchases.models import SupplierCompany
 from user_management.views import log_action
+
 
 
 def restrict_accountant_modifications(view_func):
@@ -29,6 +34,22 @@ def restrict_accountant_modifications(view_func):
                     }, status=status.HTTP_403_FORBIDDEN)
         return view_func(request, *args, **kwargs)
     return wrapper
+
+
+def restrict_to_admin_or_manager(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        from user_management.views import get_request_user
+        user = get_request_user(request)
+        role_level = user.role.level.upper() if user and user.role else ''
+        role_name = user.role.name.lower() if user and user.role else ''
+        if role_level not in ['ADMIN', 'MANAGER'] and 'admin' not in role_name and 'manager' not in role_name:
+            return Response({
+                'error': 'You do not have permission to perform bulk uploads'
+            }, status=status.HTTP_403_FORBIDDEN)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
 
 
 @api_view(['GET', 'POST'])
@@ -322,3 +343,298 @@ def inventory_ledger(request, pk):
         'total_movements': len(txn_list),
         'ledger': txn_list,
     })
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
+@restrict_to_admin_or_manager
+@restrict_accountant_modifications
+def bulk_upload_products(request):
+    """
+    POST /api/products/bulk-upload
+    Accepts multipart/form-data with field "file".
+    Parses CSV row by row and inserts valid products in bulk.
+    """
+    from user_management.views import get_request_user
+    user = get_request_user(request)
+
+    # 1. Get the file
+    csv_file = request.FILES.get('file')
+    if not csv_file:
+        return Response({'error': 'Please select a CSV file (field: "file")'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not csv_file.name.endswith('.csv'):
+        return Response({'error': 'Only .csv files are supported'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # 2. Parse the CSV
+    try:
+        decoded = csv_file.read().decode('utf-8-sig')
+        reader = csv.DictReader(io.StringIO(decoded))
+        rows = list(reader)
+    except Exception as e:
+        return Response({'error': f'Failed to parse CSV: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not rows:
+        return Response({'error': 'File is empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+    total = len(rows)
+    inserted = 0
+    duplicates = 0
+    errors = 0
+    
+    inserted_rows_details = []
+    duplicate_rows_details = []
+    error_rows_details = []
+    warning_rows_details = []
+
+    seen_skus = set()
+    products_to_create = []
+    bulk_products_to_create = []
+    ledger_transactions = []
+
+    # Cache for SupplierCompany to avoid redundant queries/creations in the loop
+    supplier_cache = {}
+
+    import re
+    EMAIL_REGEX = re.compile(r"^[\w\.\+-]+@[\w\.-]+\.\w+$")
+    PHONE_REGEX = re.compile(r"^\+?[0-9\s\-()]{7,20}$")
+
+    for i, row in enumerate(rows, start=1):
+        # Extract headers with fallbacks to avoid key errors
+        product_name = str(row.get('product_name') or '').strip()
+        sku = str(row.get('sku') or '').strip()
+        category = str(row.get('category') or '').strip()
+        purchase_price_raw = str(row.get('purchase_price') or '').strip()
+        selling_price_raw = str(row.get('selling_price') or '').strip()
+        quantity_raw = str(row.get('quantity') or '').strip()
+        supplier_company = str(row.get('supplier_company') or '').strip()
+        supplier_contact = str(row.get('supplier_contact') or '').strip()
+        unit = str(row.get('unit') or '').strip()
+        description = str(row.get('description') or '').strip()
+        reorder_level_raw = str(row.get('reorder_level') or '').strip()
+
+        # 1. product_name check
+        if not product_name:
+            error_rows_details.append({"row": i, "reason": "missing product_name"})
+            errors += 1
+            continue
+            
+        # 2. sku presence check
+        if not sku:
+            error_rows_details.append({"row": i, "reason": "missing sku"})
+            errors += 1
+            continue
+            
+        # 3. purchase_price presence check
+        if not purchase_price_raw:
+            error_rows_details.append({"row": i, "reason": "missing purchase_price"})
+            errors += 1
+            continue
+            
+        # 4. selling_price presence check
+        if not selling_price_raw:
+            error_rows_details.append({"row": i, "reason": "missing selling_price"})
+            errors += 1
+            continue
+            
+        # 5. quantity presence check
+        if not quantity_raw:
+            error_rows_details.append({"row": i, "reason": "missing quantity"})
+            errors += 1
+            continue
+
+        # Data type parsing and constraints validation
+        # purchase_price -> positive number (> 0)
+        try:
+            purchase_price = Decimal(purchase_price_raw)
+            if purchase_price <= Decimal('0.00'):
+                raise InvalidOperation
+        except (ValueError, InvalidOperation):
+            error_rows_details.append({"row": i, "reason": "purchase_price must be a positive number"})
+            errors += 1
+            continue
+
+        # selling_price -> must be >= purchase_price
+        try:
+            selling_price = Decimal(selling_price_raw)
+        except (ValueError, InvalidOperation):
+            error_rows_details.append({"row": i, "reason": "invalid selling_price"})
+            errors += 1
+            continue
+
+        if selling_price < purchase_price:
+            error_rows_details.append({"row": i, "reason": "selling_price must be greater than or equal to purchase_price"})
+            errors += 1
+            continue
+
+        # quantity -> must be a non-negative whole number (>= 0)
+        try:
+            quantity = int(quantity_raw)
+            if quantity < 0:
+                raise ValueError
+        except ValueError:
+            error_rows_details.append({"row": i, "reason": "invalid quantity, must be a non-negative whole number"})
+            errors += 1
+            continue
+
+        # reorder_level -> optional, must be a non-negative integer if provided
+        reorder_level = 0
+        if reorder_level_raw:
+            try:
+                reorder_level = int(reorder_level_raw)
+                if reorder_level < 0:
+                    raise ValueError
+            except ValueError:
+                error_rows_details.append({"row": i, "reason": "invalid reorder_level, must be a non-negative integer"})
+                errors += 1
+                continue
+
+        # supplier_contact -> optional, if provided must be valid phone or email
+        if supplier_contact:
+            is_valid_email = bool(EMAIL_REGEX.match(supplier_contact))
+            is_valid_phone = bool(PHONE_REGEX.match(supplier_contact))
+            if not (is_valid_email or is_valid_phone):
+                error_rows_details.append({"row": i, "reason": "invalid supplier_contact, must be a valid phone number or email address"})
+                errors += 1
+                continue
+
+        # unit -> optional, default to "pcs" if not provided
+        if not unit:
+            unit = "pcs"
+            warning_rows_details.append({"row": i, "reason": "unit is missing, defaulted to 'pcs'"})
+
+        # Duplicate check (SKU uniqueness against DB and current batch)
+        if sku in seen_skus or Product.objects.filter(sku=sku).exists():
+            existing_product = Product.objects.filter(sku=sku).first()
+            if existing_product:
+                duplicate_rows_details.append({
+                    "row": i,
+                    "sku": sku,
+                    "product_name": product_name,
+                    "existing_product": {
+                        "id": existing_product.id,
+                        "name": existing_product.name,
+                        "category": existing_product.category,
+                        "cost_price": float(existing_product.cost_price),
+                        "unit_price": float(existing_product.unit_price),
+                        "stock_quantity": existing_product.stock_quantity,
+                    }
+                })
+            else:
+                duplicate_rows_details.append({
+                    "row": i,
+                    "sku": sku,
+                    "product_name": product_name,
+                    "reason": "Duplicate SKU within the uploaded file"
+                })
+            duplicates += 1
+            continue
+
+        # Valid row: Add SKU to processed set
+        seen_skus.add(sku)
+
+        # Resolve supplier company
+        supplier_instance = None
+        if supplier_company:
+            if supplier_company not in supplier_cache:
+                supplier_instance, _ = SupplierCompany.objects.get_or_create(
+                    name=supplier_company,
+                    defaults={"contact_number": supplier_contact}
+                )
+                supplier_cache[supplier_company] = supplier_instance
+            else:
+                supplier_instance = supplier_cache[supplier_company]
+
+        # Prepare Product instance
+        product_instance = Product(
+            name=product_name,
+            sku=sku,
+            category=category,
+            cost_price=purchase_price,
+            unit_price=selling_price,
+            stock_quantity=quantity,
+            min_stock=reorder_level,
+            unit=unit,
+            description=description,
+            supplier=supplier_instance
+        )
+        products_to_create.append(product_instance)
+
+        # Prepare BulkProduct staging instance
+        bulk_product_instance = BulkProduct(
+            product_name=product_name,
+            sku=sku,
+            category=category,
+            purchase_price=purchase_price,
+            selling_price=selling_price,
+            quantity=quantity,
+            supplier_company=supplier_company,
+            supplier_contact=supplier_contact,
+            unit=unit,
+            description=description,
+            reorder_level=reorder_level,
+            added_by=user
+        )
+        bulk_products_to_create.append(bulk_product_instance)
+
+        inserted_rows_details.append({
+            "row": i,
+            "sku": sku,
+            "product_name": product_name,
+            "category": category,
+            "quantity": quantity,
+            "purchase_price": float(purchase_price),
+            "selling_price": float(selling_price)
+        })
+        inserted += 1
+
+    # 3. Perform bulk creation in the database
+    if products_to_create:
+        try:
+            with transaction.atomic():
+                # Bulk create Products
+                created_products = Product.objects.bulk_create(products_to_create)
+                
+                # Bulk create BulkProduct history records
+                BulkProduct.objects.bulk_create(bulk_products_to_create)
+                
+                # Create corresponding initial opening_stock ledger transactions
+                today = date.today()
+                for prod in created_products:
+                    if prod.stock_quantity > 0:
+                        ledger_transactions.append(InventoryTransaction(
+                            product=prod,
+                            txn_type=InventoryTransaction.TYPE_IN,
+                            quantity=prod.stock_quantity,
+                            reference_type='opening_stock',
+                            reference_id=prod.id,
+                            note=f'Opening stock balance from bulk upload (SKU: {prod.sku})',
+                            date=today,
+                        ))
+                
+                if ledger_transactions:
+                    InventoryTransaction.objects.bulk_create(ledger_transactions)
+
+                # Log overall action to Audit Logs/Activity Log
+                log_action(request, 'CREATE', f"Bulk uploaded {len(created_products)} products via CSV.", module='Products')
+        except Exception as e:
+            return Response({
+                'error': f'Database transaction failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({
+        "total": total,
+        "insertedCount": inserted,
+        "duplicatesCount": duplicates,
+        "errorsCount": errors,
+        "warningsCount": len(warning_rows_details),
+        "inserted": inserted_rows_details,
+        "duplicates": duplicate_rows_details,
+        "errors": error_rows_details,
+        "warnings": warning_rows_details,
+        "insertedRows": inserted_rows_details,
+        "duplicateRows": duplicate_rows_details,
+        "errorRows": error_rows_details,
+        "warningRows": warning_rows_details,
+    }, status=status.HTTP_201_CREATED if inserted > 0 else status.HTTP_200_OK)
+

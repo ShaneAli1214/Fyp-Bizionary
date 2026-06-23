@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.conf import settings
+
 
 
 class Product(models.Model):
@@ -146,3 +148,49 @@ class InventoryTransaction(models.Model):
 
     def __str__(self):
         return f"{self.txn_type} {self.quantity} × {self.product.name} on {self.date}"
+
+
+class BulkProduct(models.Model):
+    """
+    Model for staging or logging bulk uploaded products
+    """
+    product_name = models.CharField(max_length=255)
+    sku = models.CharField(max_length=100, unique=True)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    purchase_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    selling_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0)]
+    )
+    supplier_company = models.CharField(max_length=255, blank=True, null=True)
+    supplier_contact = models.CharField(max_length=50, blank=True, null=True)
+    unit = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    reorder_level = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    date_added = models.DateField(auto_now_add=True)
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='bulk_products'
+    )
+
+    class Meta:
+        db_table = 'bulk_products'
+        ordering = ['-date_added']
+
+    def __str__(self):
+        return f"{self.product_name} ({self.sku})"
+

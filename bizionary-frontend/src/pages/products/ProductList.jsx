@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Edit2, Trash2, Upload } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPKR } from '../../utils/currency';
@@ -7,8 +8,18 @@ import api from '../../services/api';
 import ProductForm from './ProductForm';
 import { PRODUCT_CATEGORIES, getCategoryPrefix, normalizeProductCategory, getCategoryLabel } from '../../utils/productCategories';
 import { normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
+import { useAuth } from '../../context/AuthContext';
 
 const ProductList = () => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const isAdminOrManager = user && (
+        user.role_level === 'ADMIN' || 
+        user.role_level === 'MANAGER' || 
+        user.role_name?.toLowerCase().includes('admin') || 
+        user.role_name?.toLowerCase().includes('manager')
+    ) && user.role_name !== 'Accountant';
+
     const [products, setProducts] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -196,9 +207,18 @@ const ProductList = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {isAdminOrManager && (
+                        <button
+                            onClick={() => navigate('/products/bulk-upload')}
+                            className="flex items-center justify-center px-5 py-2 bg-surface hover:bg-background text-textMain border border-card rounded-full text-sm font-bold transition-all shadow-sm w-full sm:w-auto cursor-pointer"
+                        >
+                            <Upload className="h-4 w-4 mr-2 text-primary" />
+                            Bulk Products
+                        </button>
+                    )}
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2 bg-primary text-card rounded-full text-sm font-bold transition-all hover:opacity-85 active:scale-[0.98] shadow-sm w-full sm:w-auto cursor-pointer"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Product
