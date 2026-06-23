@@ -125,10 +125,13 @@ const AccountsManager = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // 1. Centralized State (Default: empty to allow auto-fitting from KPI response)
-    const [dateRange, setDateRange] = useState({
-        startDate: '',
-        endDate: ''
+    // 1. Centralized State — default to current month so users see data immediately
+    const [dateRange, setDateRange] = useState(() => {
+        const now = new Date();
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const today = now;
+        const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return { startDate: fmt(firstOfMonth), endDate: fmt(today) };
     });
     const [sliderDuration, setSliderDuration] = useState(30);
 
@@ -531,7 +534,7 @@ const AccountsManager = () => {
                     {(activeTab !== 'chart-tree' && activeTab !== 'financial-reports') && (
                         <button 
                             onClick={handleAddRecord}
-                            className="flex items-center gap-2 bg-primary text-card px-4 py-2.5 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg shadow-sm hover:bg-primaryDark cursor-pointer"
+                            className="flex items-center gap-2 bg-primary px-4 py-2.5 rounded-xl font-bold shadow-sm cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             Add Record

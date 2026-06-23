@@ -19,6 +19,7 @@ import SmartReorderEngine from '../pages/insights/SmartReorderEngine';
 import FrontendDiagnostic from '../pages/insights/FrontendDiagnostic';
 import Troubleshoot from '../pages/insights/Troubleshoot';
 import Chatbot from '../pages/chatbot/Chatbot';
+import DemoShell from '../pages/demo/DemoShell';
 
 // Placeholders for other pages
 const Placeholder = ({ title }) => (
@@ -41,6 +42,7 @@ const AppRoutes = () => {
             />
             <Route path="/diagnostic" element={<FrontendDiagnostic />} />
             <Route path="/troubleshoot" element={<Troubleshoot />} />
+            <Route path="/demo-shell" element={<DemoShell />} />
 
             {/* Protected Routes configured to use DashboardLayout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>

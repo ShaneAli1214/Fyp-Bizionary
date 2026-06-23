@@ -1,95 +1,57 @@
 /* ============================================================
    BIZIONARY THEME SYSTEM
-   Strictly mapped to the 10 allowed reference design tokens:
-   - bg-page: #F1EBE3
-   - bg-card: #FFFFFF
-   - border-card: #E8E0D3
-   - text-primary: #2B2620
-   - text-secondary: #9C9387
-   - active-pill: #DCD3C5
-   - chart-accent: #B7A893
-   - chart-track: #E8E0D3
-   - status-success: #8FA888
-   - status-info: #C9A86A
+   Strictly mapped to the new global CSS token system:
    ============================================================ */
 
-.theme-horizon {
-  --color-primary: #2B2620; /* text-primary */
-  --color-primary-dark: #2B2620;
-  --color-accent: #B7A893; /* chart-accent */
-  --color-accent-dark: #2B2620;
-  --color-ai-purple: #B7A893;
-  --color-background: #F1EBE3; /* bg-page */
-  --color-background-light: #FFFFFF; /* bg-card */
-  --color-background-dark: #2B2620;
-  --color-surface: #FFFFFF; /* bg-card */
-  --color-surface-dark: #F1EBE3;
-  --color-textMain: #2B2620; /* text-primary */
-  --color-textMuted: #9C9387; /* text-secondary */
-  --color-border: #E8E0D3; /* border-card / chart-track */
-  --color-success: #8FA888; /* status-success */
-  --color-danger: #C9A86A; /* status-info */
-  --color-warning: #C9A86A; /* status-info */
-  
-  /* RGB Helpers */
-  --color-primary-rgb: 43,38,32;
-  --color-accent-rgb: 183,168,147;
-  --color-surface-rgb: 255,255,255;
-  --color-background-rgb: 241,235,227;
-  --color-topbar: #FFFFFF; /* bg-card */
-}
-
+.theme-horizon,
 .theme-horizon-dark,
 html.dark {
-  /* Core backgrounds */
-  --color-background: #2B2620; /* text-primary */
-  --color-background-light: #2B2620;
-  --color-background-dark: #2B2620;
-  --color-surface: #2B2620;
-  --color-surface-dark: #2B2620;
+  --color-background: var(--bg-page);
+  --color-background-light: var(--bg-card);
+  --color-background-dark: var(--bg-page);
+  --color-surface: var(--bg-card);
+  --color-surface-dark: var(--bg-card);
 
-  /* Primary */
-  --color-primary: #F1EBE3; /* bg-page */
-  --color-primary-dark: #FFFFFF; /* bg-card */
-  --color-accent: #B7A893; /* chart-accent */
-  --color-accent-dark: #DCD3C5; /* active-pill */
-  --color-ai-purple: #B7A893;
+  --color-primary: var(--accent);
+  --color-primary-dark: var(--accent);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-glow);
+  --color-ai-purple: var(--accent);
 
-  /* Typography */
-  --color-textMain: #F1EBE3; /* bg-page */
-  --color-textMuted: #9C9387; /* text-secondary */
-  --color-border: #E8E0D3; /* border-card */
+  --color-textMain: var(--text-primary);
+  --color-textMuted: var(--text-secondary);
+  --color-border: var(--border);
 
-  /* Status colors */
-  --color-success: #8FA888; /* status-success */
-  --color-danger: #C9A86A; /* status-info */
-  --color-warning: #C9A86A;
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
 
   /* RGB helpers */
-  --color-primary-rgb: 241,235,227;
-  --color-accent-rgb: 183,168,147;
-  --color-surface-rgb: 43,38,32;
-  --color-background-rgb: 43,38,32;
-  --color-background-dark-rgb: 43,38,32;
-  --color-success-rgb: 143,168,136;
-  --color-topbar: #2B2620;
+  --color-primary-rgb: 59,130,246; /* #3B82F6 */
+  --color-accent-rgb: 96,165,250; /* #60A5FA */
+  --color-surface-rgb: 15,23,41; /* #0F1729 */
+  --color-background-rgb: 7,11,20; /* #070B14 */
+  --color-background-dark-rgb: 7,11,20;
+  --color-success-rgb: 16,185,129; /* #10B981 */
+  --color-topbar: var(--bg-sidebar);
 
   /* Semantic dm-* tokens */
-  --dm-bg:               #2B2620;
-  --dm-bg-elevated:      #2B2620;
-  --dm-surface:          #2B2620;
-  --dm-surface-hover:    #2B2620;
-  --dm-surface-elevated: #2B2620;
-  --dm-sidebar:          #2B2620;
-  --dm-topbar:           #2B2620;
-  --dm-input-bg:         #2B2620;
-  --dm-border:           #E8E0D3;
-  --dm-border-strong:    #E8E0D3;
-  --dm-text-main:        #F1EBE3;
-  --dm-text-muted:       #9C9387;
-  --dm-text-subtle:      #9C9387;
-  --dm-nav-active-bg:    #DCD3C5;
-  --dm-nav-hover-bg:     #DCD3C5;
-  --dm-nav-accent:       #B7A893;
-  --dm-glow:             rgba(183,168,147,0.15);
+  --dm-bg:               var(--bg-page);
+  --dm-bg-elevated:      var(--bg-elevated);
+  --dm-surface:          var(--bg-card);
+  --dm-surface-hover:    var(--bg-elevated);
+  --dm-surface-elevated: var(--bg-elevated);
+  --dm-sidebar:          var(--bg-sidebar);
+  --dm-topbar:           var(--bg-sidebar);
+  --dm-input-bg:         var(--bg-page);
+  --dm-border:           var(--border);
+  --dm-border-strong:    var(--border);
+  --dm-text-main:        var(--text-primary);
+  --dm-text-muted:       var(--text-secondary);
+  --dm-text-subtle:      var(--text-muted);
+  --dm-nav-active-bg:    var(--bg-elevated);
+  --dm-nav-hover-bg:     rgba(59,130,246,0.08);
+  --dm-nav-accent:       var(--accent);
+  --dm-glow:             var(--accent-glow);
 }
+

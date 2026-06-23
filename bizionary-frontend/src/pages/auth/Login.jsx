@@ -216,7 +216,7 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-3.5 px-4 rounded-full text-sm font-bold text-card bg-[#111111] hover:bg-primary active:scale-[0.985] transition-all duration-200 shadow-sm focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full flex justify-center py-3.5 px-4 rounded-full text-sm font-bold bg-primary active:scale-[0.985] shadow-sm focus:outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <div className="w-5 h-5 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>

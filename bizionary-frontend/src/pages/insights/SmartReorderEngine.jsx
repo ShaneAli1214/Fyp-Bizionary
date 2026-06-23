@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Bot } from 'lucide-react';
+import { AlertCircle, Bot, ShoppingCart } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import { insightsApi } from '../../services/insightsApi';
+import api from '../../services/api';
+import OrderSlipForm from '../ordered-slips/OrderSlipForm';
 
 const SmartReorderEngine = () => {
     const pageSize = 10;
@@ -9,6 +11,9 @@ const SmartReorderEngine = () => {
     const [error, setError] = useState('');
     const [data, setData] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [slipForm, setSlipForm] = useState({ open: false, prefill: null });
+    const [slipSubmitting, setSlipSubmitting] = useState(false);
+    const [slipError, setSlipError] = useState('');
 
     const fetchSmartReorder = async () => {
         try {
@@ -61,6 +66,22 @@ const SmartReorderEngine = () => {
         setCurrentPage((prev) => Math.min(totalPages, prev + 1));
     };
 
+    const handleCreateSlip = async (slipData) => {
+        setSlipSubmitting(true);
+        setSlipError('');
+        try {
+            await api.post('purchases/ordered-slips/', slipData);
+            setSlipForm({ open: false, prefill: null });
+            window.dispatchEvent(new CustomEvent('orderedSlipUpdated', { detail: { action: 'created', timestamp: Date.now() } }));
+        } catch (err) {
+            const payload = err?.response?.data;
+            const msg = payload?.detail || payload?.error || (typeof payload === 'string' ? payload : null) || 'Failed to generate order slip.';
+            setSlipError(msg);
+        } finally {
+            setSlipSubmitting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[40vh]">
@@ -95,6 +116,7 @@ const SmartReorderEngine = () => {
     }
 
     return (
+        <>
         <div className="space-y-6">
             <PageHeader title="Smart Reorder Engine" subtitle="Live reorder planning from sales velocity and stock coverage." />
             <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/20 p-6 border border-primary/20">
@@ -210,6 +232,7 @@ const SmartReorderEngine = () => {
                                     <th className="text-left py-3 text-textMuted font-semibold">Product</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Reorder Qty</th>
                                     <th className="text-center py-3 text-textMuted font-semibold">Urgency</th>
+                                    <th className="text-right py-3 text-textMuted font-semibold">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -218,6 +241,16 @@ const SmartReorderEngine = () => {
                                         <td className="py-3 text-textMain font-medium">{item.product_name}</td>
                                         <td className="text-center py-3 text-primary font-bold">{item.recommended_order_quantity}</td>
                                         <td className="text-center py-3 text-textMain">{item.urgency}</td>
+                                        <td className="py-3 text-right">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSlipForm({ open: true, prefill: { product_id: item.product_id, quantity_ordered: item.recommended_order_quantity } })}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-primary text-card rounded-full hover:opacity-85 transition-opacity"
+                                            >
+                                                <ShoppingCart className="w-3.5 h-3.5" />
+                                                Create Slip
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -260,6 +293,16 @@ const SmartReorderEngine = () => {
                 )}
             </div>
         </div>
+        <OrderSlipForm
+            isOpen={slipForm.open}
+            onClose={() => { setSlipForm({ open: false, prefill: null }); setSlipError(''); }}
+            onSubmit={handleCreateSlip}
+            submitting={slipSubmitting}
+            errorMessage={slipError}
+            prefill={slipForm.prefill}
+            title="Create Purchase Order Slip"
+        />
+        </>
     );
 };
 

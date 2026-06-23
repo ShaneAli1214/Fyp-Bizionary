@@ -455,7 +455,7 @@ const AIInsights = () => {
                                         <button
                                             type="submit"
                                             disabled={isSubmittingReview}
-                                            className="px-4 py-2 rounded-full bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-60"
+                                            className="px-4 py-2 rounded-full bg-primary text-sm font-semibold disabled:opacity-60"
                                         >
                                             {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                                         </button>
@@ -483,7 +483,7 @@ const AIInsights = () => {
                                     </select>
                                     <button
                                         onClick={downloadNlpReportCsv}
-                                        className="px-4 py-2 rounded-full bg-primary text-card text-sm font-semibold hover:bg-primary/90 transition"
+                                        className="px-4 py-2 rounded-full bg-primary text-sm font-semibold"
                                     >
                                         Download CSV
                                     </button>

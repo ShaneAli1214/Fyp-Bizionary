@@ -265,7 +265,7 @@ const SaleSlipModal = ({ isOpen, sale, onClose }) => {
                             type="button"
                             onClick={handleDownload}
                             disabled={isDownloading}
-                            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-70 print:hidden"
+                            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70 print:hidden"
                         >
                             <Download className="mr-2 h-4 w-4" />
                             {isDownloading ? 'Downloading...' : 'Download'}

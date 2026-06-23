@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PageHeader from '../../components/ui/PageHeader';
 import Skeleton from '../../components/ui/Skeleton';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { Plus, Search, Edit2, Trash2, Filter, Receipt, Upload, X, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
@@ -202,6 +203,8 @@ const SalesList = () => {
         setCurrentSale(null);
     };
 
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+
     const handleDelete = async (id) => {
         try {
             await api.delete(`sales/${id}/`);
@@ -393,7 +396,7 @@ const SalesList = () => {
                     </button>
                     <button
                         onClick={openAddForm}
-                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[100%_0] text-card rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(79,70,229,0.35)] active:scale-[0.98] w-full sm:w-auto"
+                        className="flex items-center justify-center px-5 py-2.5 bg-primary rounded-full text-sm font-bold w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         New Sale
@@ -542,7 +545,7 @@ const SalesList = () => {
                             {bulkResult ? (
                                 <>
                                     <p className="text-xs text-textMuted">{bulkResult.summary?.total_records_created} records uploaded. KPIs refreshed.</p>
-                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary text-card rounded-full text-sm font-bold hover:bg-primaryDark">Done</button>
+                                    <button onClick={closeBulkModal} className="px-4 py-2 bg-primary rounded-full text-sm font-bold">Done</button>
                                 </>
                             ) : (
                                 <>
@@ -550,7 +553,7 @@ const SalesList = () => {
                                     <button
                                         onClick={handleBulkUpload}
                                         disabled={bulkUploading || (bulkTab === 'csv' && !bulkFile) || (bulkTab === 'json' && !bulkJson.trim())}
-                                        className="flex items-center gap-2 px-5 py-2 bg-primary text-card rounded-full text-sm font-bold hover:bg-primaryDark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        className="flex items-center gap-2 px-5 py-2 bg-primary rounded-full text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {bulkUploading ? <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
                                         {bulkUploading ? 'Uploading...' : 'Upload & Save'}
@@ -627,8 +630,8 @@ const SalesList = () => {
                                                     <Edit2 className="h-4 w-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(s.id)}
-                                                    className="text-secondary hover:text-danger hover:fill-danger/10 transition-colors"
+                                                    onClick={() => setConfirmDelete({ open: true, id: s.id })}
+                                                    className="text-secondary hover:text-status-info transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -691,6 +694,14 @@ const SalesList = () => {
                     setSaleSlipOpen(false);
                     setSelectedSlipSale(null);
                 }}
+            />
+            <ConfirmModal
+                isOpen={confirmDelete.open}
+                onClose={() => setConfirmDelete({ open: false, id: null })}
+                onConfirm={() => handleDelete(confirmDelete.id)}
+                title="Delete Sale?"
+                message="This will permanently remove the sale record and reverse the inventory change. This cannot be undone."
+                confirmLabel="Delete Sale"
             />
         </div>
     );

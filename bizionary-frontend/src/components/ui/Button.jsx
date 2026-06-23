@@ -2,16 +2,11 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 const variants = {
-    // ── Primary: "text-primary" (#2B2620) fill, white text, pill shape ──
-    // This is the ONLY place text-primary is used as a background fill.
+    // ── Primary: bg-primary class → global CSS handles color tokens + hover animation ──
     primary: [
-        'bg-[#2B2620]',           // text-primary token as fill
-        'text-[#FFFFFF]',         // bg-card token as text
-        'hover:opacity-85',       // hover: reduce opacity — no new color
-        'active:opacity-70',
+        'bg-primary',             // global CSS: white in dark mode, black in light mode
         'shadow-sm',
-        'hover:shadow-md',
-        'active:scale-[0.98]',
+        'active:scale-[0.97]',
     ].join(' '),
 
     // ── Secondary: card background, primary text, card border ──

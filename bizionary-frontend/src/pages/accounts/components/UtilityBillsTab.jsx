@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Edit2, Trash2, CheckCircle2, Calendar, CreditCard, Receipt, FileText } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 
 const UtilityBillsTab = ({ onEdit, triggerRefresh, startDate, endDate, refreshTrigger }) => {
     const [utilities, setUtilities] = useState([]);
@@ -53,16 +54,16 @@ const UtilityBillsTab = ({ onEdit, triggerRefresh, startDate, endDate, refreshTr
         }
     };
 
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this utility bill?')) {
-            try {
-                await accountsApi.deleteUtility(id);
-                triggerRefresh();
-                fetchUtilities();
-            } catch (err) {
-                console.error('Failed to delete utility bill:', err);
-                alert('Failed to delete record: ' + (err.response?.data?.error || err.message));
-            }
+        try {
+            await accountsApi.deleteUtility(id);
+            triggerRefresh();
+            fetchUtilities();
+        } catch (err) {
+            console.error('Failed to delete utility bill:', err);
+            alert('Failed to delete record: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -233,7 +234,7 @@ const UtilityBillsTab = ({ onEdit, triggerRefresh, startDate, endDate, refreshTr
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(item.id)}
+                                                onClick={() => setConfirmDelete({ open: true, id: item.id })}
                                                 className="p-1.5 text-secondary hover:text-status-info hover:bg-status-info/10 rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
                                                 title="Delete"
                                             >
@@ -271,6 +272,14 @@ const UtilityBillsTab = ({ onEdit, triggerRefresh, startDate, endDate, refreshTr
                     )}
                 </div>
             )}
+            <ConfirmModal
+                isOpen={confirmDelete.open}
+                onClose={() => setConfirmDelete({ open: false, id: null })}
+                onConfirm={() => handleDelete(confirmDelete.id)}
+                title="Delete Utility Bill?"
+                message="This will permanently remove this utility bill record. This cannot be undone."
+                confirmLabel="Delete Record"
+            />
         </div>
     );
 };

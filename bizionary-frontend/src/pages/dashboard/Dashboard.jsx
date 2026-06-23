@@ -451,13 +451,15 @@ const Dashboard = () => {
             {/* Notification messages */}
             {actionMessage.text && (
                 <div className={`px-4 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
-                    actionMessage.type === 'success' 
-                    ? 'bg-status-success/10 text-status-success border-emerald-100' 
+                    actionMessage.type === 'success'
+                    ? 'bg-status-success/10 text-status-success border-emerald-100'
                     : 'bg-status-info/10 text-status-info border-rose-100'
                 }`}>
                     {actionMessage.text}
                 </div>
-            )}            {/* KPI Cards Grid */}
+            )}
+
+            {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {/* 7. Total Revenue - with Daily / Weekly / Monthly filter */}
                 {!isInventoryManager && (
@@ -785,7 +787,7 @@ const Dashboard = () => {
                                 setRecordModalType('invoices');
                                 setIsRecordModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent-hover text-card rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary rounded-lg text-xs font-bold shadow-sm cursor-pointer"
                         >
                             {isAccountant ? (
                                 <>

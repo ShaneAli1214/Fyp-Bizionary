@@ -279,7 +279,7 @@ const AccountantSalesView = () => {
                     </div>
                     <button
                         type="submit"
-                        className="px-5 py-2.5 bg-primary text-card font-bold text-xs rounded-full transition-all hover:bg-primaryDark shadow-sm active:scale-95"
+                        className="px-5 py-2.5 bg-primary font-bold text-xs rounded-full shadow-sm active:scale-95"
                     >
                         Apply Filter
                     </button>
@@ -761,7 +761,7 @@ const AccountantSalesView = () => {
                                         <button
                                             type="button"
                                             onClick={handleFetchSaleDetails}
-                                            className="px-4 py-2 bg-primary text-card font-bold rounded-full text-xs hover:bg-primary active:scale-95 transition-all"
+                                            className="px-4 py-2 bg-primary font-bold rounded-full text-xs active:scale-95"
                                         >
                                             Verify Sale
                                         </button>

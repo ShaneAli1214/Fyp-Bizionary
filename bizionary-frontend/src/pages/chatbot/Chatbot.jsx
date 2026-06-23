@@ -612,26 +612,26 @@ const Chatbot = () => {
 
                 {/* API Key Missing Banner Alert */}
                 {!isKeyConfigured && (
-                    <div className="bg-orange-50 dark:bg-orange-950/20 border-b border-orange-200 dark:border-orange-900/30 px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-orange-800 dark:text-orange-300">
-                        <div className="flex items-start gap-2.5 text-xs">
-                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-orange-500" />
+                    <div className="border-b border-status-info/30 bg-status-info/10 px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-2.5 text-xs text-status-info">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                             <div>
-                                <span className="font-bold">Groq API Key Not Configured</span>
-                                <p className="opacity-90 mt-0.5 text-[11px]">Chatbot is running in local Demo Mode. Set a Groq Key in Settings to enable live AI reasoning.</p>
+                                <span className="font-bold">API Key Not Configured</span>
+                                <p className="mt-0.5 text-[11px] opacity-90">Configure your API key in Settings → API Configuration to enable the chatbot. Running in Demo Mode.</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => setDemoMode(true)}
-                                className={`px-2.5 py-1 text-[10px] font-bold rounded-full transition ${demoMode ? 'bg-orange-600 text-card shadow-sm' : 'border border-orange-300 text-orange-800 dark:text-orange-400 hover:bg-orange-100'}`}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded-full border transition ${demoMode ? 'bg-status-info text-card border-status-info shadow-sm' : 'border-status-info/40 text-status-info hover:bg-status-info/10'}`}
                             >
-                                Use Demo Mode
+                                Demo Mode
                             </button>
                             <a
                                 href="/settings"
-                                className="px-2.5 py-1 text-[10px] font-bold bg-orange-100 hover:bg-orange-200 text-orange-900 rounded-full transition"
+                                className="px-2.5 py-1 text-[10px] font-bold bg-status-info/20 hover:bg-status-info/30 text-status-info rounded-full transition"
                             >
-                                Set Key
+                                Go to Settings →
                             </a>
                         </div>
                     </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Filter, ShoppingBag } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import Skeleton from '../../components/ui/Skeleton';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import PurchaseForm from './PurchaseForm';
@@ -49,6 +50,8 @@ const PurchasesList = () => {
             alert("Failed to save purchase.");
         }
     };
+
+    const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
     const handleDelete = async (id) => {
         try {
@@ -167,8 +170,8 @@ const PurchasesList = () => {
                                                     <Edit2 className="h-4 w-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(p.id)}
-                                                    className="text-secondary hover:text-danger hover:fill-danger/10 transition-colors"
+                                                    onClick={() => setConfirmDelete({ open: true, id: p.id })}
+                                                    className="text-secondary hover:text-status-info transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -196,6 +199,14 @@ const PurchasesList = () => {
                 onClose={() => setIsFormOpen(false)}
                 onSubmit={handleCreateOrUpdate}
                 initialData={currentPurchase}
+            />
+            <ConfirmModal
+                isOpen={confirmDelete.open}
+                onClose={() => setConfirmDelete({ open: false, id: null })}
+                onConfirm={() => handleDelete(confirmDelete.id)}
+                title="Delete Purchase?"
+                message="This will permanently remove this purchase record. Stock levels will not be automatically reversed."
+                confirmLabel="Delete Purchase"
             />
         </div>
     );

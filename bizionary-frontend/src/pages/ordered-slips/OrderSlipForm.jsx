@@ -59,7 +59,7 @@ const mergeUniqueCompanies = (baseCompanies, customCompanies = []) => {
     });
 };
 
-const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting = false, errorMessage = '', title = 'Generate Order Slip', submitLabel = 'Generate Slip', initialMode = 'existing' }) => {
+const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting = false, errorMessage = '', title = 'Generate Order Slip', submitLabel = 'Generate Slip', initialMode = 'existing', prefill = null }) => {
     const [products, setProducts] = useState([]);
     const [registeredCompanies, setRegisteredCompanies] = useState([]);
     const [isCustomMode, setIsCustomMode] = useState(false);
@@ -133,6 +133,19 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             fetchCompanies();
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (!prefill?.product_id || products.length === 0) return;
+        const target = products.find((p) => p.id === Number(prefill.product_id));
+        if (!target) return;
+        const cat = normalizeProductCategory(target.category) || 'Tech';
+        setSelectedCategory(cat);
+        setFormData((prev) => ({
+            ...prev,
+            product: String(target.id),
+            quantity_ordered: Number(prefill.quantity_ordered || prefill.quantity || 1),
+        }));
+    }, [products, prefill?.product_id, prefill?.quantity_ordered, prefill?.quantity]);
 
     useEffect(() => {
         const defaultCategory = 'Tech';
@@ -655,7 +668,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                                 type="button"
                                                 onClick={handleRegisterCompany}
                                                 disabled={isSavingCompany}
-                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-card hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
+                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60"
                                             >
                                                 {isSavingCompany ? 'Registering...' : 'Save Company'}
                                             </button>
@@ -748,7 +761,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                             <button
                                 type="submit"
                                 disabled={submitting || (!isCustomMode && !selectedProduct) || (isCustomMode && (!customData.product_name.trim() || !customData.company_name.trim()))}
-                                className="px-4 py-2 text-sm font-medium text-card bg-primary rounded-xl hover:bg-primaryDark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-sm font-medium bg-primary rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {submitting ? 'Generating...' : submitLabel}
                             </button>

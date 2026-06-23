@@ -89,6 +89,16 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
         0
     ), [lineItems]);
 
+    const hasStockError = useMemo(() => {
+        if (isEditing) return false;
+        return lineItems.some((item) => {
+            if (!item.product) return false;
+            const product = products.find((p) => p.id === Number(item.product));
+            if (!product) return false;
+            return Number(item.quantity || 0) > Number(product.stock_quantity ?? 0);
+        });
+    }, [lineItems, products, isEditing]);
+
     const formatApiError = (error) => {
         const payload = error?.response?.data;
         if (!payload) return 'Failed to save sale.';
@@ -197,6 +207,19 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
         if (hasInvalidUnitPrice) {
             setErrorMessage('Unit price must be greater than zero for every line item.');
             return;
+        }
+
+        if (!isEditing) {
+            const overStockItem = lineItems.find((item) => {
+                if (!item.product) return false;
+                const product = products.find((p) => p.id === Number(item.product));
+                return product && Number(item.quantity || 0) > Number(product.stock_quantity ?? 0);
+            });
+            if (overStockItem) {
+                const product = products.find((p) => p.id === Number(overStockItem.product));
+                setErrorMessage(`Quantity exceeds available stock (${product?.stock_quantity ?? 0} units) for "${product?.name}". Please reduce the quantity.`);
+                return;
+            }
         }
 
         setSubmitting(true);
@@ -348,13 +371,27 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
 
                                                     <div>
                                                         <label className="mb-1 block text-sm font-medium text-primary">Quantity</label>
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            value={item.quantity}
-                                                            onChange={(event) => handleLineItemChange(index, 'quantity', event.target.value)}
-                                                            className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                        />
+                                                        {(() => {
+                                                            const selProduct = item.product ? products.find((p) => p.id === Number(item.product)) : null;
+                                                            const avail = selProduct ? Number(selProduct.stock_quantity ?? 0) : null;
+                                                            const over = avail !== null && Number(item.quantity || 0) > avail;
+                                                            return (
+                                                                <>
+                                                                    <input
+                                                                        type="number"
+                                                                        min="1"
+                                                                        value={item.quantity}
+                                                                        onChange={(event) => handleLineItemChange(index, 'quantity', event.target.value)}
+                                                                        className={`w-full rounded-lg border p-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 ${over ? 'border-status-info bg-status-info/5 focus:border-status-info' : 'border-card bg-card focus:border-primary'}`}
+                                                                    />
+                                                                    {avail !== null && (
+                                                                        <p className={`mt-1 text-xs font-semibold ${over ? 'text-status-info' : 'text-secondary'}`}>
+                                                                            {over ? `Max: ${avail} in stock` : `Available: ${avail}`}
+                                                                        </p>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        })()}
                                                     </div>
 
                                                     <div>
@@ -431,8 +468,8 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={submitting}
-                                        className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-card transition-colors hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-60"
+                                        disabled={submitting || hasStockError}
+                                        className="rounded-full bg-primary px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {submitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Sale')}
                                     </button>

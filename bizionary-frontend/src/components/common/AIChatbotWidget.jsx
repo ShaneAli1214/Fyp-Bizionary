@@ -101,7 +101,7 @@ const AIChatbotWidget = () => {
                         />
                         <button
                             type="submit"
-                            className="bg-primary text-card w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primaryDark transition-colors shrink-0 disabled:opacity-50"
+                            className="bg-primary w-8 h-8 rounded-lg flex items-center justify-center shrink-0 disabled:opacity-50"
                             disabled={!inputValue.trim()}
                         >
                             <Send className="w-4 h-4 ml-0.5" />

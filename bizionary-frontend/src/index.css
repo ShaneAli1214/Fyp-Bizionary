@@ -21,164 +21,182 @@
   --color-danger: var(--color-danger);
   --color-warning: var(--color-warning);
 
-  /* ── The 10 reference design tokens (static) ── */
-  --color-bg-page: #F1EBE3;
-  --color-bg-card: #FFFFFF;
-  --color-border-card: #E8E0D3;
-  --color-text-primary: #2B2620;
-  --color-text-secondary: #9C9387;
-  --color-active-pill: #DCD3C5;
-  --color-chart-accent: #B7A893;
-  --color-chart-track: #E8E0D3;
-  --color-status-success: #8FA888;
-  --color-status-info: #C9A86A;
+  /* Add support for custom colors using the exact variable names */
+  --color-bg-page: var(--bg-page);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-fill: var(--accent-fill);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
-  /* ── Short-name aliases → Tailwind utility classes ── */
-  /* bg-page / bg-card */
-  --color-page: #F1EBE3;
-  --color-card: #FFFFFF;
-
-  /* text-primary / text-secondary (short names without "text-" prefix) */
-  /* already mapped via --color-text-primary above */
-
-  /* active-pill */
-  /* --color-active-pill already defined above */
-
-  /* status colors */
-  --color-status-success: #8FA888;
-  --color-status-info: #C9A86A;
-
-  /* chart colors */
-  --color-chart-accent: #B7A893;
-  --color-chart-track: #E8E0D3;
+  /* Font stacks */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-brand: 'Space Grotesk', sans-serif;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
-   LIGHT MODE ROOT TOKENS
+   GLOBAL TOKEN SYSTEM
    ============================================================ */
 :root {
-  --color-primary: #2B2620; /* text-primary */
-  --color-primary-dark: #2B2620;
-  --color-accent: #B7A893; /* chart-accent */
-  --color-white: #FFFFFF; /* bg-card */
-  --color-accent-dark: #2B2620;
-  --color-ai-purple: #B7A893;
-  --color-background: #F1EBE3; /* bg-page */
-  --color-background-light: #FFFFFF; /* bg-card */
-  --color-background-dark: #2B2620;
-  --color-surface: #FFFFFF; /* bg-card */
-  --color-surface-dark: #F1EBE3;
-  --color-textMain: #2B2620; /* text-primary */
-  --color-textMuted: #9C9387; /* text-secondary */
-  --color-border: #E8E0D3; /* border-card / chart-track */
-  --color-success: #8FA888; /* status-success */
-  --color-danger: #C9A86A; /* status-info */
-  --color-warning: #C9A86A; /* status-info */
-  --color-primary-glow: rgba(43,38,32,0.15);
+  --bg-page:      #070B14;
+  --bg-sidebar:   #0C1220;
+  --bg-card:      #0F1729;
+  --bg-elevated:  #141E35;
+  --border:       #1C2A45;
+  --accent:       #3B82F6;
+  --accent-glow:  #60A5FA;
+  --accent-fill:  rgba(59,130,246,0.12);
+  --success:      #10B981;
+  --danger:       #EF4444;
+  --warning:      #F59E0B;
+  --text-primary: #F1F5F9;
+  --text-secondary:#64748B;
+  --text-muted:   #334155;
+
+  /* Map old semantic system variables to new design tokens */
+  --color-primary: var(--accent);
+  --color-primary-dark: var(--accent);
+  --color-accent: var(--accent);
+  --color-white: var(--bg-card);
+  --color-accent-dark: var(--accent-glow);
+  --color-ai-purple: var(--accent);
+  --color-background: var(--bg-page);
+  --color-background-light: var(--bg-card);
+  --color-background-dark: var(--bg-page);
+  --color-surface: var(--bg-card);
+  --color-surface-dark: var(--bg-card);
+  --color-textMain: var(--text-primary);
+  --color-textMuted: var(--text-secondary);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-primary-glow: var(--accent-fill);
 
   /* Reference Design Theme Tokens */
-  --color-bg-page: #F1EBE3;
-  --color-bg-card: #FFFFFF;
-  --color-border-card: #E8E0D3;
-  --color-text-primary: #2B2620;
-  --color-text-secondary: #9C9387;
-  --color-active-pill: #DCD3C5;
-  --color-chart-accent: #B7A893;
-  --color-chart-track: #E8E0D3;
-  --color-status-success: #8FA888;
-  --color-status-info: #C9A86A;
+  --color-bg-page: var(--bg-page);
+  --color-bg-card: var(--bg-card);
+  --color-border-card: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-active-pill: var(--bg-elevated);
+  --color-chart-accent: var(--accent);
+  --color-chart-track: var(--bg-elevated);
+  --color-status-success: var(--success);
+  --color-status-info: var(--warning);
 
   /* RGB helpers */
-  --color-primary-rgb: 43,38,32;
-  --color-accent-rgb: 183,168,147;
-  --color-surface-rgb: 255,255,255;
-  --color-background-rgb: 241,235,227;
-  --color-background-dark-rgb: 43,38,32;
-  --color-success-rgb: 143,168,136;
+  --color-primary-rgb: 59,130,246;
+  --color-accent-rgb: 96,165,250;
+  --color-surface-rgb: 15,23,41;
+  --color-background-rgb: 7,11,20;
+  --color-background-dark-rgb: 7,11,20;
+  --color-success-rgb: 16,185,129;
+
+  /* ── Button tokens (light mode = dark bg + white text) ── */
+  --btn-bg:           #111111;
+  --btn-text:         #FFFFFF;
+  --btn-hover-bg:     #2a2a2a;
+  --btn-hover-shadow: 0 6px 22px rgba(0,0,0,0.38);
 }
 
-/* ============================================================
-   DARK MODE ROOT OVERRIDES (Warm Dark Palette)
-   ============================================================ */
+/* Maintain dark mode overrides using the new tokens */
 .dark {
-  --color-background: #2B2620; /* text-primary */
-  --color-background-light: #2B2620;
-  --color-surface: #2B2620;
-  --color-surface-dark: #2B2620;
-  --color-primary: #F1EBE3; /* bg-page */
-  --color-primary-dark: #FFFFFF; /* bg-card */
-  --color-accent: #B7A893; /* chart-accent */
-  --color-accent-dark: #DCD3C5; /* active-pill */
-  --color-ai-purple: #B7A893;
-  --color-textMain: #F1EBE3; /* bg-page */
-  --color-textMuted: #9C9387; /* text-secondary */
-  --color-border: #E8E0D3; /* border-card */
-  --color-success: #8FA888; /* status-success */
-  --color-danger: #C9A86A; /* status-info */
-  --color-warning: #C9A86A;
-  --color-primary-rgb: 241,235,227;
-  --color-surface-rgb: 43,38,32;
-  --color-background-rgb: 43,38,32;
-  --color-success-rgb: 143,168,136;
+  --color-background: var(--bg-page);
+  --color-background-light: var(--bg-card);
+  --color-surface: var(--bg-card);
+  --color-surface-dark: var(--bg-card);
+  --color-primary: var(--accent);
+  --color-primary-dark: var(--accent);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-glow);
+  --color-ai-purple: var(--accent);
+  --color-textMain: var(--text-primary);
+  --color-textMuted: var(--text-secondary);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-primary-rgb: 59,130,246;
+  --color-surface-rgb: 15,23,41;
+  --color-background-rgb: 7,11,20;
+  --color-success-rgb: 16,185,129;
 
-  /* Semantic dark mode design tokens mapped ONLY to 10 allowed colors */
-  --dm-bg:              #2B2620;
-  --dm-bg-elevated:     #2B2620;
-  --dm-surface:         #2B2620;
-  --dm-surface-hover:   #2B2620;
-  --dm-surface-elevated:#2B2620;
-  --dm-sidebar:         #2B2620;
-  --dm-topbar:          #2B2620;
-  --dm-input-bg:        #2B2620;
-  --dm-border:          #E8E0D3;
-  --dm-border-strong:   #E8E0D3;
-  --dm-text-main:       #F1EBE3;
-  --dm-text-muted:      #9C9387;
-  --dm-text-subtle:     #9C9387;
-  --dm-nav-active-bg:   #DCD3C5;
-  --dm-nav-hover-bg:    #DCD3C5;
-  --dm-nav-accent:      #B7A893;
-  --dm-glow:            rgba(183,168,147,0.15);
+  /* ── Button tokens (dark mode = white bg + black text) ── */
+  --btn-bg:           #FFFFFF;
+  --btn-text:         #0A0A0A;
+  --btn-hover-bg:     #E8E8E8;
+  --btn-hover-shadow: 0 6px 22px rgba(255,255,255,0.14);
+
+  /* Semantic dark mode design tokens */
+  --dm-bg:              var(--bg-page);
+  --dm-bg-elevated:     var(--bg-elevated);
+  --dm-surface:         var(--bg-card);
+  --dm-surface-hover:   var(--bg-elevated);
+  --dm-surface-elevated:var(--bg-elevated);
+  --dm-sidebar:         var(--bg-sidebar);
+  --dm-topbar:          var(--bg-sidebar);
+  --dm-input-bg:        var(--bg-page);
+  --dm-border:          var(--border);
+  --dm-border-strong:   var(--border);
+  --dm-text-main:       var(--text-primary);
+  --dm-text-muted:      var(--text-secondary);
+  --dm-text-subtle:     var(--text-muted);
+  --dm-nav-active-bg:   var(--bg-elevated);
+  --dm-nav-hover-bg:    rgba(59,130,246,0.08);
+  --dm-nav-accent:      var(--accent);
+  --dm-glow:            var(--accent-glow);
 }
 
 /* ============================================================
    GLOBAL TOKEN MAPPINGS
    ============================================================ */
 /* Page & card backgrounds */
-.bg-page { background-color: var(--color-background) !important; }
-.bg-card { background-color: var(--color-surface) !important; }
-.bg-primary { background-color: var(--color-textMain) !important; }
+.bg-page { background-color: var(--bg-page) !important; }
+.bg-card { background-color: var(--bg-card) !important; }
+.bg-sidebar { background-color: var(--bg-sidebar) !important; }
+.bg-elevated { background-color: var(--bg-elevated) !important; }
+.bg-primary { background-color: var(--accent) !important; }
 
 /* Active pill */
-.active-pill { background-color: var(--color-active-pill) !important; }
-.bg-active-pill { background-color: var(--color-active-pill) !important; }
-.text-active-pill { color: var(--color-active-pill) !important; }
+.active-pill { background-color: var(--bg-elevated) !important; }
+.bg-active-pill { background-color: var(--bg-elevated) !important; }
+.text-active-pill { color: var(--bg-elevated) !important; }
 
 /* Borders */
-.border-card { border-color: var(--color-border) !important; }
-.border-primary { border-color: var(--color-textMain) !important; }
+.border-card { border-color: var(--border) !important; }
+.border-primary { border-color: var(--accent) !important; }
 
 /* Text colors */
-.text-primary { color: var(--color-textMain) !important; }
-.text-secondary { color: var(--color-textMuted) !important; }
-.text-card { color: var(--color-surface) !important; }
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-card { color: var(--text-primary) !important; }
 
 /* Status colors */
-.text-status-success { color: var(--color-status-success, #8FA888) !important; }
-.bg-status-success { background-color: var(--color-status-success, #8FA888) !important; }
-.text-status-info { color: var(--color-status-info, #C9A86A) !important; }
-.bg-status-info { background-color: var(--color-status-info, #C9A86A) !important; }
+.text-status-success { color: var(--success) !important; }
+.bg-status-success { background-color: var(--success) !important; }
+.text-status-info { color: var(--warning) !important; }
+.bg-status-info { background-color: var(--warning) !important; }
 
 /* Chart colors */
-.text-chart-accent { color: var(--color-chart-accent, #B7A893) !important; }
-.bg-chart-accent { background-color: var(--color-chart-accent, #B7A893) !important; }
-.bg-chart-track { background-color: var(--color-chart-track, #E8E0D3) !important; }
+.text-chart-accent { color: var(--accent) !important; }
+.bg-chart-accent { background-color: var(--accent) !important; }
+.bg-chart-track { background-color: var(--bg-elevated) !important; }
 
 /* Legacy accent mapping */
-.text-cyan-300, .text-cyan-400 { color: var(--color-accent) !important; }
-.bg-primary\/5 { background-color: rgba(var(--color-primary-rgb), 0.05) !important; }
+.text-cyan-300, .text-cyan-400 { color: var(--accent) !important; }
+.bg-primary\/5 { background-color: var(--accent-fill) !important; }
 
 
 /* ============================================================
@@ -186,8 +204,8 @@
    ============================================================ */
 @layer base {
   body {
-    background-color: var(--color-background);
-    color: var(--color-textMain);
+    background: var(--bg-page);
+    color: var(--text-primary);
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     margin: 0;
   }
@@ -195,6 +213,29 @@
   .font-mono, code, kbd, pre {
     font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Courier New', monospace;
   }
+}
+
+/* ============================================================
+   GLOBAL BRAND TYPOGRAPHY
+   ============================================================ */
+.font-brand,
+.tracking-wider.uppercase,
+.tracking-widest.uppercase {
+  font-family: 'Space Grotesk', 'Inter', sans-serif !important;
+}
+
+/* ============================================================
+   GLOBAL CARD STYLING
+   ============================================================ */
+div[class*="bg-white"][class*="rounded"],
+section[class*="bg-white"][class*="rounded"],
+aside[class*="bg-white"][class*="rounded"],
+.bg-card:not(input):not(select):not(textarea),
+.apps-card,
+.card {
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important;
 }
 
 /* ============================================================
@@ -333,33 +374,34 @@
    SIDEBAR COMPONENT STYLES
    ============================================================ */
 
-/* Sidebar container uses bg-page — no border separation from page */
-aside {
-  background-color: var(--color-background) !important;
+/* Sidebar container uses bg-sidebar */
+aside,
+aside .bg-page {
+  background-color: var(--bg-sidebar) !important;
 }
 
-/* All NavLinks default: text-primary, no background */
+/* All NavLinks default: text-secondary, no background */
 aside a {
-  color: var(--color-textMain) !important;
+  color: var(--text-secondary) !important;
   background-color: transparent !important;
 }
 
-/* Active NavLink: active-pill background, text-primary */
+/* Active NavLink: bg-elevated background, text-primary */
 aside a.active,
 aside a.active:hover {
-  background-color: var(--color-active-pill, #DCD3C5) !important;
-  color: var(--color-textMain, #2B2620) !important;
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
 }
 
-/* Inactive hover: active-pill at low opacity */
+/* Inactive hover: accent fill hover background */
 aside a:not(.active):hover {
-  background-color: rgba(220, 211, 197, 0.2) !important;
-  color: var(--color-textMain, #2B2620) !important;
+  background-color: var(--accent-fill) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Icons follow link color */
 aside a svg {
-  color: var(--color-textMain, #2B2620) !important;
+  color: inherit !important;
 }
 
 .sidebar-title {
@@ -436,25 +478,44 @@ aside a svg {
 }
 
 /* ============================================================
-   PRIMARY BUTTONS
-   — "text-primary" token (#2B2620) is the ONLY background fill used here.
-   — Text is always bg-card (#FFFFFF). Hover reduces opacity (no new color).
+   PRIMARY BUTTONS — theme-aware
+   Dark mode  (.dark class):  white  bg + black text
+   Light mode (no .dark):     black  bg + white text
+   Hover: lift + shadow animation on all primary buttons
    ============================================================ */
-.bg-primary,
-button.bg-primary {
-  background-color: var(--color-textMain, #2B2620) !important;
-  color: var(--color-surface, #FFFFFF) !important;
+
+/* Base: button or anchor with bg-primary → use token colors */
+button.bg-primary,
+a.bg-primary,
+input[type="submit"].bg-primary,
+input[type="button"].bg-primary {
+  background-color: var(--btn-bg) !important;
+  color:            var(--btn-text) !important;
+  border-color:     transparent !important;
+  opacity:          1 !important;
 }
 
-.bg-primary:hover,
-button.bg-primary:hover {
-  opacity: 0.85 !important;
+/* Hover: lift + shadow (disabled buttons are excluded) */
+button.bg-primary:hover:not(:disabled),
+a.bg-primary:hover {
+  background-color: var(--btn-hover-bg) !important;
+  transform: translateY(-2px) scale(1.018) !important;
+  box-shadow: var(--btn-hover-shadow) !important;
 }
 
-.bg-primary:active,
-button.bg-primary:active {
-  opacity: 0.70 !important;
-  transform: scale(0.98);
+/* Active / press feedback */
+button.bg-primary:active:not(:disabled),
+a.bg-primary:active {
+  transform: scale(0.96) translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Disabled state */
+button.bg-primary:disabled {
+  opacity: 0.48 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* ============================================================
@@ -746,4 +807,93 @@ textarea:focus {
   }
 
   .page-break { page-break-before: always; }
+}
+
+/* ============================================================
+   VISUAL POLISH & FINISHING DETAILS
+   ============================================================ */
+
+/* 1. Page Load Animation (Stagger Fade-Up) */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.delay-0 { animation-delay: 0ms; }
+.delay-80 { animation-delay: 80ms; }
+.delay-160 { animation-delay: 160ms; }
+.delay-240 { animation-delay: 240ms; }
+.delay-320 { animation-delay: 320ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-480 { animation-delay: 480ms; }
+.delay-560 { animation-delay: 560ms; }
+.delay-640 { animation-delay: 640ms; }
+.delay-720 { animation-delay: 720ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* 2. Blue Glow Accent Class & Sidebar Item Glow */
+.accent-glow {
+  box-shadow: 0 0 16px rgba(59,130,246,0.25) !important;
+}
+
+/* Sidebar active item glow */
+button[class*="bg-[rgba(59,130,246,0.12)]"] {
+  box-shadow: 0 0 16px rgba(59,130,246,0.25) !important;
+}
+
+/* 3. Card Hover Elevation and Transitions */
+div[class*="bg-white"][class*="rounded"],
+section[class*="bg-white"][class*="rounded"],
+aside[class*="bg-white"][class*="rounded"],
+.bg-card:not(input):not(select):not(textarea):not(aside):not(header),
+.apps-card,
+.card {
+  transition: all 0.25s ease !important;
+}
+
+div[class*="bg-white"][class*="rounded"]:not(aside):not(header):hover,
+section[class*="bg-white"][class*="rounded"]:hover,
+.bg-card:not(input):not(select):not(textarea):not(aside):not(header):not(.sticky):hover,
+.apps-card:hover,
+.card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(59,130,246,0.08) !important;
+}
+
+/* 4. Global Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 4px !important;
+  height: 4px !important;
+}
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C2A45 !important;
+  border-radius: 4px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent) !important;
+}
+
+/* 5. Chart Tooltip Styles */
+.recharts-default-tooltip {
+  background-color: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+  font-size: 12px !important;
+}
+
+/* 6. Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

@@ -242,7 +242,7 @@ const OperatingCostModal = ({ isOpen, onClose, record, triggerRefresh }) => {
                         type="submit"
                         form="operating-cost-form"
                         disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-card bg-primary hover:bg-primaryDark rounded-full shadow-sm transition-all disabled:opacity-70 cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-primary rounded-full shadow-sm transition-all disabled:opacity-70 cursor-pointer"
                     >
                         {saving && <div className="w-4 h-4 border-2 border-card/30 border-t-white rounded-full animate-spin"></div>}
                         {record ? 'Save Changes' : 'Record Cost'}
