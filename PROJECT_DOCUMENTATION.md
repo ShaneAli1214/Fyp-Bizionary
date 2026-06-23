@@ -773,6 +773,7 @@ To keep inventory and financial statements in sync without duplicate or prematur
 *   **Decoupled Ordered Slips:** Purchase order request slips are logged as `OrderedSlip` instances. Seeding processes do not contain static purchase records.
 *   **Dynamic Purchase Creation:** Financial `Purchase` entries are created dynamically in the database *only* when the warehouse completes receiving the inventory (i.e. the `OrderedSlip` transitions to `COMPLETED` status).
 *   **Event-Driven Stock Ledger:** The completion event dynamically triggers the stock ledger (`InventoryTransaction` type `IN`) and logs the financial payable record in the central ledger accounts automatically.
+*   **Normalized Category-Based Supplier Matching:** In the order slip creation UI, supplier companies are dynamically filtered and matched to product categories. Since database category naming structures (e.g., `'Computers'`, `'Electronics'`, `'Pharma'`) might differ from user-facing category options (e.g., `'Tech'`, `'Medicines'`), a robust normalization layer (`companyMatchesCategoryId` using `normalizeProductCategory`) maps related categories to their respective suppliers seamlessly, supporting both seeded and custom user-created categories.
 
 ---
 
