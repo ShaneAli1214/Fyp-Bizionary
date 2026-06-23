@@ -63,7 +63,7 @@ def product_list(request):
     serializer = ProductSerializer(data=request.data)
     if serializer.is_valid():
         product = serializer.save()
-        log_action(request, 'CREATE', f"Product '{product.name}' (SKU: {product.product_code}) created.", module='Products')
+        log_action(request, 'CREATE', f"Product '{product.name}' (SKU: {product.sku}) created.", module='Products')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,7 +81,7 @@ def product_detail(request, pk):
         serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.product_code}) updated.", module='Products')
+            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.sku}) updated.", module='Products')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -89,11 +89,11 @@ def product_detail(request, pk):
         serializer = ProductSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.product_code}) partially updated.", module='Products')
+            log_action(request, 'UPDATE', f"Product '{product.name}' (SKU: {product.sku}) partially updated.", module='Products')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    log_action(request, 'DELETE', f"Product '{product.name}' (SKU: {product.product_code}) permanently deleted.", module='Products')
+    log_action(request, 'DELETE', f"Product '{product.name}' (SKU: {product.sku}) permanently deleted.", module='Products')
     product.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 

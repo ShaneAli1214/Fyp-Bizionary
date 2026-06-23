@@ -140,6 +140,10 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             }
         };
 
+        // expose fetch functions for later use
+        window.__orderSlipFetchProducts = fetchProducts;
+        window.__orderSlipFetchCompanies = fetchCompanies;
+
         if (isOpen) {
             fetchProducts();
             fetchCompanies();
@@ -208,6 +212,56 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
     const customCostPrice = Number(customData.cost_price || 0);
     const customTotalAmount = customQuantity * customCostPrice;
 
+    useEffect(() => {
+        if (!isCustomMode) return;
+
+        if (customCompanyOptions.length === 0) {
+            setCustomData((prev) => {
+                if (prev.company_mode !== 'create') {
+                    return {
+                        ...prev,
+                        company_mode: 'create',
+                        company_name: '',
+                    };
+                }
+                return prev;
+            });
+        } else {
+            setCustomData((prev) => {
+                if (prev.company_mode === 'existing') {
+                    const isValidCompany = customCompanyOptions.some(c => c.name === prev.company_name);
+                    if (!prev.company_name || !isValidCompany) {
+                        return {
+                            ...prev,
+                            company_name: customCompanyOptions[0]?.name || '',
+                        };
+                    }
+                }
+                return prev;
+            });
+        }
+    }, [isCustomMode, effectiveCustomCategory, customCompanyOptions.length]);
+
+    // Listen for external events to refresh companies and categories when created elsewhere
+    useEffect(() => {
+        const handleCompanyCreated = (event) => {
+            if (typeof window.__orderSlipFetchCompanies === 'function') {
+                window.__orderSlipFetchCompanies();
+            }
+        };
+        const handleCategoryCreated = (event) => {
+            if (typeof window.__orderSlipFetchProducts === 'function') {
+                window.__orderSlipFetchProducts();
+            }
+        };
+        window.addEventListener('companyCreated', handleCompanyCreated);
+        window.addEventListener('categoryCreated', handleCategoryCreated);
+        return () => {
+            window.removeEventListener('companyCreated', handleCompanyCreated);
+            window.removeEventListener('categoryCreated', handleCategoryCreated);
+        };
+    }, []);
+
     const resetCustomSelectionForCategory = (categoryValue) => {
         const nextCompanies = getMergedCompaniesForCategory(categoryValue, registeredCompanies);
 
@@ -238,6 +292,9 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                         subcategory_mode: 'create',
                         subcategory: '',
                         custom_subcategory: '',
+                        company_name: '',
+                        company_mode: 'existing',
+                        company_contact_number: '',
                     }));
                     return;
                 }
@@ -389,6 +446,11 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             if (typeof onCompanySaved === 'function') {
                 onCompanySaved(savedCompany);
             }
+            // Dispatch event so other components can update
+            window.dispatchEvent(new CustomEvent('companyCreated', { detail: savedCompany }));
+            // Also trigger inventory refresh
+            window.dispatchEvent(new CustomEvent('inventoryRefreshRequested'));
+
             setCustomData((prev) => ({
                 ...prev,
                 company_name: savedCompany.name || prev.company_name,
@@ -403,8 +465,31 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
+
+        // If custom mode and a new category is being created, POST it to the backend
+        if (isCustomMode && customData.category_mode === 'create') {
+            try {
+                const newCategoryPayload = {
+                    name: customResolvedCategory,
+                    description: customData.custom_category || 'User created category',
+                };
+                const categoryResponse = await api.post('screen2/items/categories/', newCategoryPayload);
+                // Notify other components to refresh category lists
+                window.dispatchEvent(new CustomEvent('categoryCreated', { detail: categoryResponse.data }));
+                // Also trigger inventory refresh
+                window.dispatchEvent(new CustomEvent('inventoryRefreshRequested'));
+                // Refresh product list to include any new category-dependent products
+                if (typeof window.__orderSlipFetchProducts === 'function') {
+                    window.__orderSlipFetchProducts();
+                }
+            } catch (error) {
+                console.error('Failed to create category', error);
+                // Abort submission on error
+                return;
+            }
+        }
 
         if (isCustomMode) {
             onSubmit({
@@ -636,6 +721,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                         onChange={handleChange}
                                         className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                     >
+                                        <option value="" disabled>Select a company...</option>
                                         {customCompanyOptions.map((company) => (
                                             <option key={`${company.name}-${company.category || ''}`} value={company.name}>{company.name}</option>
                                         ))}

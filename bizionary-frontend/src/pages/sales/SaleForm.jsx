@@ -51,6 +51,17 @@ const SaleForm = ({ isOpen, onClose, onSubmit, initialData, createdSale, createM
             }
         };
         fetchProducts();
+
+        const handleProductUpdated = () => fetchProducts();
+        const handleCategoryOrCompanyCreated = () => fetchProducts();
+        window.addEventListener('product-updated', handleProductUpdated);
+        window.addEventListener('categoryCreated', handleCategoryOrCompanyCreated);
+        window.addEventListener('companyCreated', handleCategoryOrCompanyCreated);
+        return () => {
+            window.removeEventListener('product-updated', handleProductUpdated);
+            window.removeEventListener('categoryCreated', handleCategoryOrCompanyCreated);
+            window.removeEventListener('companyCreated', handleCategoryOrCompanyCreated);
+        };
     }, []);
 
     useEffect(() => {

@@ -147,17 +147,23 @@ const InventoryManagment = () => {
 
     useEffect(() => {
         const refreshInventory = () => {
+            console.log('Inventory refresh triggered by event');
             fetchInventoryData();
         };
 
         window.addEventListener('saleCreated', refreshInventory);
         window.addEventListener('orderedSlipUpdated', refreshInventory);
         window.addEventListener('inventoryRefreshRequested', refreshInventory);
+        // New listeners for company and category creation
+        window.addEventListener('companyCreated', refreshInventory);
+        window.addEventListener('categoryCreated', refreshInventory);
 
         return () => {
             window.removeEventListener('saleCreated', refreshInventory);
             window.removeEventListener('orderedSlipUpdated', refreshInventory);
             window.removeEventListener('inventoryRefreshRequested', refreshInventory);
+            window.removeEventListener('companyCreated', refreshInventory);
+            window.removeEventListener('categoryCreated', refreshInventory);
         };
     }, []);
 

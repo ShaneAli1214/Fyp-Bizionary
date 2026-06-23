@@ -117,12 +117,21 @@ def product_stock_history(request, pk):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+# Duplicate imports removed (already imported at top of file)
+
+@api_view(['GET', 'POST'])
 def categories_list(request):
-    """List all product categories"""
-    categories = Category.objects.all()
-    serializer = CategorySerializer(categories, many=True)
-    return Response(serializer.data)
+    """List all product categories or create a new one."""
+    if request.method == 'GET':
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
