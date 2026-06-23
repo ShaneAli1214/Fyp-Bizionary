@@ -110,10 +110,15 @@ const SalesList = () => {
             .map((cat) => normalizeProductCategory(cat) || cat);
 
         const merged = [...PRODUCT_CATEGORIES.map((item) => item.value), ...dynamicCategories];
-        return Array.from(new Set(merged)).map((value) => {
-            const match = PRODUCT_CATEGORIES.find((item) => item.value === value);
-            return match || { value, label: value };
-        });
+        return Array.from(new Set(merged))
+            .filter((value) => {
+                const lowerVal = value.toLowerCase();
+                return lowerVal !== 'water' && lowerVal !== 'books' && lowerVal !== 'sports';
+            })
+            .map((value) => {
+                const match = PRODUCT_CATEGORIES.find((item) => item.value === value);
+                return match || { value, label: value };
+            });
     }, [sales]);
 
     const getCategoryLabel = (category) => {

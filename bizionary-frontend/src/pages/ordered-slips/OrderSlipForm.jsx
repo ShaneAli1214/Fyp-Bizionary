@@ -34,12 +34,19 @@ const companyMatchesCategory = (companyCategory, categoryValue) => {
 };
 
 const companyMatchesCategoryId = (company, categoryValue) => {
-    const categoryId = normalizeCategoryKey(company?.categoryId || '');
-    if (categoryId) {
-        return categoryId === normalizeCategoryKey(categoryValue);
+    const companyCat = company?.categoryId || company?.category || '';
+    if (!companyCat) {
+        return true;
     }
 
-    return companyMatchesCategory(company?.category, categoryValue);
+    const normCompany = normalizeProductCategory(companyCat);
+    const normSelected = normalizeProductCategory(categoryValue);
+
+    if (normCompany && normSelected) {
+        return normCompany === normSelected;
+    }
+
+    return normalizeCategoryKey(companyCat) === normalizeCategoryKey(categoryValue);
 };
 
 const getMergedCompaniesForCategory = (categoryValue, registeredCompanies = []) => mergeUniqueCompanies(
@@ -101,7 +108,12 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             .filter(Boolean);
 
         const merged = [...PRODUCT_CATEGORIES.map((item) => item.value), ...dynamicCategories];
-        return Array.from(new Set(merged)).map((value) => PRODUCT_CATEGORIES.find((item) => item.value === value) || { value, label: formatCategoryLabel(value) });
+        return Array.from(new Set(merged))
+            .filter((value) => {
+                const lowerVal = value.toLowerCase();
+                return lowerVal !== 'water' && lowerVal !== 'books' && lowerVal !== 'sports';
+            })
+            .map((value) => PRODUCT_CATEGORIES.find((item) => item.value === value) || { value, label: formatCategoryLabel(value) });
     }, [products]);
 
     useEffect(() => {

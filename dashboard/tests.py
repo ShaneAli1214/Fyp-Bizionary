@@ -87,3 +87,37 @@ class DataFlowTestCase(TestCase):
         
         # Cash transaction should be deleted
         self.assertFalse(CashTransaction.objects.filter(source_type='purchase', source_id=purchase.id).exists())
+
+    def test_ordered_slip_mark_complete_inventory_increment(self):
+        from purchases.models import OrderedSlip
+        # 1. Create a pending OrderedSlip
+        ordered_slip = OrderedSlip.objects.create(
+            product=self.product,
+            company_name=self.supplier.name,
+            quantity_ordered=5,
+            unit_cost=Decimal("700.00"),
+            total_cost=Decimal("3500.00"),
+            status=OrderedSlip.STATUS_PENDING
+        )
+        
+        # Assert initial stock is 10
+        self.assertEqual(self.product.stock_quantity, 10)
+        
+        # 2. Mark complete via API
+        response = self.client.post(f'/api/purchases/ordered-slips/{ordered_slip.id}/mark-complete/')
+        self.assertEqual(response.status_code, 200)
+        
+        # 3. Refresh product from DB
+        self.product.refresh_from_db()
+        
+        # Stock quantity should increase by exactly 5 (to 15), not double (20)
+        self.assertEqual(self.product.stock_quantity, 15)
+
+        # 4. Delete the OrderedSlip
+        ordered_slip.delete()
+
+        # 5. Refresh product from DB
+        self.product.refresh_from_db()
+
+        # Stock quantity should be restored back to 10
+        self.assertEqual(self.product.stock_quantity, 10)

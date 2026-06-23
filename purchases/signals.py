@@ -22,13 +22,17 @@ def purchase_post_save(sender, instance, created, **kwargs):
     from products.models import InventoryTransaction
     from accounts.models import CashTransaction, AuditLog
 
-    # Skip inventory ledger creation if this is a multiline purchase order.
+    # Skip inventory ledger creation if this is a multiline purchase order or generated from an OrderedSlip.
     # The PurchaseLineItem signals will create individual line inventory transactions.
     is_multiline = getattr(instance, '_is_multiline', False)
+    skip_inventory = (
+        getattr(instance, '_skip_inventory', False) or 
+        (instance.notes and "Generated from Completed OrderedSlip" in instance.notes)
+    )
 
     if created:
         # 1. Inventory ledger: stock goes IN (only for legacy/single product purchases)
-        if not is_multiline:
+        if not is_multiline and not skip_inventory:
             InventoryTransaction.objects.create(
                 product=instance.product,
                 txn_type=InventoryTransaction.TYPE_IN,
@@ -167,3 +171,10 @@ def ordered_slip_post_save(sender, instance, created, **kwargs):
             'quantity_ordered': instance.quantity_ordered,
         }
     )
+
+
+@receiver(post_delete, sender='purchases.OrderedSlip')
+def ordered_slip_post_delete(sender, instance, **kwargs):
+    """On OrderedSlip deletion: reverse inventory receipt transactions."""
+    from products.models import InventoryTransaction
+    InventoryTransaction.objects.filter(reference_type='ordered_slip', reference_id=instance.id).delete()
