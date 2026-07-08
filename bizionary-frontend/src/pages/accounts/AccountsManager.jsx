@@ -133,7 +133,6 @@ const AccountsManager = () => {
         const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         return { startDate: fmt(firstOfMonth), endDate: fmt(today) };
     });
-    const [sliderDuration, setSliderDuration] = useState(30);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
@@ -180,8 +179,6 @@ const AccountsManager = () => {
                                 const newEnd = parseLocalDate(autoData.end_date);
                                 setKpis(autoData);
                                 setDateRange({ startDate: newStart, endDate: newEnd });
-                                const diff = Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
-                                setSliderDuration(Math.min(365, Math.max(1, diff)));
                                 return; // State update triggers useEffect again with the new dates
                             }
                         }
@@ -197,8 +194,6 @@ const AccountsManager = () => {
                             startDate: newStart,
                             endDate: newEnd
                         });
-                        const diff = Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
-                        setSliderDuration(Math.min(365, Math.max(1, diff)));
                         return; // The state update will trigger this useEffect again with valid dates
                     }
                 }
@@ -262,8 +257,6 @@ const AccountsManager = () => {
         const newStart = parseLocalDate(val);
         setDateRange(prev => {
             const nextEnd = prev.endDate >= newStart ? prev.endDate : newStart;
-            const diff = Math.ceil((nextEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
-            setSliderDuration(Math.min(365, Math.max(1, diff)));
             return {
                 startDate: newStart,
                 endDate: nextEnd
@@ -276,24 +269,9 @@ const AccountsManager = () => {
         const newEnd = parseLocalDate(val);
         setDateRange(prev => {
             const nextStart = prev.startDate <= newEnd ? prev.startDate : newEnd;
-            const diff = Math.ceil((newEnd - nextStart) / (1000 * 60 * 60 * 24)) + 1;
-            setSliderDuration(Math.min(365, Math.max(1, diff)));
             return {
                 startDate: nextStart,
                 endDate: newEnd
-            };
-        });
-    };
-
-    const handleSliderChange = (duration) => {
-        const val = parseInt(duration, 10);
-        setSliderDuration(val);
-        setDateRange(prev => {
-            const nextEnd = new Date(prev.startDate);
-            nextEnd.setDate(nextEnd.getDate() + val - 1);
-            return {
-                ...prev,
-                endDate: nextEnd
             };
         });
     };
@@ -506,6 +484,44 @@ const AccountsManager = () => {
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-card border border-card rounded-2xl p-2.5 gap-3 shadow-xs">
+                        {/* Quick Month Select Dropdown */}
+                        <div className="flex flex-col min-w-[100px]">
+                            <span className="text-[9px] font-black text-secondary uppercase tracking-wider mb-0.5 pl-0.5">Quick Month</span>
+                            <select
+                                onChange={(e) => {
+                                    const m = parseInt(e.target.value);
+                                    if (!isNaN(m)) {
+                                        const firstDay = `${2026}-${String(m).padStart(2, '0')}-01`;
+                                        const lastDayNum = new Date(2026, m, 0).getDate();
+                                        const lastDay = `${2026}-${String(m).padStart(2, '0')}-${String(lastDayNum).padStart(2, '0')}`;
+                                        setDateRange({
+                                            startDate: parseLocalDate(firstDay),
+                                            endDate: parseLocalDate(lastDay)
+                                        });
+                                        setSliderDuration(lastDayNum);
+                                    }
+                                }}
+                                className="px-2 py-1 text-xs font-bold bg-page hover:bg-page/70 border border-card rounded-lg text-primary focus:outline-none focus:border-primary transition-all cursor-pointer"
+                                defaultValue=""
+                            >
+                                <option value="" disabled>Choose...</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+
+                        <div className="hidden sm:block w-px h-6 bg-active-pill self-end mb-1"></div>
+
                         <div className="flex items-center gap-1.5">
                             <div className="flex flex-col">
                                 <span className="text-[9px] font-black text-secondary uppercase tracking-wider mb-0.5 pl-0.5">Start Date</span>
@@ -525,29 +541,6 @@ const AccountsManager = () => {
                                     onChange={(e) => handleEndDateChange(e.target.value)}
                                     className="px-2 py-1 text-xs font-bold bg-page hover:bg-page/70 border border-card rounded-lg text-primary focus:outline-none focus:border-primary transition-all font-mono"
                                 />
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:block w-px h-6 bg-active-pill self-end mb-1"></div>
-
-                        <div className="flex flex-col min-w-[140px] sm:min-w-[170px] justify-end">
-                            <div className="flex justify-between items-center mb-0.5">
-                                <span className="text-[9px] font-black text-secondary uppercase tracking-wider pl-0.5">Duration</span>
-                                <span className="text-[10px] font-black text-primary bg-sky-50 px-1.5 py-0.2 rounded border border-sky-100 font-mono">
-                                    {sliderDuration} {sliderDuration === 1 ? 'day' : 'days'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 h-6">
-                                <span className="text-[9px] text-secondary font-bold font-mono">1d</span>
-                                <input 
-                                    type="range" 
-                                    min="1" 
-                                    max="365" 
-                                    value={sliderDuration}
-                                    onChange={(e) => handleSliderChange(e.target.value)}
-                                    className="w-full h-1 bg-page rounded-lg appearance-none cursor-pointer accent-primary"
-                                />
-                                <span className="text-[9px] text-secondary font-bold font-mono">1y</span>
                             </div>
                         </div>
                     </div>
@@ -601,7 +594,7 @@ const AccountsManager = () => {
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 print:hidden">
                 {/* Total Revenue */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Revenue</span>
                         {loadingKpis ? (
@@ -616,12 +609,11 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_revenue || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.total_revenue, kpis?.prev_revenue)}
                     </div>
                 </div>
 
                 {/* Total COGS */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">COGS</span>
                         {loadingKpis ? (
@@ -636,12 +628,11 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_cogs || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.total_cogs, kpis?.prev_cogs)}
                     </div>
                 </div>
 
                 {/* Gross Profit */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Gross Profit</span>
                         {loadingKpis ? (
@@ -656,16 +647,11 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.gross_profit || 0)}
                         </span>
-                        {!loadingKpis && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-teal-700 bg-teal-50 border-teal-100 dark:bg-teal-950/20 dark:text-teal-400 dark:border-teal-900/40 inline-block mt-1 self-start">
-                                {calculateMargin(kpis?.gross_profit, kpis?.total_revenue).toFixed(1)}% margin
-                            </span>
-                        )}
                     </div>
                 </div>
 
                 {/* Total Expenses */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Expenses</span>
                         {loadingKpis ? (
@@ -680,12 +666,11 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.total_expense || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.total_expense, kpis?.prev_expense)}
                     </div>
                 </div>
 
                 {/* Net Profit */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-card dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">
                             {(!loadingKpis && kpis?.net_profit < 0) ? 'Net Loss' : 'Net Profit'}
@@ -702,16 +687,11 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.net_profit || 0)}
                         </span>
-                        {!loadingKpis && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border text-sky-700 bg-sky-50 border-sky-100 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/40 inline-block mt-1 self-start">
-                                {calculateMargin(kpis?.net_profit, kpis?.total_revenue).toFixed(1)}% margin
-                            </span>
-                        )}
                     </div>
                 </div>
 
                 {/* Cash Flow */}
-                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[120px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
+                <div className="bg-card dark:bg-primary p-4 rounded-xl border border-card/80 dark:border-slate-800/80 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-200">
                     <div className="flex items-start justify-between">
                         <span className="text-[10px] font-bold text-secondary dark:text-secondary uppercase tracking-wider">Net Cash Flow</span>
                         {loadingKpis ? (
@@ -726,7 +706,6 @@ const AccountsManager = () => {
                         <span className="text-lg font-bold text-primary dark:text-slate-100 tracking-tight">
                             {loadingKpis ? '...' : formatPKR(kpis?.cash_flow || 0)}
                         </span>
-                        {!loadingKpis && getGrowthBadge(kpis?.cash_flow, kpis?.prev_cash_flow)}
                     </div>
                 </div>
             </div>

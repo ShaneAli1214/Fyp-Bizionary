@@ -44,52 +44,74 @@ from .serializers import (
 def revenue_by_period(request):
     """
     Revenue aggregated by rolling period: daily (last 1 day), weekly (last 7 days),
-    or monthly (last 30 days) — uses actual sales data from the Sale table.
+    monthly (last 30 days), overall (all-time), or specific month (e.g. jan).
+    Uses actual sales data from the Sale table.
 
     Method: GET
-    Endpoint: /api/dashboard/revenue-by-period/?period=daily|weekly|monthly
+    Endpoint: /api/dashboard/revenue-by-period/?period=all|daily|weekly|monthly|jan|feb|...
 
     Returns:
         {
-            "period": "daily",
+            "period": "all",
             "revenue": "12345.67",
             "transaction_count": 42,
             "start_date": "2026-06-08",
             "end_date": "2026-06-09",
-            "label": "Last 24 Hours"
+            "label": "Overall"
         }
     """
     try:
-        period = request.query_params.get('period', 'daily').lower().strip()
-        if period not in ('daily', 'weekly', 'monthly'):
-            return Response(
-                {'error': "Invalid period. Use 'daily', 'weekly', or 'monthly'."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+        period = request.query_params.get('period', 'all').lower().strip()
+        
         today = timezone.localdate()
-
-        # Rolling lookback windows so the card always shows meaningful real data
+        start = None
+        end = None
+        label = "Overall"
+        
+        month_map = {
+            'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+            'january': 1, 'february': 2, 'march': 3, 'april': 4, 'june': 6,
+            'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+        }
+        
         if period == 'daily':
-            # Last 1 day (yesterday + today)
             start = today - timedelta(days=1)
             end = today
             label = 'Last 24 Hours'
         elif period == 'weekly':
-            # Last 7 days
             start = today - timedelta(days=7)
             end = today
             label = 'Last 7 Days'
-        else:  # monthly
-            # Last 30 days
+        elif period == 'monthly':
             start = today - timedelta(days=30)
             end = today
             label = 'Last 30 Days'
+        elif period in month_map:
+            m = month_map[period]
+            from calendar import monthrange
+            from datetime import date
+            last_day = monthrange(2026, m)[1]
+            start = date(2026, m, 1)
+            end = date(2026, m, last_day)
+            label = f"{period.upper()} 2026"
+        elif period == 'all':
+            start = None
+            end = None
+            label = 'Overall'
+        else:
+            return Response(
+                {'error': "Invalid period. Use 'all', 'daily', 'weekly', 'monthly', or a month name (e.g. 'jan')."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        agg = Sale.objects.filter(
-            sale_date__gte=start,
-            sale_date__lte=end,
-        ).aggregate(
+        queryset = Sale.objects.all()
+        if start:
+            queryset = queryset.filter(sale_date__gte=start)
+        if end:
+            queryset = queryset.filter(sale_date__lte=end)
+
+        agg = queryset.aggregate(
             revenue=Sum('total_price'),
             transaction_count=Count('id'),
         )
@@ -97,12 +119,26 @@ def revenue_by_period(request):
         revenue = (agg['revenue'] or Decimal('0.00')).quantize(Decimal('0.01'))
         tx_count = agg['transaction_count'] or 0
 
+        # Get operating expenses and COGS for the exact same range
+        from accounts.services import AccountsService
+        if start and end:
+            expenses = AccountsService.get_expenses(start, end)
+            cogs = AccountsService.get_cogs(start, end)
+        else:
+            expenses = AccountsService.get_expenses()
+            cogs = AccountsService.get_cogs()
+        expenses = (expenses or Decimal('0.00')).quantize(Decimal('0.01'))
+        cogs = (cogs or Decimal('0.00')).quantize(Decimal('0.01'))
+        net_profit = (revenue - cogs - expenses).quantize(Decimal('0.01'))
+
         return Response({
             'period': period,
             'revenue': str(revenue),
+            'expenses': str(expenses),
+            'net_profit': str(net_profit),
             'transaction_count': tx_count,
-            'start_date': start.isoformat(),
-            'end_date': end.isoformat(),
+            'start_date': start.isoformat() if start else None,
+            'end_date': end.isoformat() if end else None,
             'label': label,
         }, status=status.HTTP_200_OK)
 

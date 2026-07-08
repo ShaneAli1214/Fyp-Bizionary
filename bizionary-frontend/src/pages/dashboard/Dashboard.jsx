@@ -157,13 +157,24 @@ const Dashboard = () => {
 
     // Revenue period filter state
     const REVENUE_PERIODS = [
+        { key: 'all',     label: 'Overall' },
         { key: 'daily',   label: 'Last 24h' },
-        { key: 'weekly',  label: 'Last 7 Days' },
         { key: 'monthly', label: 'Last 30 Days' },
     ];
-    const [revenuePeriod, setRevenuePeriod] = useState('daily');
-    const [revenueData, setRevenueData] = useState({ revenue: '0.00', transaction_count: 0, start_date: '', end_date: '', label: '' });
+    const [revenuePeriod, setRevenuePeriod] = useState('all');
+    const [revenueData, setRevenueData] = useState({ revenue: '0.00', expenses: '0.00', net_profit: '0.00', transaction_count: 0, start_date: '', end_date: '', label: '' });
     const [revenueLoading, setRevenueLoading] = useState(false);
+
+    // Expense period filter state
+    const [expensePeriod, setExpensePeriod] = useState('all');
+    const [expenseData, setExpenseData] = useState({ expenses: '0.00', label: '' });
+    const [expenseLoading, setExpenseLoading] = useState(false);
+
+    // Net profit period filter state
+    const [netProfitPeriod, setNetProfitPeriod] = useState('all');
+    const [netProfitData, setNetProfitData] = useState({ net_profit: '0.00', label: '' });
+    const [netProfitLoading, setNetProfitLoading] = useState(false);
+
     // Previous-period snapshots for comparison metrics (null = backend doesn't support it yet)
     const [prevKpis, setPrevKpis] = useState(null);
     const [prevRevenueData, setPrevRevenueData] = useState(null);
@@ -232,20 +243,10 @@ const Dashboard = () => {
     const fetchRevenue = async (period) => {
         setRevenueLoading(true);
         try {
-            // Fetch current and previous period in parallel.
-            // offset=1 asks the backend for the immediately preceding equivalent window.
-            const [currRes, prevRes] = await Promise.allSettled([
-                api.get(`dashboard/revenue-by-period/?period=${period}`),
-                api.get(`dashboard/revenue-by-period/?period=${period}&offset=1`),
-            ]);
-            if (currRes.status === 'fulfilled' && currRes.value.data) {
-                setRevenueData(currRes.value.data);
+            const res = await api.get(`dashboard/revenue-by-period/?period=${period}`);
+            if (res.data) {
+                setRevenueData(res.data);
             }
-            setPrevRevenueData(
-                prevRes.status === 'fulfilled' && prevRes.value.data
-                    ? prevRes.value.data
-                    : null
-            );
         } catch (error) {
             console.warn('Failed to fetch revenue by period', error);
         } finally {
@@ -253,11 +254,41 @@ const Dashboard = () => {
         }
     };
 
+    const fetchExpense = async (period) => {
+        setExpenseLoading(true);
+        try {
+            const res = await api.get(`dashboard/revenue-by-period/?period=${period}`);
+            if (res.data) {
+                setExpenseData(res.data);
+            }
+        } catch (error) {
+            console.warn('Failed to fetch expense by period', error);
+        } finally {
+            setExpenseLoading(false);
+        }
+    };
+
+    const fetchNetProfit = async (period) => {
+        setNetProfitLoading(true);
+        try {
+            const res = await api.get(`dashboard/revenue-by-period/?period=${period}`);
+            if (res.data) {
+                setNetProfitData(res.data);
+            }
+        } catch (error) {
+            console.warn('Failed to fetch net profit by period', error);
+        } finally {
+            setNetProfitLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchKPIs();
         fetchPrevKpis();
         fetchDropdownOptions();
-        fetchRevenue('daily');
+        fetchRevenue('all');
+        fetchExpense('all');
+        fetchNetProfit('all');
         if (isAccountant) {
             fetchRecentInvoices();
         }
@@ -281,6 +312,14 @@ const Dashboard = () => {
     useEffect(() => {
         fetchRevenue(revenuePeriod);
     }, [revenuePeriod]);
+
+    useEffect(() => {
+        fetchExpense(expensePeriod);
+    }, [expensePeriod]);
+
+    useEffect(() => {
+        fetchNetProfit(netProfitPeriod);
+    }, [netProfitPeriod]);
 
     // Create Product Handler (matches ProductList.jsx logic)
     const handleCreateProduct = async (productData) => {
@@ -463,7 +502,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {/* 7. Total Revenue - with Daily / Weekly / Monthly filter */}
                 {!isInventoryManager && (
-                    <div className="bg-surface border border-border border-l-2 border-l-accent p-4.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 col-span-1 sm:col-span-2 lg:col-span-1 flex flex-col justify-between h-[128px]">
+                    <div className="bg-surface border border-border border-l-4 border-l-accent p-4.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 col-span-1 sm:col-span-2 lg:col-span-2 flex flex-col justify-between h-[132px]">
                         {/* Header row */}
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Revenue</span>
@@ -478,14 +517,14 @@ const Dashboard = () => {
                         </div>
 
                         {/* Revenue amount */}
-                        <div className={`text-2xl font-bold text-text-primary tracking-tight transition-opacity duration-200 ${
+                        <div className={`text-3xl font-extrabold text-text-primary tracking-tight transition-opacity duration-200 ${
                             revenueLoading ? 'opacity-40' : 'opacity-100'
                         }`}>
                             {formatPKR(revenueData.revenue)}
                         </div>
 
-                        {/* Filter pills */}
-                        <div className="flex gap-1 bg-background p-0.5 rounded-lg border border-border">
+                        {/* Filter pills and month selector */}
+                        <div className="flex items-center gap-1 bg-background p-0.5 rounded-lg border border-border w-full">
                             {REVENUE_PERIODS.map((p) => (
                                 <button
                                     key={p.key}
@@ -499,52 +538,143 @@ const Dashboard = () => {
                                     {p.label}
                                 </button>
                             ))}
-                        </div>
-
-                        {/* Meta row: transaction count + comparison ribbons */}
-                        <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[9px] text-text-secondary font-semibold shrink-0">
-                                {revenueData.transaction_count.toLocaleString()} sale{revenueData.transaction_count !== 1 ? 's' : ''}
-                            </span>
-                            <div className="flex items-center gap-1 flex-wrap justify-end">
-                                {/* % change vs previous equivalent period */}
-                                {revenueChangePct !== null
-                                    ? <DeltaBadge pct={revenueChangePct} />
-                                    : revenueData.label && (
-                                        <span className="text-[9px] text-success font-bold bg-success/10 px-1.5 py-0.5 rounded-md">
-                                            {revenueData.label}
-                                        </span>
-                                    )
-                                }
-                                {/* Gross profit margin */}
-                                <DeltaBadge pct={grossMarginPct} type="margin" label="margin" />
-                            </div>
+                            <select
+                                value={['all', 'daily', 'monthly'].includes(revenuePeriod) ? '' : revenuePeriod}
+                                onChange={(e) => {
+                                    if (e.target.value) setRevenuePeriod(e.target.value);
+                                }}
+                                className={`text-[9px] font-bold bg-background text-text-secondary border-0 outline-none rounded-md px-1 py-0.5 cursor-pointer max-w-[70px] ${
+                                    !['all', 'daily', 'monthly'].includes(revenuePeriod)
+                                        ? 'text-text-primary font-extrabold border border-border bg-surface shadow-xs'
+                                        : 'hover:text-text-primary'
+                                }`}
+                            >
+                                <option value="">Month...</option>
+                                <option value="jan">Jan</option>
+                                <option value="feb">Feb</option>
+                                <option value="mar">Mar</option>
+                                <option value="apr">Apr</option>
+                                <option value="may">May</option>
+                                <option value="jun">Jun</option>
+                                <option value="jul">Jul</option>
+                                <option value="aug">Aug</option>
+                                <option value="sep">Sep</option>
+                                <option value="oct">Oct</option>
+                                <option value="nov">Nov</option>
+                                <option value="dec">Dec</option>
+                            </select>
                         </div>
                     </div>
                 )}
 
-                {/* 1. Accounts */}
+                {/* 1. Expenses (formerly Accounts count) */}
                 {!isInventoryManager && !isSalesManager && (
                     <div 
                         onClick={() => navigate('/accounts')}
-                        className="bg-surface p-4.5 rounded-xl border border-border shadow-sm hover:shadow-md hover:border-accent transition-all duration-200 cursor-pointer flex flex-col justify-between h-[128px] group"
+                        className="bg-surface border border-border p-4.5 rounded-xl shadow-sm hover:shadow-md hover:border-accent transition-all duration-200 cursor-pointer flex flex-col justify-between h-[132px] group"
                     >
-                        <div className="flex items-start justify-between">
-                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Accounts</span>
-                            <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
-                                <CreditCard className="w-3.5 h-3.5" />
+                        {/* Header row */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Expenses</span>
+                            <div className="flex items-center gap-1.5">
+                                {expenseLoading && (
+                                    <RefreshCw className="h-3 w-3 text-accent animate-spin" />
+                                )}
+                                <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
+                                    <CreditCard className="w-3.5 h-3.5" />
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <div className="text-2xl font-bold text-text-primary tracking-tight">
-                                {kpis.total_accounts}
+
+                        {/* Expense amount */}
+                        <div className={`text-2xl font-bold text-text-primary tracking-tight transition-opacity duration-200 ${
+                            expenseLoading ? 'opacity-40' : 'opacity-100'
+                        }`}>
+                            {formatPKR(expenseData.expenses || kpis.total_expenses || 0)}
+                        </div>
+
+                        {/* Beautiful full-width select filter */}
+                        <div className="flex items-center gap-1.5 bg-background dark:bg-primary/20 px-2.5 py-1.5 rounded-lg border border-border/80 w-full hover:border-accent/40 transition-colors">
+                            <span className="text-[10px] font-black text-text-secondary uppercase tracking-wider shrink-0">Period:</span>
+                            <select
+                                value={expensePeriod}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => setExpensePeriod(e.target.value)}
+                                className="w-full text-[10px] font-bold bg-transparent text-text-primary border-0 outline-none cursor-pointer font-sans"
+                            >
+                                <option value="all">Overall (All Time)</option>
+                                <option value="daily">Last 24 Hours</option>
+                                <option value="monthly">Last 30 Days</option>
+                                <option value="jan">January</option>
+                                <option value="feb">February</option>
+                                <option value="mar">March</option>
+                                <option value="apr">April</option>
+                                <option value="may">May</option>
+                                <option value="jun">June</option>
+                                <option value="jul">July</option>
+                                <option value="aug">August</option>
+                                <option value="sep">September</option>
+                                <option value="oct">October</option>
+                                <option value="nov">November</option>
+                                <option value="dec">December</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+
+                {/* Net Profit Card */}
+                {!isInventoryManager && (
+                    <div 
+                        onClick={() => navigate('/accounts')}
+                        className="bg-surface border border-border p-4.5 rounded-xl shadow-sm hover:shadow-md hover:border-accent transition-all duration-200 cursor-pointer flex flex-col justify-between h-[132px] group"
+                    >
+                        {/* Header row */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Net Profit</span>
+                            <div className="flex items-center gap-1.5">
+                                {netProfitLoading && (
+                                    <RefreshCw className="h-3 w-3 text-accent animate-spin" />
+                                )}
+                                <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
+                                    <TrendingUp className="w-3.5 h-3.5" />
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-text-secondary font-semibold">
-                            <span>System accounts</span>
-                            <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
-                                View <ArrowRight className="w-3 h-3" />
-                            </span>
+
+                        {/* Net Profit amount */}
+                        <div className={`text-2xl font-bold tracking-tight transition-opacity duration-200 ${
+                            netProfitLoading ? 'opacity-40' : 'opacity-100'
+                        } ${
+                            (parseFloat(netProfitData.net_profit) || 0) >= 0 ? 'text-status-success' : 'text-danger'
+                        }`}>
+                            {formatPKR(netProfitData.net_profit || kpis.net_profit || 0)}
+                        </div>
+
+                        {/* Beautiful full-width select filter */}
+                        <div className="flex items-center gap-1.5 bg-background dark:bg-primary/20 px-2.5 py-1.5 rounded-lg border border-border/80 w-full hover:border-accent/40 transition-colors">
+                            <span className="text-[10px] font-black text-text-secondary uppercase tracking-wider shrink-0">Period:</span>
+                            <select
+                                value={netProfitPeriod}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => setNetProfitPeriod(e.target.value)}
+                                className="w-full text-[10px] font-bold bg-transparent text-text-primary border-0 outline-none cursor-pointer font-sans"
+                            >
+                                <option value="all">Overall (All Time)</option>
+                                <option value="daily">Last 24 Hours</option>
+                                <option value="monthly">Last 30 Days</option>
+                                <option value="jan">January</option>
+                                <option value="feb">February</option>
+                                <option value="mar">March</option>
+                                <option value="apr">April</option>
+                                <option value="may">May</option>
+                                <option value="jun">June</option>
+                                <option value="jul">July</option>
+                                <option value="aug">August</option>
+                                <option value="sep">September</option>
+                                <option value="oct">October</option>
+                                <option value="nov">November</option>
+                                <option value="dec">December</option>
+                            </select>
                         </div>
                     </div>
                 )}
@@ -568,12 +698,9 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-text-secondary font-semibold">
                             <span>Catalog items</span>
-                            <div className="flex items-center gap-2">
-                                <DeltaBadge pct={productsChangePct} />
-                                <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
-                                    View <ArrowRight className="w-3 h-3" />
-                                </span>
-                            </div>
+                            <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
+                                View <ArrowRight className="w-3 h-3" />
+                            </span>
                         </div>
                     </div>
                 )}
@@ -597,12 +724,9 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-text-secondary font-semibold">
                             <span>Purchase orders</span>
-                            <div className="flex items-center gap-2">
-                                <DeltaBadge pct={slipsChangePct} />
-                                <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
-                                    View <ArrowRight className="w-3 h-3" />
-                                </span>
-                            </div>
+                            <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
+                                View <ArrowRight className="w-3 h-3" />
+                            </span>
                         </div>
                     </div>
                 )}
@@ -684,12 +808,9 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-text-secondary font-semibold">
                             <span>Transactions</span>
-                            <div className="flex items-center gap-2">
-                                <DeltaBadge pct={ordersChangePct} />
-                                <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
-                                    View <ArrowRight className="w-3 h-3" />
-                                </span>
-                            </div>
+                            <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
+                                View <ArrowRight className="w-3 h-3" />
+                            </span>
                         </div>
                     </div>
                 )}
@@ -741,31 +862,28 @@ const Dashboard = () => {
                     </>
                 )}
 
-                {/* 6. Stock Batches */}
+                {/* 6. Inventory Value (formerly Stock Batches count) */}
                 {!isSalesManager && !isAccountant && (
                     <div 
                         onClick={() => navigate('/inventory-managment')}
                         className="bg-surface p-4.5 rounded-xl border border-border shadow-sm hover:shadow-md hover:border-accent transition-all duration-200 cursor-pointer flex flex-col justify-between h-[128px] group"
                     >
                         <div className="flex items-start justify-between">
-                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Stock Batches</span>
+                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Inventory Value</span>
                             <div className="p-1.5 rounded-xl bg-accent/10 text-accent">
                                 <Boxes className="w-3.5 h-3.5" />
                             </div>
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-text-primary tracking-tight">
-                                {kpis.total_stock_batches}
+                                {formatPKR(kpis.total_inventory_value || 0)}
                             </div>
                         </div>
                         <div className="flex items-center justify-between text-[10px] text-text-secondary font-semibold">
-                            <span>Warehouse batches</span>
-                            <div className="flex items-center gap-2">
-                                <DeltaBadge pct={stockChangePct} />
-                                <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
-                                    View <ArrowRight className="w-3 h-3" />
-                                </span>
-                            </div>
+                            <span>Total stock asset value</span>
+                            <span className="flex items-center gap-0.5 text-accent font-bold group-hover:translate-x-1 transition-transform">
+                                View <ArrowRight className="w-3 h-3" />
+                            </span>
                         </div>
                     </div>
                 )}

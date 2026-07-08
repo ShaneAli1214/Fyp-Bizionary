@@ -346,7 +346,6 @@ const ProductList = () => {
                                                     <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
                                                     {/* Supplier column removed */}
                                                     <th className="px-6 py-4 font-semibold text-center">Shop Stock</th>
-                                                    <th className="px-6 py-4 font-semibold text-center">Warehouse Stock</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Total Stock</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Status</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
@@ -355,7 +354,7 @@ const ProductList = () => {
                                     <tbody className="divide-y divide-border-card">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan="11" className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan="10" className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
@@ -375,11 +374,6 @@ const ProductList = () => {
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="text-xs font-semibold text-textMain">
                                                             {toNumber(p.shop_stock)}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <span className="text-xs font-semibold text-textMain">
-                                                            {toNumber(p.warehouse_stock)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">

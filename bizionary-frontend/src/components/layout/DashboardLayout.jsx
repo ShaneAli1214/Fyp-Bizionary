@@ -38,55 +38,41 @@ const LayoutShell = () => {
                 </main>
             </div>
 
-            {/* Floating Action Menu */}
-            <div
-                className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-none print:hidden"
-                onMouseEnter={() => setIsMenuOpen(true)}
-                onMouseLeave={() => setIsMenuOpen(false)}
-            >
-                <div className={`flex flex-col items-end gap-2 mb-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    isMenuOpen
-                        ? 'opacity-100 translate-y-0 pointer-events-auto scale-100'
-                        : 'opacity-0 translate-y-4 pointer-events-none scale-95'
-                }`}>
-                    {/* AI Insights */}
-                    <div className="relative flex items-center group pointer-events-auto">
-                        <div className="absolute right-9 bg-primary text-card text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
-                            AI Insights
+            {/* Peeking Waving AI Widgets on the right border */}
+            <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 print:hidden">
+                {/* AI Chatbot Button */}
+                {!isChatbotRoute && (
+                    <button
+                        onClick={() => setIsChatbotOpen(true)}
+                        className="bg-gradient-to-l from-accent/95 via-accent to-teal-500 text-card pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
+                        aria-label="AI Chatbot"
+                        title="Chat with AI Assistant"
+                    >
+                        <div className="relative">
+                            <Bot className="w-4 h-4 group-hover:animate-bounce text-emerald-300 pointer-events-none" />
+                            {/* Notification bubble */}
+                            <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                            </span>
                         </div>
-                        <button
-                            onClick={() => { setIsInsightsOpen(true); setIsMenuOpen(false); }}
-                            className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-r from-emerald-500 to-teal-600 text-card rounded-full shadow-md hover:shadow-lg hover:shadow-emerald-500/30 border-2 border-card/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
-                            aria-label="AI Insights"
-                        >
-                            <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-300 animate-pulse pointer-events-none" />
-                        </button>
-                    </div>
+                        <span className="text-[8px] font-black tracking-wider uppercase [writing-mode:vertical-lr] select-none text-emerald-50">
+                            AI Chat
+                        </span>
+                    </button>
+                )}
 
-                    {/* AI Chatbot */}
-                    {!isChatbotRoute && (
-                        <div className="relative flex items-center group pointer-events-auto">
-                            <div className="absolute right-9 bg-primary text-card text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none mr-2">
-                                AI Chatbot
-                            </div>
-                            <button
-                                onClick={() => { setIsChatbotOpen(true); setIsMenuOpen(false); }}
-                                className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-[#2B2620] to-[#2B2620] text-card rounded-full shadow-md hover:shadow-lg hover:shadow-slate-900/30 border-2 border-card/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer"
-                                aria-label="AI Chatbot"
-                            >
-                                <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Main FAB */}
+                {/* AI Insights Button */}
                 <button
-                    onClick={() => setIsMenuOpen(prev => !prev)}
-                    className="flex items-center justify-center w-8 h-8 md:w-9.5 md:h-9.5 bg-status-success hover:bg-status-success text-card rounded-full shadow-lg hover:shadow-xl border-2 border-card/50 pointer-events-auto transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer relative"
-                    aria-label="Toggle Quick AI Options"
+                    onClick={() => setIsInsightsOpen(true)}
+                    className="bg-gradient-to-l from-emerald-600 via-emerald-500 to-teal-550 text-card pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
+                    aria-label="AI Insights"
+                    title="Open AI Insights"
                 >
-                    <Plus className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 ${isMenuOpen ? 'rotate-45 text-emerald-100' : 'text-card'}`} />
+                    <Zap className="w-4 h-4 group-hover:scale-110 text-emerald-250 pointer-events-none transition-transform" />
+                    <span className="text-[8px] font-black tracking-wider uppercase [writing-mode:vertical-lr] select-none text-emerald-50">
+                        Insights
+                    </span>
                 </button>
             </div>
 

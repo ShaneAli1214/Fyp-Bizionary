@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Edit2, Calendar, FileText, Ban } from 'lucide-react';
+import { Edit2, Calendar, FileText, Ban, ChevronRight, ChevronDown } from 'lucide-react';
 import { accountsApi } from '../../../services/accountsApi';
 import { formatPKR } from '../../../utils/currency';
 import VoidModal from './VoidModal';
@@ -10,13 +10,46 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
 
     const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
     const [voidTargetId, setVoidTargetId] = useState(null);
+    const [expandedMonths, setExpandedMonths] = useState({});
 
-    const paginatedRevenues = useMemo(() => {
+    // Group revenues by Year-Month
+    const groupedRevenues = useMemo(() => {
+        const groups = {};
+        revenues.forEach(item => {
+            if (!item.date) return;
+            const dateObj = new Date(item.date);
+            if (isNaN(dateObj.getTime())) return;
+            
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const groupKey = `${year}-${month}`;
+            
+            if (!groups[groupKey]) {
+                const monthLabel = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                groups[groupKey] = {
+                    key: groupKey,
+                    monthLabel,
+                    totalAmount: 0,
+                    items: []
+                };
+            }
+            
+            groups[groupKey].items.push(item);
+            if (!item.voided) {
+                groups[groupKey].totalAmount += Number(item.amount || 0);
+            }
+        });
+        
+        // Return months sorted descending
+        return Object.values(groups).sort((a, b) => b.key.localeCompare(a.key));
+    }, [revenues]);
+
+    const paginatedGroups = useMemo(() => {
         const start = (page - 1) * pageSize;
-        return revenues.slice(start, start + pageSize);
-    }, [revenues, page]);
+        return groupedRevenues.slice(start, start + pageSize);
+    }, [groupedRevenues, page]);
 
-    const numPages = Math.ceil(revenues.length / pageSize);
+    const numPages = Math.ceil(groupedRevenues.length / pageSize);
 
     const handleStatusChange = async (id, newStatus) => {
         try {
@@ -43,10 +76,40 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
         triggerRefresh();
     };
 
+    const toggleMonth = (key) => {
+        setExpandedMonths(prev => ({
+            ...prev,
+            [key]: !prev[key]
+        }));
+    };
+
     const getCategoryDisplay = (cat) => {
         if (cat === 'SALES_REVENUE' || cat === 'Sales') return 'Sales Revenue';
         if (cat === 'SERVICE_INCOME' || cat === 'Revenue') return 'Service Income';
         return 'Other Income';
+    };
+
+    const getStatusBadge = (status) => {
+        const s = String(status).toUpperCase();
+        if (s === 'PAID') {
+            return (
+                <span className="bg-status-success/10 text-status-success border border-emerald-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
+                    Paid
+                </span>
+            );
+        }
+        if (s === 'PENDING') {
+            return (
+                <span className="bg-amber-50 text-status-info border border-amber-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
+                    Pending
+                </span>
+            );
+        }
+        return (
+            <span className="bg-rose-50 text-danger border border-rose-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
+                Overdue
+            </span>
+        );
     };
 
     if (revenues.length === 0) {
@@ -59,101 +122,137 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
 
     return (
         <div className="space-y-4">
-            {/* ERP Note Banner */}
-            <div className="flex items-start gap-3 bg-surface border border-accent rounded-2xl px-4 py-3">
-                <div className="mt-0.5 w-4 h-4 text-accent shrink-0">ℹ</div>
-                <div>
-                    <p className="text-xs font-bold text-text-primary">Revenue KPIs are computed from Sales transactions</p>
-                    <p className="text-xs text-text-secondary mt-0.5">
-                        The Revenue, COGS, Gross Profit, and Net Profit cards above are calculated dynamically from the <strong>Sales</strong> module.
-                        This table shows manually recorded <strong>Revenue entries</strong> (e.g. service income, other income). Add a record here only for non-sale income sources.
-                    </p>
-                </div>
-            </div>
-
             <div className="bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-border-card">
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Customer</th>
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Invoice #</th>
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Category</th>
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Amount</th>
+                            <tr className="border-b border-border-card bg-page/30">
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider border-r border-border-card/30">Date / Month</th>
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider border-r border-border-card/30">Customer</th>
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider border-r border-border-card/30">Invoice #</th>
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider border-r border-border-card/30">Category</th>
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider border-r border-border-card/30">Status</th>
+                                <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right border-r border-border-card/30">Amount</th>
                                 <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-card">
-                            {paginatedRevenues.map((item) => (
-                                <tr key={item.id} className={`hover:bg-page/50 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
-                                    <td className="px-6 py-4 text-sm font-medium text-textMain">
-                                        <div className="flex items-center gap-1.5">
-                                            <Calendar className="w-4 h-4 text-secondary" />
-                                            {item.date}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-textMain">
-                                        {item.customer || 'General Customer'}
-                                        {item.voided && <span className="ml-2 text-[10px] font-bold text-text-secondary uppercase">Voided</span>}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-secondary">
-                                        {item.invoice_number ? (
-                                            <div className="flex items-center gap-1">
-                                                <FileText className="w-3.5 h-3.5 text-primary" />
-                                                {item.invoice_number}
-                                            </div>
-                                        ) : '-'}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-secondary">{getCategoryDisplay(item.category)}</td>
-                                    <td className="px-6 py-4">
-                                        {item.voided ? (
-                                            <span className="text-xs font-bold text-secondary bg-page px-2.5 py-1 rounded uppercase">Voided</span>
-                                        ) : (
-                                            <select
-                                                value={item.payment_status}
-                                                onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                                                className="text-xs font-bold bg-page hover:bg-page border border-card rounded px-2.5 py-1 text-primary outline-none cursor-pointer transition-all focus:border-primary focus:ring-1 focus:ring-primary/20"
-                                            >
-                                                <option value="PAID">Paid</option>
-                                                <option value="PENDING">Pending</option>
-                                                <option value="OVERDUE">Overdue</option>
-                                            </select>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <span className={`text-sm font-bold ${item.voided ? 'text-text-secondary line-through' : 'text-status-success'}`}>
-                                            {formatPKR(item.amount)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right space-x-2">
-                                        {!item.voided && (
-                                            <>
-                                                <button
-                                                    onClick={() => onEdit(item)}
-                                                    className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleVoidClick(item.id)}
-                                                    className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
-                                                    title="Void"
-                                                >
-                                                    <Ban className="w-4 h-4" />
-                                                </button>
-                                            </>
-                                        )}
-                                        {item.voided && (
-                                            <span className="text-xs text-textMuted italic font-medium" title={item.void_reason}>
-                                                Reason: {item.void_reason}
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
+                            {paginatedGroups.map((group) => {
+                                const isExpanded = !!expandedMonths[group.key];
+                                return (
+                                    <React.Fragment key={group.key}>
+                                        {/* Month Summary Header Row */}
+                                        <tr 
+                                            onClick={() => toggleMonth(group.key)}
+                                            className="bg-page/40 hover:bg-page/60 cursor-pointer font-bold border-b border-border-card select-none group"
+                                        >
+                                            <td className="px-6 py-4 text-sm text-primary border-r border-border-card/25">
+                                                <div className="flex items-center gap-2">
+                                                    {isExpanded ? (
+                                                        <ChevronDown className="w-4 h-4 text-secondary shrink-0 transition-all group-hover:scale-110" />
+                                                    ) : (
+                                                        <ChevronRight className="w-4 h-4 text-secondary shrink-0 transition-all group-hover:scale-110" />
+                                                    )}
+                                                    <span>{group.monthLabel}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-secondary border-r border-border-card/25 font-semibold">
+                                                {group.items.length} {group.items.length === 1 ? 'record' : 'records'}
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-secondary border-r border-border-card/25 font-normal italic">
+                                                Monthly Rollup Sheet
+                                            </td>
+                                            <td className="px-6 py-4 border-r border-border-card/25"></td>
+                                            <td className="px-6 py-4 border-r border-border-card/25"></td>
+                                            <td className="px-6 py-4 text-right font-bold text-primary border-r border-border-card/25">
+                                                {formatPKR(group.totalAmount)}
+                                            </td>
+                                            <td className="px-6 py-4 text-right text-xs text-secondary">
+                                                {isExpanded ? 'Click to Collapse' : 'Click to Expand'}
+                                            </td>
+                                        </tr>
+
+                                        {/* Child Details Rows */}
+                                        {isExpanded && group.items.map((item) => (
+                                            <tr key={item.id} className={`hover:bg-page/20 transition-colors group ${item.voided ? 'bg-page/50 opacity-60' : ''}`}>
+                                                <td className="px-8 py-3.5 text-sm font-medium text-textMain border-r border-border-card/20 pl-10">
+                                                    <div className="flex items-center gap-1.5 border-l-2 border-primary/40 pl-2">
+                                                        <Calendar className="w-4 h-4 text-secondary" />
+                                                        {item.date}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm font-bold text-textMain border-r border-border-card/20" title={item.customer || 'General Customer'}>
+                                                    <div className="truncate max-w-[180px]">
+                                                        {item.customer || 'General Customer'}
+                                                    </div>
+                                                    {item.voided && <span className="ml-2 text-[10px] font-bold text-text-secondary uppercase">Voided</span>}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-secondary border-r border-border-card/20" title={item.invoice_number}>
+                                                    {item.invoice_number ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
+                                                            <span className="truncate max-w-[150px]">
+                                                                {item.invoice_number}
+                                                            </span>
+                                                        </div>
+                                                    ) : '-'}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-secondary border-r border-border-card/20">{getCategoryDisplay(item.category)}</td>
+                                                <td className="px-6 py-3.5 border-r border-border-card/20">
+                                                    {item.voided ? (
+                                                        <span className="text-xs font-bold text-secondary bg-page px-2.5 py-1 rounded uppercase">Voided</span>
+                                                    ) : !!item.source ? (
+                                                        getStatusBadge(item.payment_status)
+                                                    ) : (
+                                                        <select
+                                                            value={item.payment_status}
+                                                            onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                                                            className="text-xs font-bold bg-page hover:bg-page border border-card rounded px-2.5 py-1 text-primary outline-none cursor-pointer transition-all focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                                        >
+                                                            <option value="PAID">Paid</option>
+                                                            <option value="PENDING">Pending</option>
+                                                            <option value="OVERDUE">Overdue</option>
+                                                        </select>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-right border-r border-border-card/20">
+                                                    <span className={`text-sm font-bold ${item.voided ? 'text-text-secondary line-through' : 'text-status-success'}`}>
+                                                        {formatPKR(item.amount)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-3.5 text-right space-x-2">
+                                                    {!item.voided && !item.source && (
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+                                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleVoidClick(item.id); }}
+                                                                className="p-1.5 text-text-secondary hover:text-text-primary rounded-xl transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+                                                                title="Void"
+                                                            >
+                                                                <Ban className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {!item.voided && !!item.source && (
+                                                        <span className="text-xs text-textMuted italic font-medium">Synced</span>
+                                                    )}
+                                                    {item.voided && (
+                                                        <span className="text-xs text-textMuted italic font-medium" title={item.void_reason}>
+                                                            Reason: {item.void_reason}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </React.Fragment>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -161,7 +260,7 @@ const RevenuesTab = ({ revenues = [], onEdit, triggerRefresh }) => {
                 {numPages > 1 && (
                     <div className="flex justify-between items-center px-6 py-4 border-t border-card bg-page/50">
                         <span className="text-xs text-secondary font-semibold">
-                            Showing page {page} of {numPages} ({revenues.length} records)
+                            Showing page {page} of {numPages} ({groupedRevenues.length} months)
                         </span>
                         <div className="flex gap-2">
                             <button

@@ -23,6 +23,7 @@ class RevenueSerializer(serializers.ModelSerializer):
             'amount',
             'date',
             'description',
+            'source',
             'voided',
             'void_reason',
             'created_at',
