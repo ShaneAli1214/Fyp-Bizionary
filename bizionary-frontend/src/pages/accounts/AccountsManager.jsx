@@ -166,6 +166,27 @@ const AccountsManager = () => {
                 const kpiRes = await accountsApi.getKpis('custom', startStr, endStr);
                 if (kpiRes.data?.success) {
                     const data = kpiRes.data.data;
+
+                    // Auto-fit: if the selected range has no data at all (both revenue & expense == 0),
+                    // re-fetch KPIs without date constraints so the backend auto-selects the best period.
+                    const hasNoData = (data.total_revenue === 0 && data.total_expense === 0);
+                    if (hasNoData && startStr && endStr && data.start_date && data.end_date) {
+                        // Fetch the backend's auto-fit best period
+                        const autoRes = await accountsApi.getKpis(null, null, null);
+                        if (autoRes.data?.success) {
+                            const autoData = autoRes.data.data;
+                            if (autoData.start_date && autoData.end_date) {
+                                const newStart = parseLocalDate(autoData.start_date);
+                                const newEnd = parseLocalDate(autoData.end_date);
+                                setKpis(autoData);
+                                setDateRange({ startDate: newStart, endDate: newEnd });
+                                const diff = Math.ceil((newEnd - newStart) / (1000 * 60 * 60 * 24)) + 1;
+                                setSliderDuration(Math.min(365, Math.max(1, diff)));
+                                return; // State update triggers useEffect again with the new dates
+                            }
+                        }
+                    }
+
                     setKpis(data);
                     
                     // If start/end dates are empty, populate them from the KPI response (Auto-fit)

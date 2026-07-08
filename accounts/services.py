@@ -4,8 +4,8 @@ ERP-grade financial KPI engine.
 All KPIs are computed dynamically from raw transactions. Nothing is stored.
 """
 
-from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField
-from django.db.models.functions import TruncMonth
+from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField, Q
+from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 from decimal import Decimal
 from datetime import date, timedelta
 from .models import Revenue, Expense, Invoice, Account, JournalEntry, JournalItem, CashTransaction
@@ -313,6 +313,18 @@ class AccountsService:
         prev_end = start_date - timedelta(days=1)
         return prev_start, prev_end
 
+    @staticmethod
+    def _coerce_date(value):
+        if not value:
+            return None
+        if isinstance(value, date):
+            return value
+        from datetime import datetime
+        try:
+            return datetime.strptime(str(value).split('T')[0], '%Y-%m-%d').date()
+        except Exception:
+            return value
+
     # =========================================================
     # ERP KPI ENGINE — all values computed dynamically
     # =========================================================
@@ -351,14 +363,96 @@ class AccountsService:
     @staticmethod
     def get_expenses(start_date=None, end_date=None):
         """
-        Expenses = SUM(Expense.amount) for ALL non-voided expense categories.
-        Includes: Payroll, Marketing, Rent & Utilities, Supplies,
-                  Technology, Travel, Other.
+        Total Operating Expenses = sum of ALL expense-type models:
+          - Expense records (Supplies, Marketing, Travel, Technology, etc.)
+          - SalaryPayment records (PAID salaries)
+          - UtilityBill records (paid utility bills)
+          - RecurringCost records (paid recurring costs)
         """
-        qs = Expense.objects.filter(voided=False)
+        breakdown = AccountsService.get_operating_expense_breakdown(start_date, end_date)
+        return sum((item['balance'] for item in breakdown), Decimal('0.00'))
+
+    @staticmethod
+    def get_operating_expense_breakdown(start_date=None, end_date=None):
+        """
+        Return operating expenses grouped into the same buckets used by the
+        Profit & Loss report.
+
+        This combines direct Expense records with salary, utility, and recurring
+        cost payments so date-filtered months reflect all operating spend.
+        """
+        from accounts.models import SalaryPayment, UtilityBill, RecurringCost
+
+        breakdown = {}
+
+        def add_entry(code, name, amount, count=1):
+            amount = amount or Decimal('0.00')
+            if amount <= 0:
+                return
+            entry = breakdown.setdefault(code, {
+                'code': code,
+                'name': name,
+                'balance': Decimal('0.00'),
+                'count': 0,
+            })
+            entry['balance'] += amount
+            entry['count'] += count
+
+        expense_label_map = {
+            'PAYROLL': 'Payroll',
+            'MARKETING': 'Marketing & Advertising',
+            'RENT_UTILITIES': 'Rent & Utilities',
+            'SUPPLIES': 'Supplies & Consumables',
+            'TECHNOLOGY': 'Technology & Software',
+            'TRAVEL': 'Travel & Transport',
+            'WAREHOUSE': 'Warehouse Expenses',
+            'OTHER': 'Other Operating Expenses',
+        }
+
+        exp_qs = Expense.objects.filter(voided=False, content_type__isnull=True)
         if start_date and end_date:
-            qs = qs.filter(date__range=(start_date, end_date))
-        return qs.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            exp_qs = exp_qs.filter(date__range=(start_date, end_date))
+
+        for row in exp_qs.values('category').annotate(total=Sum('amount'), count=Count('id')):
+            code = row['category']
+            add_entry(code, expense_label_map.get(code, code), row['total'], row['count'] or 0)
+
+        sal_qs = SalaryPayment.objects.filter(status='PAID')
+        if start_date and end_date:
+            sal_qs = sal_qs.filter(payment_date__range=(start_date, end_date))
+        sal_summary = sal_qs.aggregate(total=Sum('amount'), count=Count('id'))
+        add_entry('PAYROLL', 'Payroll', sal_summary['total'], sal_summary['count'] or 0)
+
+        util_qs = UtilityBill.objects.filter(status='PAID')
+        if start_date and end_date:
+            util_qs = util_qs.filter(
+                Q(payment_date__range=(start_date, end_date)) |
+                (Q(payment_date__isnull=True) & Q(due_date__range=(start_date, end_date)))
+            )
+        util_summary = util_qs.aggregate(total=Sum('amount'), count=Count('id'))
+        add_entry('RENT_UTILITIES', 'Rent & Utilities', util_summary['total'], util_summary['count'] or 0)
+
+        recurring_label_map = {
+            'RENT': ('RENT_UTILITIES', 'Rent & Utilities'),
+            'SUBSCRIPTION': ('TECHNOLOGY', 'Technology & Software'),
+            'MARKETING_CAMPAIGN': ('MARKETING', 'Marketing & Advertising'),
+            'MAINTENANCE': ('OTHER', 'Other Operating Expenses'),
+            'INSURANCE': ('OTHER', 'Other Operating Expenses'),
+            'OTHER': ('OTHER', 'Other Operating Expenses'),
+        }
+
+        rec_qs = RecurringCost.objects.filter(status='PAID')
+        if start_date and end_date:
+            rec_qs = rec_qs.filter(
+                Q(payment_date__range=(start_date, end_date)) |
+                (Q(payment_date__isnull=True) & Q(due_date__range=(start_date, end_date)))
+            )
+
+        for row in rec_qs.values('cost_type').annotate(total=Sum('amount'), count=Count('id')):
+            code, name = recurring_label_map.get(row['cost_type'], ('OTHER', 'Other Operating Expenses'))
+            add_entry(code, name, row['total'], row['count'] or 0)
+
+        return sorted(breakdown.values(), key=lambda item: item['balance'], reverse=True)
 
     @staticmethod
     def get_net_profit(start_date=None, end_date=None):
@@ -475,9 +569,9 @@ class AccountsService:
         }
 
     @staticmethod
-    def income_vs_expense_trend(date_range_str=None, start_date_str=None, end_date_str=None):
+    def income_vs_expense_trend(date_range_str=None, start_date_str=None, end_date_str=None, period='monthly'):
         """
-        Monthly income vs expense trend.
+        Income vs expense trend grouped by day, week, or month.
         Income source: Sale.total_price grouped by sale_date month.
         Expense source: Expense.amount (SUPPLIES, non-voided) grouped by date month.
         """
@@ -490,25 +584,38 @@ class AccountsService:
             sale_qs = sale_qs.filter(sale_date__range=(start_date, end_date))
             exp_qs  = exp_qs.filter(date__range=(start_date, end_date))
 
-        revenue_by_month = sale_qs.annotate(
-            month=TruncMonth('sale_date')
-        ).values('month').annotate(income=Sum('total_price')).order_by('month')
+        if period == 'daily':
+            trunc = TruncDay
+            key_name = 'day'
+            formatter = '%Y-%m-%d'
+        elif period == 'weekly':
+            trunc = TruncWeek
+            key_name = 'week'
+            formatter = '%Y-%m-%d'
+        else:
+            trunc = TruncMonth
+            key_name = 'month'
+            formatter = '%Y-%m'
 
-        expense_by_month = exp_qs.annotate(
-            month=TruncMonth('date')
-        ).values('month').annotate(expense=Sum('amount')).order_by('month')
+        revenue_by_period = sale_qs.annotate(
+            bucket=trunc('sale_date')
+        ).values('bucket').annotate(income=Sum('total_price')).order_by('bucket')
 
-        expense_dict = {item['month']: item['expense'] for item in expense_by_month if item['month']}
-        revenue_dict = {item['month']: item['income'] for item in revenue_by_month if item['month']}
-        all_months = set(list(expense_dict.keys()) + list(revenue_dict.keys()))
+        expense_by_period = exp_qs.annotate(
+            bucket=trunc('date')
+        ).values('bucket').annotate(expense=Sum('amount')).order_by('bucket')
+
+        expense_dict = {item['bucket']: item['expense'] for item in expense_by_period if item['bucket']}
+        revenue_dict = {item['bucket']: item['income'] for item in revenue_by_period if item['bucket']}
+        all_buckets = set(list(expense_dict.keys()) + list(revenue_dict.keys()))
 
         return [
             {
-                'month': month.strftime('%Y-%m'),
-                'income': float(revenue_dict.get(month, Decimal('0.00'))),
-                'expense': float(expense_dict.get(month, Decimal('0.00'))),
+                key_name: bucket.strftime(formatter),
+                'income': float(revenue_dict.get(bucket, Decimal('0.00'))),
+                'expense': float(expense_dict.get(bucket, Decimal('0.00'))),
             }
-            for month in sorted(all_months)
+            for bucket in sorted(all_buckets)
         ]
 
     @staticmethod
@@ -629,6 +736,9 @@ class AccountsService:
         Structure: Revenue (from Sales) → COGS → Gross Profit → OpEx → Net Profit.
         All values computed dynamically from raw transactions — nothing stored.
         """
+        start_date = AccountsService._coerce_date(start_date)
+        end_date = AccountsService._coerce_date(end_date)
+
         # 1. Revenue = SUM of paid sales
         total_revenue = AccountsService.get_revenue(start_date, end_date)
 
@@ -639,35 +749,9 @@ class AccountsService:
         gross_profit = total_revenue - total_cogs
         gross_margin = float(round((gross_profit / total_revenue) * 100, 2)) if total_revenue else 0.0
 
-        # 4. Operating Expenses (Expense model, non-voided, all categories)
-        exp_qs = Expense.objects.filter(voided=False)
-        if start_date and end_date:
-            exp_qs = exp_qs.filter(date__range=(start_date, end_date))
-
-        # Per-category breakdown
-        expense_breakdown = exp_qs.values('category').annotate(
-            total=Sum('amount'), count=Count('id')
-        ).order_by('-total')
-
-        category_labels = {
-            'PAYROLL': 'Payroll', 'MARKETING': 'Marketing & Advertising',
-            'RENT_UTILITIES': 'Rent & Utilities', 'SUPPLIES': 'Supplies & Consumables',
-            'TECHNOLOGY': 'Technology & Software', 'TRAVEL': 'Travel & Transport',
-            'WAREHOUSE': 'Warehouse Expenses',
-            'OTHER': 'Other Operating Expenses',
-        }
-
-        expense_items = []
-        total_opex = Decimal('0.00')
-        for row in expense_breakdown:
-            amt = row['total'] or Decimal('0.00')
-            expense_items.append({
-                'code': row['category'],
-                'name': category_labels.get(row['category'], row['category']),
-                'balance': float(amt),
-                'count': row['count'],
-            })
-            total_opex += amt
+        # 4. Operating Expenses (all operating spend sources, date-filtered consistently)
+        expense_items = AccountsService.get_operating_expense_breakdown(start_date, end_date)
+        total_opex = sum((item['balance'] for item in expense_items), Decimal('0.00'))
 
         # 5. Net Profit
         net_profit = gross_profit - total_opex
@@ -699,6 +783,8 @@ class AccountsService:
         """
         Calculates Balance Sheet statement as of a specific date
         """
+        as_of_date = AccountsService._coerce_date(as_of_date)
+
         AccountsService.ensure_coa()
         
         items_qs = JournalItem.objects.filter(journal_entry__voided=False)

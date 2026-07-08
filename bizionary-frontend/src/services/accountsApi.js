@@ -13,7 +13,10 @@ export const accountsApi = {
     getKpis: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/kpis/', dateRange, startDate, endDate)),
 
     // Analytics
-    getTrend: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/trend/', dateRange, startDate, endDate)),
+    getTrend: (dateRange, startDate, endDate, period = 'monthly') => {
+        const baseUrl = buildUrl('accounts/trend/', dateRange, startDate, endDate, [`period=${period}`]);
+        return api.get(baseUrl);
+    },
     getRecentInvoices: (limit = 5) => api.get(`accounts/recent-invoices/?limit=${limit}`),
     getExpenseCategories: (dateRange, startDate, endDate) => api.get(buildUrl('accounts/expense-categories/', dateRange, startDate, endDate)),
 

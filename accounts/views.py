@@ -114,14 +114,15 @@ def accounts_kpi_view(request):
 @check_accounts_permission
 def income_expense_trend_view(request):
     """
-    GET /api/accounts/trend/?date_range=last_30_days&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
-    Returns monthly trend of income vs expenses
+    GET /api/accounts/trend/?period=daily|weekly|monthly&date_range=last_30_days&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    Returns income vs expenses grouped by the requested period.
     """
     try:
         date_range = request.GET.get('date_range')
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
-        trend_data = AccountsService.income_vs_expense_trend(date_range, start_date, end_date)
+        period = request.GET.get('period', 'monthly')
+        trend_data = AccountsService.income_vs_expense_trend(date_range, start_date, end_date, period)
         
         return Response({
             'success': True,
@@ -784,6 +785,19 @@ def salary_payment_list_create(request):
     """
     if request.method == 'GET':
         queryset = SalaryPayment.objects.all()
+        
+        # Filter by date range if provided
+        date_range = request.GET.get('date_range')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(payment_date__range=(start, end)) |
+                (Q(payment_date__isnull=True) & Q(pay_period_end__range=(start, end)))
+            )
+            
         serializer = SalaryPaymentSerializer(queryset, many=True)
         return Response({
             'success': True,
@@ -856,6 +870,19 @@ def utility_bill_list_create(request):
     """
     if request.method == 'GET':
         queryset = UtilityBill.objects.all()
+        
+        # Filter by date range if provided
+        date_range = request.GET.get('date_range')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(payment_date__range=(start, end)) |
+                (Q(payment_date__isnull=True) & Q(due_date__range=(start, end)))
+            )
+            
         serializer = UtilityBillSerializer(queryset, many=True)
         return Response({
             'success': True,
@@ -928,6 +955,19 @@ def recurring_cost_list_create(request):
     """
     if request.method == 'GET':
         queryset = RecurringCost.objects.all()
+        
+        # Filter by date range if provided
+        date_range = request.GET.get('date_range')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        start, end = AccountsService.get_date_filter(date_range, start_date, end_date)
+        if start and end:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(payment_date__range=(start, end)) |
+                (Q(payment_date__isnull=True) & Q(due_date__range=(start, end)))
+            )
+            
         serializer = RecurringCostSerializer(queryset, many=True)
         return Response({
             'success': True,
