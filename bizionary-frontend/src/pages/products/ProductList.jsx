@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Upload } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Upload, X } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import ProductForm from './ProductForm';
-import { PRODUCT_CATEGORIES, getCategoryPrefix, normalizeProductCategory, getCategoryLabel } from '../../utils/productCategories';
+import { getCategoryPrefix, normalizeProductCategory, getCategoryLabel } from '../../utils/productCategories';
 import { normalizeProductRecord, toNumber } from '../../utils/productInventoryTransforms';
 import { useAuth } from '../../context/AuthContext';
+import useCategories from '../../hooks/useCategories';
 
 const ProductList = () => {
     const navigate = useNavigate();
@@ -20,12 +21,27 @@ const ProductList = () => {
         user.role_name?.toLowerCase().includes('manager')
     ) && user.role_name !== 'Accountant';
 
+    const { categories: dynamicCategories, loading: categoriesLoading, deleteCategory } = useCategories();
+    const [deletingCategory, setDeletingCategory] = useState(null);
     const [products, setProducts] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
     const [formSuccess, setFormSuccess] = useState('');
+
+    const handleDeleteCategory = async (categoryValue, categoryLabel) => {
+        if (!window.confirm(`Delete category "${categoryLabel}"?\n\nThis only removes the category record. If any products are assigned to it, deletion will be blocked.`)) return;
+        setDeletingCategory(categoryValue);
+        const result = await deleteCategory(categoryValue);
+        setDeletingCategory(null);
+        if (!result.ok) {
+            setFormError(result.error);
+        } else {
+            setFormSuccess(`Category "${categoryLabel}" deleted.`);
+            if (selectedSection === categoryValue) setSelectedSection('ALL');
+        }
+    };
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');
@@ -95,13 +111,15 @@ const ProductList = () => {
         setFormError('');
         setFormSuccess('');
         try {
-            const normalizedCategory = normalizeProductCategory(productData.category) || 'Tech';
+            const normalizedCategory = normalizeProductCategory(productData.category) || productData.category || 'Books';
+            const sellingPrice = Number(productData.sale_price ?? productData.unit_price ?? 0);
             const payload = {
                 category: normalizedCategory,
                 product_code: productData.product_code,
                 name: productData.name,
                 cost_price: Number(productData.cost_price || 0),
-                unit_price: Number(productData.sale_price || 0),
+                sale_price: sellingPrice,   // serializer maps this → unit_price in DB
+                unit_price: sellingPrice,   // belt-and-suspenders: also send unit_price directly
                 supplier: productData.supplier || null,
                 status: productData.status || 'ACTIVE',
             };
@@ -179,9 +197,16 @@ const ProductList = () => {
         (p.product_code || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const productsByCategory = PRODUCT_CATEGORIES.map((categoryItem) => ({
+    // Build category sections from the dynamic API-fetched list.
+    // Match products to categories by exact string match (DB value) or normalized value.
+    const productsByCategory = dynamicCategories.map((categoryItem) => ({
         ...categoryItem,
-        items: filteredProducts.filter((p) => normalizeProductCategory(p.category) === categoryItem.value),
+        items: filteredProducts.filter((p) => {
+            const pCat = String(p.category || '').trim();
+            return pCat === categoryItem.value ||
+                normalizeProductCategory(pCat) === categoryItem.value ||
+                pCat.toLowerCase() === categoryItem.value.toLowerCase();
+        }),
     })).filter((section) => selectedSection === 'ALL' || section.value === selectedSection);
 
     const noResults = filteredProducts.length === 0;
@@ -227,7 +252,7 @@ const ProductList = () => {
 
             </div>
 
-            {/* Section Filter */}
+            {/* Section Filter — dynamically built from the backend API */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
                 <button
                     onClick={() => setSelectedSection('ALL')}
@@ -239,19 +264,48 @@ const ProductList = () => {
                 >
                     All Sections
                 </button>
-                {PRODUCT_CATEGORIES.map((category) => (
-                    <button
-                        key={category.value}
-                        onClick={() => setSelectedSection(category.value)}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                            selectedSection === category.value
-                                ? 'bg-primary text-card'
-                                : 'bg-page text-secondary hover:bg-active-pill'
-                        }`}
-                    >
-                        {category.label}
-                    </button>
-                ))}
+                {categoriesLoading && dynamicCategories.length === 0 ? (
+                    <span className="text-sm text-secondary px-3">Loading categories…</span>
+                ) : (
+                    dynamicCategories.map((category) => (
+                        <div
+                            key={category.value}
+                            style={{ flexShrink: 0 }}
+                            className={`flex items-center gap-0 rounded-full overflow-hidden text-sm font-semibold whitespace-nowrap transition-all ${
+                                selectedSection === category.value
+                                    ? 'bg-primary text-card'
+                                    : 'bg-page text-secondary'
+                            }`}
+                        >
+                            <button
+                                onClick={() => setSelectedSection(category.value)}
+                                className={`px-4 py-2 transition-all hover:opacity-85 ${
+                                    selectedSection === category.value ? '' : 'hover:bg-active-pill'
+                                }`}
+                            >
+                                {category.label}
+                            </button>
+                            {isAdminOrManager && (
+                                <button
+                                    title={`Delete category "${category.label}"`}
+                                    disabled={deletingCategory === category.value}
+                                    onClick={() => handleDeleteCategory(category.value, category.label)}
+                                    className={`pr-3 pl-1 py-2 flex items-center transition-all ${
+                                        selectedSection === category.value
+                                            ? 'text-card/70 hover:text-card'
+                                            : 'text-secondary/60 hover:text-rose-500'
+                                    } disabled:opacity-40`}
+                                >
+                                    {deletingCategory === category.value ? (
+                                        <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin inline-block" />
+                                    ) : (
+                                        <X className="w-3.5 h-3.5" />
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                    ))
+                )}
             </div>
 
             {formSuccess && (
@@ -291,7 +345,9 @@ const ProductList = () => {
                                                     <th className="px-6 py-4 font-semibold text-right">Selling Price</th>
                                                     <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
                                                     {/* Supplier column removed */}
-                                                    <th className="px-6 py-4 font-semibold text-center">Current Stock</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Shop Stock</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Warehouse Stock</th>
+                                                    <th className="px-6 py-4 font-semibold text-center">Total Stock</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Status</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                         </tr>
@@ -299,7 +355,7 @@ const ProductList = () => {
                                     <tbody className="divide-y divide-border-card">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan="9" className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan="11" className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
@@ -316,6 +372,16 @@ const ProductList = () => {
                                                     <td className="px-6 py-4 font-bold text-textMain text-right">{formatPKR(p.sale_price)}</td>
                                                     <td className={`px-6 py-4 font-bold text-right ${profitMargin >= 0 ? 'text-status-success' : 'text-status-info'}`}>{formatPKR(profitMargin)}</td>
                                                     {/* Supplier cell removed */}
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className="text-xs font-semibold text-textMain">
+                                                            {toNumber(p.shop_stock)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className="text-xs font-semibold text-textMain">
+                                                            {toNumber(p.warehouse_stock)}
+                                                        </span>
+                                                    </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="text-xs font-bold text-text-primary">
                                                             {toNumber(p.current_stock)}

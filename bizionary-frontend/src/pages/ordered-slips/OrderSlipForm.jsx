@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
 import api from '../../services/api';
-import { PRODUCT_CATEGORIES, normalizeProductCategory, getCompaniesForCategory } from '../../utils/productCategories';
+import { normalizeProductCategory, getCompaniesForCategory } from '../../utils/productCategories';
 import { getSubcategoriesForCategory } from '../../utils/productCatalog';
+import useCategories from '../../hooks/useCategories';
 
 const CREATE_NEW_VALUE = '__create_new__';
 const REGISTER_NEW_COMPANY_VALUE = '__register_new_company__';
@@ -79,6 +80,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
         company_name: defaultTechCompany,
         quantity_ordered: 1,
         notes: '',
+        delivery_location: 'WAREHOUSE',
     });
     const [selectedCategory, setSelectedCategory] = useState('Tech');
     const [customData, setCustomData] = useState({
@@ -96,25 +98,27 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
         cost_price: '',
         sale_price: '',
         notes: '',
+        delivery_location: 'WAREHOUSE',
     });
 
-    const categoryOptions = useMemo(() => {
-        const dynamicCategories = products
-            .map((item) => {
-                const raw = String(item.categoryId || item.category || '').trim();
-                const normalized = normalizeProductCategory(raw);
-                return normalized || raw;
-            })
-            .filter(Boolean);
+    const { categories: apiCategories } = useCategories();
 
-        const merged = [...PRODUCT_CATEGORIES.map((item) => item.value), ...dynamicCategories];
-        return Array.from(new Set(merged))
-            .filter((value) => {
-                const lowerVal = value.toLowerCase();
-                return lowerVal !== 'water' && lowerVal !== 'books' && lowerVal !== 'sports';
-            })
-            .map((value) => PRODUCT_CATEGORIES.find((item) => item.value === value) || { value, label: formatCategoryLabel(value) });
-    }, [products]);
+    // Build category options from the live API list.
+    // Merge with any categories seen on currently loaded products (belt-and-suspenders).
+    const categoryOptions = useMemo(() => {
+        // Start from the dynamic API list (this includes 'books', 'sports', 'skin-products', etc.)
+        const apiMap = new Map(apiCategories.map((c) => [c.value.toLowerCase(), c]));
+
+        // Also add any categories that appear on products already loaded (in case they lag)
+        products.forEach((item) => {
+            const raw = String(item.categoryId || item.category || '').trim();
+            if (raw && !apiMap.has(raw.toLowerCase())) {
+                apiMap.set(raw.toLowerCase(), { value: raw, label: raw.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) });
+            }
+        });
+
+        return Array.from(apiMap.values()).sort((a, b) => a.label.localeCompare(b.label));
+    }, [apiCategories, products]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -176,6 +180,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             company_name: defaultCompanyName,
             quantity_ordered: 1,
             notes: '',
+            delivery_location: 'WAREHOUSE',
         });
         setCustomData({
             category: defaultCategory,
@@ -192,6 +197,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             cost_price: '',
             sale_price: '',
             notes: '',
+            delivery_location: 'WAREHOUSE',
         });
     }, [isOpen, initialMode]);
 
@@ -501,6 +507,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                 quantity_ordered: Number(customData.quantity_ordered || 0),
                 unit_cost: customCostPrice,
                 notes: customData.notes,
+                delivery_location: customData.delivery_location,
                 custom_product: {
                     category: customResolvedCategory,
                     categoryId: normalizeCategoryKey(customResolvedCategory),
@@ -530,6 +537,7 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
             quantity_ordered: Number(formData.quantity_ordered || 0),
             unit_cost: selectedUnitCost,
             notes: formData.notes,
+            delivery_location: formData.delivery_location,
         });
     };
 
@@ -615,6 +623,20 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                     onChange={handleChange}
                                     className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                 />
+                            </div>
+
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-sm font-medium text-primary mb-1">Delivery Destination</label>
+                                <select
+                                    name="delivery_location"
+                                    required
+                                    value={formData.delivery_location}
+                                    onChange={handleChange}
+                                    className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
+                                >
+                                    <option value="WAREHOUSE">Warehouse</option>
+                                    <option value="SHOP">Direct to Shop</option>
+                                </select>
                             </div>
 
                             <div className="col-span-2">
@@ -819,6 +841,20 @@ const OrderSlipForm = ({ isOpen, onClose, onSubmit, onCompanySaved, submitting =
                                         className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
                                         placeholder="Enter sale price"
                                     />
+                                </div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">Delivery Destination</label>
+                                    <select
+                                        name="delivery_location"
+                                        required
+                                        value={customData.delivery_location}
+                                        onChange={handleChange}
+                                        className="w-full rounded-lg border border-card bg-card p-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-primary"
+                                    >
+                                        <option value="WAREHOUSE">Warehouse</option>
+                                        <option value="SHOP">Direct to Shop</option>
+                                    </select>
                                 </div>
 
                                 <div className="col-span-2">

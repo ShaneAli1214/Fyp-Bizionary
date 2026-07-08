@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
-import { getProductsForCategoryAndSubcategory } from '../../utils/productCatalog';
+import { normalizeProductCategory } from '../../utils/productCategories';
+import useCategories from '../../hooks/useCategories';
 
 const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = false, errorMessage = '', getNextProductCode, supplierOptions = [] }) => {
+    const { categories: dynamicCategories, loading: categoriesLoading } = useCategories();
     const isEditing = !!initialData;
     const [formData, setFormData] = useState({
         name: '',
         product_code: '',
-        category: 'Tech',
+        category: '',
         cost_price: 0,
         sale_price: 0,
         supplier: '',
@@ -17,42 +18,49 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
     });
 
     useEffect(() => {
-        if (initialData) {
-            const normalizedCategory = normalizeProductCategory(initialData.category) || 'Tech';
-            setFormData({
-                ...initialData,
-                category: normalizedCategory,
-                cost_price: initialData.cost_price ?? 0,
-                sale_price: initialData.sale_price ?? initialData.unit_price ?? 0,
-                supplier: initialData.supplier_id || initialData.supplier || '',
-                status: initialData.status || 'ACTIVE',
-            });
-        } else {
-            const defaultCategory = 'Tech';
-            const defaultProduct = getProductsForCategoryAndSubcategory(defaultCategory, '')[0] || '';
-            setFormData({
-                name: defaultProduct,
-                product_code: getNextProductCode ? getNextProductCode(defaultCategory) : '',
-                category: defaultCategory,
-                cost_price: 0,
-                sale_price: 0,
-                supplier: '',
-                status: 'ACTIVE',
-            });
+        if (isOpen) {
+            if (initialData) {
+                setFormData({
+                    ...initialData,
+                    category: initialData.category || '',
+                    cost_price: initialData.cost_price ?? 0,
+                    sale_price: initialData.sale_price ?? initialData.unit_price ?? 0,
+                    supplier: initialData.supplier_id || initialData.supplier || '',
+                    status: initialData.status || 'ACTIVE',
+                });
+            } else {
+                setFormData({
+                    name: '',
+                    product_code: '',
+                    category: '',
+                    cost_price: 0,
+                    sale_price: 0,
+                    supplier: '',
+                    status: 'ACTIVE',
+                });
+            }
         }
-    }, [initialData, isOpen, getNextProductCode]);
+    }, [initialData, isOpen]);
+
+    useEffect(() => {
+        if (isOpen && !isEditing && !formData.category && dynamicCategories.length > 0) {
+            const defaultCategory = dynamicCategories[0].value;
+            setFormData((prev) => ({
+                ...prev,
+                category: defaultCategory,
+                product_code: getNextProductCode ? getNextProductCode(defaultCategory) : prev.product_code,
+            }));
+        }
+    }, [dynamicCategories, isOpen, isEditing, getNextProductCode, formData.category]);
 
     const handleChange = (e) => {
         const { name, value, type } = e.target;
 
         if (name === 'category' && !isEditing) {
-            const normalizedCategory = normalizeProductCategory(value) || 'Tech';
-            const firstProduct = getProductsForCategoryAndSubcategory(normalizedCategory, '')[0] || '';
             setFormData((prev) => ({
                 ...prev,
-                name: firstProduct || prev.name,
-                category: normalizedCategory,
-                product_code: getNextProductCode ? getNextProductCode(normalizedCategory) : prev.product_code,
+                category: value,
+                product_code: getNextProductCode ? getNextProductCode(value) : prev.product_code,
             }));
             return;
         }
@@ -120,9 +128,14 @@ const ProductForm = ({ isOpen, onClose, onSubmit, initialData, submitting = fals
                                     onChange={handleChange}
                                     className="w-full border border-card rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-card"
                                 >
-                                    {PRODUCT_CATEGORIES.map((option) => (
-                                        <option key={option.value} value={option.value}>{option.label}</option>
-                                    ))}
+                                    {dynamicCategories.length > 0 ? (
+                                        dynamicCategories.map((option) => (
+                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                        ))
+                                    ) : (
+                                        // Fallback while loading
+                                        <option value={formData.category}>{formData.category || 'Loading…'}</option>
+                                    )}
                                 </select>
                             </div>
 

@@ -3,11 +3,6 @@ from decimal import Decimal
 # Category Data
 CATEGORIES_DATA = [
     {
-        "name": "Electronics & Appliances",
-        "code": "ELEC",
-        "description": "Large home appliances, laptops, and electronics equipment",
-    },
-    {
         "name": "Organic & Food Items",
         "code": "FOOD",
         "description": "Organic vegetables, fruits, and food products",
@@ -31,8 +26,6 @@ CATEGORIES_DATA = [
 
 # SubCategory Data
 SUBCATEGORIES_DATA = [
-    {"name": "Large Home Appliances", "category": "Electronics & Appliances"},
-    {"name": "Laptops & Computers", "category": "Electronics & Appliances"},
     {"name": "Organic Vegetables", "category": "Organic & Food Items"},
     {"name": "Organic Fruits", "category": "Organic & Food Items"},
     {"name": "Basmati Rice", "category": "Grains & Pulses"},

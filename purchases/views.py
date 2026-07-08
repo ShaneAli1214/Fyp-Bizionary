@@ -12,6 +12,89 @@ from .serializers import PurchaseSerializer, OrderedSlipSerializer, SupplierComp
 from user_management.views import log_action
 
 
+@api_view(['GET'])
+def categories_list(request):
+    """
+    Return unique product categories that have at least one product.
+    Only categories from products.Product.category are returned — this
+    ensures no phantom/empty categories appear in the UI.
+    Returns a sorted list of { value, label } objects.
+    """
+    from products.models import Product
+
+    # Only categories that actually have products
+    product_cats = (
+        Product.objects.exclude(category__isnull=True).exclude(category='')
+        .values_list('category', flat=True)
+        .distinct()
+    )
+
+    def normalize_key(value):
+        return value.lower().replace('-', ' ').replace('_', ' ').strip()
+
+    def make_label(value):
+        return value.replace('-', ' ').replace('_', ' ').title().strip()
+
+    # Deduplicate (case-insensitive) — prefer title-case / spaced versions
+    best = {}
+    for raw in product_cats:
+        raw = raw.strip()
+        if not raw:
+            continue
+        key = normalize_key(raw)
+        if key not in best:
+            best[key] = raw
+        else:
+            existing = best[key]
+            if raw.count(' ') > existing.count(' '):
+                best[key] = raw
+            elif raw.count(' ') == existing.count(' ') and raw[0].isupper() and not existing[0].isupper():
+                best[key] = raw
+
+    categories = sorted(
+        [{'value': v, 'label': make_label(v)} for v in best.values()],
+        key=lambda x: x['label'].lower()
+    )
+    return Response(categories)
+
+
+@api_view(['DELETE'])
+def delete_category(request):
+    """
+    DELETE /api/purchases/categories/delete/?name=<category_name>
+    Removes a category from the screen2 Category table.
+    Rejected if any products or suppliers are assigned to this category.
+    """
+    from products.models import Product
+    from purchases.models import SupplierCompany
+    from screen_2_sales_items.items_management.models import Category as S2Category
+
+    name = request.query_params.get('name', '').strip()
+    if not name:
+        return Response({'error': 'Provide ?name=<category_name>'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Safety: refuse deletion if products use this category
+    product_count = Product.objects.filter(category__iexact=name).count()
+    if product_count > 0:
+        return Response(
+            {'error': f'Cannot delete "{name}": {product_count} product(s) still assigned to this category.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Safety: refuse deletion if suppliers use this category
+    supplier_count = SupplierCompany.objects.filter(category__iexact=name).count()
+    if supplier_count > 0:
+        return Response(
+            {'error': f'Cannot delete "{name}": {supplier_count} supplier(s) still assigned to this category.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Delete from screen2 Category table (if exists)
+    deleted_count, _ = S2Category.objects.filter(name__iexact=name).delete()
+
+    return Response({'deleted': deleted_count, 'name': name}, status=status.HTTP_200_OK)
+
+
 def restrict_accountant_modifications(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -77,13 +160,14 @@ def _apply_receipt_to_inventory(ordered_slip, new_received_quantity):
 
     from products.models import InventoryTransaction
     from django.utils import timezone
+    loc_display = 'Direct to Shop' if ordered_slip.delivery_location == 'SHOP' else 'Warehouse'
     InventoryTransaction.objects.create(
         product=ordered_slip.product,
         txn_type=InventoryTransaction.TYPE_IN,
         quantity=received_delta,
         reference_type='ordered_slip',
         reference_id=ordered_slip.id,
-        note=f'OrderedSlip #{ordered_slip.id} receipt ({received_delta} units) from {ordered_slip.company_name}',
+        note=f'OrderedSlip #{ordered_slip.id} receipt ({received_delta} units) from {ordered_slip.company_name} (Delivered to: {loc_display})',
         date=timezone.now().date(),
     )
 
@@ -155,6 +239,7 @@ def ordered_slip_mark_partial(request, pk):
         if ordered_slip.status == OrderedSlip.STATUS_COMPLETED:
             ordered_slip.received_at = timezone.now()
             # Create completed Purchase record
+            loc_display = 'Direct to Shop' if ordered_slip.delivery_location == 'SHOP' else 'Warehouse'
             Purchase.objects.create(
                 product=ordered_slip.product,
                 company_name=ordered_slip.company_name,
@@ -163,7 +248,7 @@ def ordered_slip_mark_partial(request, pk):
                 total_cost=ordered_slip.total_cost,
                 purchase_date=timezone.now().date(),
                 payment_status='PAID',
-                notes=f"Generated from Completed OrderedSlip #{ordered_slip.id}"
+                notes=f"Generated from Completed OrderedSlip #{ordered_slip.id} (Delivered to: {loc_display})"
             )
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
 
@@ -184,6 +269,7 @@ def ordered_slip_mark_complete(request, pk):
         ordered_slip.save(update_fields=['quantity_received', 'status', 'received_at', 'updated_at'])
         
         # Create completed Purchase record
+        loc_display = 'Direct to Shop' if ordered_slip.delivery_location == 'SHOP' else 'Warehouse'
         Purchase.objects.create(
             product=ordered_slip.product,
             company_name=ordered_slip.company_name,
@@ -192,7 +278,7 @@ def ordered_slip_mark_complete(request, pk):
             total_cost=ordered_slip.total_cost,
             purchase_date=timezone.now().date(),
             payment_status='PAID',
-            notes=f"Generated from Completed OrderedSlip #{ordered_slip.id}"
+            notes=f"Generated from Completed OrderedSlip #{ordered_slip.id} (Delivered to: {loc_display})"
         )
 
     log_action(request, 'UPDATE', f"Order slip #{ordered_slip.id}: marked fully complete — all {ordered_slip.quantity_ordered} units received.", module='Purchases')

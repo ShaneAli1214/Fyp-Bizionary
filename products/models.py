@@ -38,6 +38,14 @@ class Product(models.Model):
         default=0,
         validators=[MinValueValidator(0)]
     )
+    shop_stock = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    warehouse_stock = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
     min_stock = models.IntegerField(
         default=20,
         validators=[MinValueValidator(0)]
@@ -60,10 +68,48 @@ class Product(models.Model):
             models.Index(fields=['sku']),
             models.Index(fields=['category']),
             models.Index(fields=['stock_quantity']),
+            models.Index(fields=['shop_stock']),
+            models.Index(fields=['warehouse_stock']),
         ]
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
+
+    def calculate_stock_split(self):
+        """
+        Allocation rule (apply top to bottom, first match wins):
+        Total current stock -> Stock kept in shop -> Rest goes to warehouse
+        > 150 -> 70 -> remainder
+        100 - 150 -> 50 -> remainder
+        50 - 99 -> 40 -> remainder
+        < 50 -> 20 (or full stock if less than 20) -> remainder
+        """
+        total = self.stock_quantity
+        if total <= 0:
+            shop = 0
+        elif total > 150:
+            shop = 70
+        elif total >= 100:
+            shop = 50
+        elif total >= 50:
+            shop = 40
+        else:
+            shop = min(total, 20)
+        
+        warehouse = max(0, total - shop)
+        return shop, warehouse
+
+    def save(self, *args, **kwargs):
+        self.shop_stock, self.warehouse_stock = self.calculate_stock_split()
+        
+        # Ensure shop_stock and warehouse_stock are in update_fields if passed
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            update_fields = set(update_fields)
+            update_fields.update(['shop_stock', 'warehouse_stock'])
+            kwargs['update_fields'] = list(update_fields)
+            
+        super().save(*args, **kwargs)
 
     @property
     def is_low_stock(self):
@@ -92,7 +138,7 @@ class Product(models.Model):
     @property
     def inventory_value(self):
         """Calculate total inventory value for this product using cost price."""
-        return self.stock_quantity * self.cost_price
+        return max(0, self.stock_quantity) * self.cost_price
 
 
 class InventoryTransaction(models.Model):

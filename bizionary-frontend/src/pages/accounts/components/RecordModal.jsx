@@ -192,6 +192,7 @@ const RecordModal = ({ isOpen, onClose, recordType, record, triggerRefresh }) =>
                                         <option value="MARKETING">Marketing</option>
                                         <option value="TECHNOLOGY">Technology</option>
                                         <option value="TRAVEL">Travel</option>
+                                        <option value="WAREHOUSE">Warehouse Expenses</option>
                                         <option value="OTHER">Other</option>
                                     </select>
                                 </div>

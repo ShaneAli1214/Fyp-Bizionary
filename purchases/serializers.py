@@ -174,6 +174,7 @@ class OrderedSlipSerializer(serializers.ModelSerializer):
             'email_sent_at',
             'received_at',
             'notes',
+            'delivery_location',
             'created_at',
             'updated_at',
         )

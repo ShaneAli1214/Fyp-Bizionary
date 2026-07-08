@@ -131,6 +131,14 @@ class OrderedSlip(models.Model):
     received_at = models.DateTimeField(blank=True, null=True)
     due_date = models.DateTimeField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    delivery_location = models.CharField(
+        max_length=50,
+        choices=[
+            ('WAREHOUSE', 'Warehouse'),
+            ('SHOP', 'Shop'),
+        ],
+        default='WAREHOUSE'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

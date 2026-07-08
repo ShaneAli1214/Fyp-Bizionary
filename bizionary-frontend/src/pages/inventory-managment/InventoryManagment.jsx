@@ -87,11 +87,13 @@ const InventoryManagment = () => {
                 const productCode = `${prefix}-${cleanName.slice(0, 16) || 'ITEM'}-${Date.now().toString().slice(-6)}`;
 
                 if (customProduct.company_mode === 'create' || customProduct.company_contact_number) {
-                    await api.post('purchases/companies/', {
+                    const savedCompany = await api.post('purchases/companies/', {
                         name: customProduct.company_name,
                         category: resolvedCategory,
                         contact_number: customProduct.company_contact_number || '',
                     });
+                    // Notify useCategories hook to invalidate cache and refetch
+                    window.dispatchEvent(new CustomEvent('companyCreated', { detail: savedCompany.data }));
                 }
 
                 const productPayload = {
@@ -199,16 +201,22 @@ const InventoryManagment = () => {
         return inventoryRows.reduce((summary, item) => {
             const availableQty = toNumber(item.available_qty);
             const incomingQty = toNumber(item.incoming_qty);
+            const shopStock = toNumber(item.shop_stock);
+            const warehouseStock = toNumber(item.warehouse_stock);
+            const costPrice = toNumber(item.cost_price);
 
             summary.totalProducts += 1;
-            summary.totalStockValue += toNumber(item.total_value);
+            summary.totalShopStockValue += shopStock * costPrice;
+            summary.totalWarehouseStockValue += warehouseStock * costPrice;
+            summary.totalStockValue += (shopStock + warehouseStock) * costPrice;
             // outOfStock metric removed per request
             summary.incomingStock += incomingQty;
             return summary;
         }, {
             totalProducts: 0,
             totalStockValue: 0,
-            
+            totalShopStockValue: 0,
+            totalWarehouseStockValue: 0,
             incomingStock: 0,
         });
     }, [inventoryRows]);
@@ -216,8 +224,10 @@ const InventoryManagment = () => {
     const metricCards = [
         { title: 'Total Products', value: dashboardMetrics.totalProducts, icon: Package, tone: 'bg-page text-primary border-card' },
         { title: 'Total Stock Value', value: formatPKR(dashboardMetrics.totalStockValue), icon: CircleDollarSign, tone: 'bg-status-success/10 text-status-success border-emerald-100' },
-        { title: 'Low Stock Items', value: lowStockRows.length, icon: AlertTriangle, tone: 'bg-amber-50 text-status-info border-amber-100', interactive: true },
-        { title: 'Incoming Stock', value: dashboardMetrics.incomingStock, icon: ArrowUpRight, tone: 'bg-sky-50 text-sky-700 border-sky-100' },
+        { title: 'Total Shop Stock Value', value: formatPKR(dashboardMetrics.totalShopStockValue), icon: CircleDollarSign, tone: 'bg-purple-50 text-purple-700 border-purple-100' },
+        { title: 'Total Warehouse Stock Value', value: formatPKR(dashboardMetrics.totalWarehouseStockValue), icon: CircleDollarSign, tone: 'bg-blue-50 text-blue-700 border-blue-100' },
+        { title: 'Low Stock Items', value: lowStockRows.length, icon: AlertTriangle, tone: 'bg-amber-50 text-status-info border-amber-100', interactive: true, colSpan: 'xl:col-span-2' },
+        { title: 'Incoming Stock', value: dashboardMetrics.incomingStock, icon: ArrowUpRight, tone: 'bg-sky-50 text-sky-700 border-sky-100', colSpan: 'xl:col-span-2' },
     ];
 
     if (loading) {
@@ -384,7 +394,7 @@ const InventoryManagment = () => {
                         }
 
                         return (
-                            <div key={card.title} className={`rounded-2xl border bg-card p-4 shadow-sm ${card.tone}`}>
+                            <div key={card.title} className={`rounded-2xl border bg-card p-4 shadow-sm ${card.tone} ${card.colSpan || ''}`}>
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-wider text-textMuted">{card.title}</p>

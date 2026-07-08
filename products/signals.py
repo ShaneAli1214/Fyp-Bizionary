@@ -13,9 +13,10 @@ def update_product_stock_on_save(sender, instance, created, **kwargs):
     if created:
         delta = instance.quantity if instance.txn_type == 'IN' else -instance.quantity
         from products.models import Product
-        Product.objects.filter(pk=instance.product_id).update(
-            stock_quantity=F('stock_quantity') + delta
-        )
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=instance.product_id)
+            product.stock_quantity += delta
+            product.save(update_fields=['stock_quantity', 'shop_stock', 'warehouse_stock'])
 
 
 @receiver(post_delete, sender='products.InventoryTransaction')
@@ -25,9 +26,10 @@ def update_product_stock_on_delete(sender, instance, **kwargs):
     """
     delta = -instance.quantity if instance.txn_type == 'IN' else instance.quantity
     from products.models import Product
-    Product.objects.filter(pk=instance.product_id).update(
-        stock_quantity=F('stock_quantity') + delta
-    )
+    with transaction.atomic():
+        product = Product.objects.select_for_update().get(pk=instance.product_id)
+        product.stock_quantity += delta
+        product.save(update_fields=['stock_quantity', 'shop_stock', 'warehouse_stock'])
 
 
 @receiver(post_save, sender='sales.Sale')

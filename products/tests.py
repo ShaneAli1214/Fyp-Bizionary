@@ -329,3 +329,55 @@ class BulkProductUploadTestCase(TestCase):
         # Reset back to ADMIN
         self.user.role = self.admin_role
         self.user.save()
+
+
+class ProductStockSplitTestCase(TestCase):
+    def test_stock_splits(self):
+        # > 150 -> 70 shop, remainder warehouse
+        p1 = Product.objects.create(name="P1", sku="SKU901", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=200)
+        self.assertEqual(p1.shop_stock, 70)
+        self.assertEqual(p1.warehouse_stock, 130)
+
+        # 100 - 150 -> 50 shop, remainder warehouse
+        p2 = Product.objects.create(name="P2", sku="SKU902", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=120)
+        self.assertEqual(p2.shop_stock, 50)
+        self.assertEqual(p2.warehouse_stock, 70)
+
+        # 50 - 99 -> 40 shop, remainder warehouse
+        p3 = Product.objects.create(name="P3", sku="SKU903", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=80)
+        self.assertEqual(p3.shop_stock, 40)
+        self.assertEqual(p3.warehouse_stock, 40)
+
+        # < 50, but >= 20 -> 20 shop, remainder warehouse
+        p4 = Product.objects.create(name="P4", sku="SKU904", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=30)
+        self.assertEqual(p4.shop_stock, 20)
+        self.assertEqual(p4.warehouse_stock, 10)
+
+        # < 20 -> full stock in shop, 0 in warehouse
+        p5 = Product.objects.create(name="P5", sku="SKU905", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=15)
+        self.assertEqual(p5.shop_stock, 15)
+        self.assertEqual(p5.warehouse_stock, 0)
+
+        # <= 0 -> 0 shop, 0 warehouse
+        p6 = Product.objects.create(name="P6", sku="SKU906", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=0)
+        self.assertEqual(p6.shop_stock, 0)
+        self.assertEqual(p6.warehouse_stock, 0)
+
+    def test_signals_recalculate_split(self):
+        p = Product.objects.create(name="Signal Test", sku="SKUSIG", cost_price=Decimal("10.00"), unit_price=Decimal("15.00"), stock_quantity=0)
+        self.assertEqual(p.shop_stock, 0)
+        self.assertEqual(p.warehouse_stock, 0)
+
+        # Record IN transaction
+        txn = InventoryTransaction.objects.create(
+            product=p,
+            txn_type=InventoryTransaction.TYPE_IN,
+            quantity=100,
+            reference_type="adjustment",
+            date=date.today()
+        )
+        p.refresh_from_db()
+        self.assertEqual(p.stock_quantity, 100)
+        self.assertEqual(p.shop_stock, 50)
+        self.assertEqual(p.warehouse_stock, 50)
+

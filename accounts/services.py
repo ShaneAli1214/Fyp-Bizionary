@@ -54,6 +54,7 @@ class AccountsService:
         Account.objects.get_or_create(code='5070', defaults={'name': 'Technology Expense', 'account_type': 'EXPENSE', 'parent': opex})
         Account.objects.get_or_create(code='5080', defaults={'name': 'Travel Expense', 'account_type': 'EXPENSE', 'parent': opex})
         Account.objects.get_or_create(code='5090', defaults={'name': 'Other Operating Expenses', 'account_type': 'EXPENSE', 'parent': opex})
+        Account.objects.get_or_create(code='5110', defaults={'name': 'Warehouse Expense', 'account_type': 'EXPENSE', 'parent': opex})
         Account.objects.get_or_create(code='5100', defaults={'name': 'Tax Expense', 'account_type': 'EXPENSE'})
 
     @classmethod
@@ -157,6 +158,7 @@ class AccountsService:
             'SUPPLIES': '5060',
             'TECHNOLOGY': '5070',
             'TRAVEL': '5080',
+            'WAREHOUSE': '5110',
             'OTHER': '5090',
         }
         exp_code = cat_to_code.get(expense.category, '5090')
@@ -651,6 +653,7 @@ class AccountsService:
             'PAYROLL': 'Payroll', 'MARKETING': 'Marketing & Advertising',
             'RENT_UTILITIES': 'Rent & Utilities', 'SUPPLIES': 'Supplies & Consumables',
             'TECHNOLOGY': 'Technology & Software', 'TRAVEL': 'Travel & Transport',
+            'WAREHOUSE': 'Warehouse Expenses',
             'OTHER': 'Other Operating Expenses',
         }
 

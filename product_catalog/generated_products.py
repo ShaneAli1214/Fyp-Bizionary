@@ -1,10 +1,6 @@
 """Auto-generated aggregated products module"""
 from decimal import Decimal
 
-from product_catalog.electronics_and_appliances.mobile_phones import MOBILE_PHONES_PRODUCTS
-from product_catalog.electronics_and_appliances.laptops_and_computers import LAPTOPS_AND_COMPUTERS_PRODUCTS
-from product_catalog.electronics_and_appliances.televisions import TELEVISIONS_PRODUCTS
-from product_catalog.electronics_and_appliances.home_appliances import HOME_APPLIANCES_PRODUCTS
 from product_catalog.grocery_and_food_items.staple_foods import STAPLE_FOODS_PRODUCTS
 from product_catalog.grocery_and_food_items.spices_and_condiments import SPICES_AND_CONDIMENTS_PRODUCTS
 from product_catalog.grocery_and_food_items.beverages import BEVERAGES_PRODUCTS
@@ -21,10 +17,6 @@ from product_catalog.stationery_and_office_supplies.writing_instruments import W
 from product_catalog.stationery_and_office_supplies.office_equipment import OFFICE_EQUIPMENT_PRODUCTS
 
 ALL_PRODUCTS = []
-ALL_PRODUCTS += MOBILE_PHONES_PRODUCTS
-ALL_PRODUCTS += LAPTOPS_AND_COMPUTERS_PRODUCTS
-ALL_PRODUCTS += TELEVISIONS_PRODUCTS
-ALL_PRODUCTS += HOME_APPLIANCES_PRODUCTS
 ALL_PRODUCTS += STAPLE_FOODS_PRODUCTS
 ALL_PRODUCTS += SPICES_AND_CONDIMENTS_PRODUCTS
 ALL_PRODUCTS += BEVERAGES_PRODUCTS
@@ -39,4 +31,5 @@ ALL_PRODUCTS += PERSONAL_CARE_PRODUCTS
 ALL_PRODUCTS += PAPER_AND_NOTEBOOKS_PRODUCTS
 ALL_PRODUCTS += WRITING_INSTRUMENTS_PRODUCTS
 ALL_PRODUCTS += OFFICE_EQUIPMENT_PRODUCTS
+
 

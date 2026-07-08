@@ -26,9 +26,11 @@ export const normalizeProductRecord = (item = {}) => {
         status: item.status || 'ACTIVE',
         stock_quantity: toNumber(item.stock_quantity ?? item.current_stock ?? 0),
         current_stock: toNumber(item.current_stock ?? item.stock_quantity ?? 0),
+        shop_stock: toNumber(item.shop_stock ?? 0),
+        warehouse_stock: toNumber(item.warehouse_stock ?? 0),
         damaged_quantity: toNumber(item.damaged_quantity ?? 0),
         warehouse: item.warehouse || item.location || item.storage_location || 'Main Warehouse',
-        total_value: toNumber(item.inventory_value ?? (toNumber(item.stock_quantity ?? 0) * purchasePrice)),
+        total_value: toNumber(item.inventory_value ?? (Math.max(toNumber(item.stock_quantity ?? 0), 0) * purchasePrice)),
     };
 };
 
@@ -80,7 +82,7 @@ export const buildInventoryRows = (products = [], reservedMap = {}, incomingMap 
             available_qty: availableQty,
             reserved_qty: reservedQty,
             incoming_qty: incomingQty,
-            total_value: availableQty * toNumber(normalized.cost_price),
+            total_value: Math.max(availableQty, 0) * toNumber(normalized.cost_price),
         };
     });
 };

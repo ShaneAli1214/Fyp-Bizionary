@@ -304,13 +304,16 @@ const OrderedSlips = () => {
         drawBox(leftColX, middleRowY, topLeftWidth, 19, [252, 236, 237], [200, 200, 200]);
         drawBox(rightColX, middleRowY, topRightWidth, 19, [252, 236, 237], [200, 200, 200]);
 
+        const shipToName = slip.delivery_location === 'SHOP' ? 'Bizionary Shop' : 'Bizionary Warehouse';
+        const shipToAddr = slip.delivery_location === 'SHOP' ? 'Direct to Shop' : 'Main warehouse';
+
         drawBox(leftColX, middleRowY, labelWidth, rowHeight, [249, 217, 218], [230, 230, 230]);
         writeValue(leftColX + 1.5, middleRowY + 2, 'Ship To:', 24, 'left', 8, true);
-        writeValue(leftColX + labelWidth + 1.5, middleRowY + 2, 'Bizionary Shop', topLeftWidth - labelWidth - 4, 'left', 8.5, false);
+        writeValue(leftColX + labelWidth + 1.5, middleRowY + 2, shipToName, topLeftWidth - labelWidth - 4, 'left', 8.5, false);
 
         drawBox(leftColX, middleRowY + rowHeight, labelWidth, rowHeight, [249, 217, 218], [230, 230, 230]);
         writeValue(leftColX + 1.5, middleRowY + rowHeight + 2, 'Ship To Address:', 24, 'left', 8, true);
-        writeValue(leftColX + labelWidth + 1.5, middleRowY + rowHeight + 2, 'Main warehouse', topLeftWidth - labelWidth - 4, 'left', 8.5, false);
+        writeValue(leftColX + labelWidth + 1.5, middleRowY + rowHeight + 2, shipToAddr, topLeftWidth - labelWidth - 4, 'left', 8.5, false);
 
         drawBox(rightColX, middleRowY, labelWidth, rowHeight, [249, 217, 218], [230, 230, 230]);
         writeValue(rightColX + 1.5, middleRowY + 2, 'Ship Via:', 24, 'left', 8, true);
@@ -530,6 +533,13 @@ const OrderedSlips = () => {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="text-base font-bold text-textMain">OS-{String(slip.id).padStart(4, '0')}</h3>
                                             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${statusBadgeClass(slip.status)}`}>{slip.status.replaceAll('_', ' ')}</span>
+                                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                                                slip.delivery_location === 'SHOP' 
+                                                    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                                                    : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                            }`}>
+                                                {slip.delivery_location === 'SHOP' ? 'Direct to Shop' : 'Warehouse'}
+                                            </span>
                                         </div>
                                         <p className="text-xs text-textMuted mt-1">{slip.company_name}</p>
                                     </div>

@@ -206,6 +206,7 @@ class Expense(models.Model):
         ('SUPPLIES', 'Supplies'),
         ('TECHNOLOGY', 'Technology'),
         ('TRAVEL', 'Travel'),
+        ('WAREHOUSE', 'Warehouse Expenses'),
         ('OTHER', 'Other'),
     ]
 
@@ -449,6 +450,7 @@ class ExpenseBudget(models.Model):
         ('SUPPLIES', 'Supplies'),
         ('TECHNOLOGY', 'Technology'),
         ('TRAVEL', 'Travel'),
+        ('WAREHOUSE', 'Warehouse Expenses'),
         ('OTHER', 'Other'),
         ('ALL', 'All Categories (Total)'),
     ]

@@ -6,7 +6,7 @@ from purchases.models import SupplierCompany
 class ProductSerializer(serializers.ModelSerializer):
     product_code = serializers.CharField(source='sku')
     categoryId = serializers.CharField(source='category', required=False, allow_blank=True, allow_null=True)
-    sale_price = serializers.DecimalField(source='unit_price', max_digits=10, decimal_places=2)
+    sale_price = serializers.DecimalField(source='unit_price', max_digits=10, decimal_places=2, required=False)
     supplier = serializers.PrimaryKeyRelatedField(queryset=SupplierCompany.objects.all(), required=False, allow_null=True)
     supplier_name = serializers.CharField(source='supplier.name', read_only=True)
     current_stock = serializers.IntegerField(source='stock_quantity', read_only=True)
@@ -40,7 +40,9 @@ class ProductSerializer(serializers.ModelSerializer):
             'stock_status',
             'inventory_value',
             'profit_margin',
+            'shop_stock',
+            'warehouse_stock',
             'created_at',
             'updated_at',
         )
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at', 'shop_stock', 'warehouse_stock')
