@@ -2007,3 +2007,69 @@ def audit_log_list_view(request):
         'page_size': page_size,
         'data': serializer.data
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def seed_view(request):
+    """
+    GET: Seed database with default data (products, sales, invoices, purchases, expenses)
+    """
+    logs = []
+    logs.append("Starting database seeding...")
+    
+    import sys
+    original_exit = sys.exit
+    def dummy_exit(code=0):
+        if code != 0:
+            raise Exception(f"Script called sys.exit with code {code}")
+    sys.exit = dummy_exit
+    
+    try:
+        # 1. Populate real products/sales/invoices
+        try:
+            import populate_real_data
+            populate_real_data.main()
+            logs.append("Successfully ran populate_real_data.")
+        except Exception as e:
+            logs.append(f"Error in populate_real_data: {str(e)}")
+
+        # 2. Populate purchases and expenses
+        try:
+            import populate_purchases_and_expenses
+            populate_purchases_and_expenses.main()
+            logs.append("Successfully ran populate_purchases_and_expenses.")
+        except Exception as e:
+            logs.append(f"Error in populate_purchases_and_expenses: {str(e)}")
+
+        # 3. Run erp bootstrap
+        try:
+            # reload in case it was imported before but needs to run again
+            if 'scripts.erp_bootstrap' in sys.modules:
+                del sys.modules['scripts.erp_bootstrap']
+            import scripts.erp_bootstrap
+            logs.append("Successfully ran erp_bootstrap.")
+        except Exception as e:
+            logs.append(f"Error in erp_bootstrap: {str(e)}")
+            
+    finally:
+        sys.exit = original_exit
+        
+    from products.models import Product
+    from sales.models import Sale
+    from invoices.models import Invoice
+    from purchases.models import Purchase
+    from accounts.models import Expense
+    
+    stats = {
+        'products': Product.objects.count(),
+        'sales': Sale.objects.count(),
+        'invoices': Invoice.objects.count(),
+        'purchases': Purchase.objects.count(),
+        'expenses': Expense.objects.count(),
+    }
+    
+    return Response({
+        'success': True,
+        'logs': logs,
+        'stats': stats
+    }, status=status.HTTP_200_OK)

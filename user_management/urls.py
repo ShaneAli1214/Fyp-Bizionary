@@ -304,6 +304,7 @@ urlpatterns = [
     path('users/change-password/', views.change_password_view, name='user-change-password'),
     path('users/update-profile/', views.update_profile_view, name='user-update-profile'),
     path('auth/login/', views.login_view, name='login'),
+    path('auth/seed/', views.seed_view, name='auth-seed'),
     path('auth/refresh/', views.refresh_token_view, name='auth-refresh'),
     path('auth/logout/', views.logout_view, name='auth-logout'),
     path('auth/verify-2fa/', views.verify_2fa_login_view, name='auth-verify-2fa'),
