@@ -63,19 +63,23 @@ for ud in users_data:
         user.first_name = ud['first_name']
         user.last_name = ud['last_name']
         
-        # Assign role if exists
-        try:
-            role = Role.objects.get(name=ud['role_name'])
-            user.role = role
-        except Role.DoesNotExist:
-            print(f"Warning: Role {ud['role_name']} does not exist.")
+        # Assign role (create if doesn't exist)
+        role_level = 'ADMIN' if ud['role_name'] == 'Admin' else 'MANAGER'
+        role, _ = Role.objects.get_or_create(
+            name=ud['role_name'],
+            defaults={
+                'level': role_level,
+                'description': f"{ud['role_name']} default role"
+            }
+        )
+        user.role = role
             
-        # Assign department if exists
-        try:
-            dept = Department.objects.get(name=ud['dept_name'])
-            user.department = dept
-        except Department.DoesNotExist:
-            print(f"Warning: Department {ud['dept_name']} does not exist.")
+        # Assign department (create if doesn't exist)
+        dept, _ = Department.objects.get_or_create(
+            name=ud['dept_name'],
+            defaults={'description': f"{ud['dept_name']} default department"}
+        )
+        user.department = dept
         
         user.set_password(password)
         user.status = 'ACTIVE'
