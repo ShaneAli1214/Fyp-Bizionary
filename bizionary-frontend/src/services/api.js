@@ -11,8 +11,18 @@ export const getAccessToken = () => {
     return accessToken;
 };
 
+let rawBaseURL = import.meta.env.VITE_API_URL || '/api/';
+// Ensure it resolves to the standard /api/ prefix
+if (rawBaseURL !== '/api/' && !rawBaseURL.endsWith('/api') && !rawBaseURL.endsWith('/api/')) {
+    rawBaseURL = rawBaseURL.endsWith('/') ? `${rawBaseURL}api/` : `${rawBaseURL}/api/`;
+} else if (rawBaseURL !== '/api/' && rawBaseURL.endsWith('/api')) {
+    rawBaseURL = `${rawBaseURL}/`;
+}
+
+export const API_BASE_URL = rawBaseURL;
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api/',
+    baseURL: API_BASE_URL,
     withCredentials: true, // Allow cookies to be shared across ports in development
 });
 
@@ -83,7 +93,7 @@ api.interceptors.response.use(
 
             try {
                 // Call refresh endpoint to fetch a new access token
-                const refreshUrl = (import.meta.env.VITE_API_URL || '/api/') + 'user-management/auth/refresh/';
+                const refreshUrl = API_BASE_URL + 'user-management/auth/refresh/';
                 const response = await axios.post(refreshUrl, {}, { withCredentials: true });
                 const { token: newAccessToken } = response.data;
                 
