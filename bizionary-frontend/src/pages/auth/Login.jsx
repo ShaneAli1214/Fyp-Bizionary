@@ -51,7 +51,8 @@ const Login = () => {
                 }
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'An unexpected error occurred. Please try again.');
+            const errMsg = err.response?.data?.error;
+            setError(typeof errMsg === 'object' ? (errMsg.message || JSON.stringify(errMsg)) : (errMsg || 'An unexpected error occurred. Please try again.'));
         } finally {
             setIsLoading(false);
         }
@@ -130,7 +131,7 @@ const Login = () => {
                     {/* Error banner */}
                     {error && (
                         <div className="p-4 rounded-xl bg-status-info/10 text-status-info border border-rose-100 text-xs font-semibold">
-                            {error}
+                            {typeof error === 'object' ? (error.message || JSON.stringify(error)) : String(error)}
                         </div>
                     )}
 

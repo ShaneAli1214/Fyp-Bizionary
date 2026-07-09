@@ -37,7 +37,7 @@ const ToastItem = ({ toast }) => {
             <div className="pl-2 flex items-start gap-3 flex-1">
                 <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${cfg.icon_cls}`} />
                 <p className="text-sm font-medium text-textMain dark:text-slate-200 leading-snug flex-1">
-                    {toast.message}
+                    {typeof toast.message === 'object' ? (toast.message.message || JSON.stringify(toast.message)) : String(toast.message)}
                 </p>
             </div>
             <button
