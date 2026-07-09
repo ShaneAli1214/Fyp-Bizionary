@@ -92,3 +92,29 @@ for ud in users_data:
         print(f"Error processing {ud['username']}: {str(e)}")
 
 print("Finished updating user credentials.")
+
+# ---- Auto-seed database if empty ----
+try:
+    from products.models import Product
+    if Product.objects.count() == 0:
+        print("Database is empty of products. Starting auto-seeding...")
+        try:
+            import populate_real_data
+            populate_real_data.main()
+        except Exception as e:
+            print(f"Error in populate_real_data: {e}")
+            
+        try:
+            import populate_purchases_and_expenses
+            populate_purchases_and_expenses.main()
+        except Exception as e:
+            print(f"Error in populate_purchases_and_expenses: {e}")
+            
+        try:
+            import scripts.erp_bootstrap
+        except Exception as e:
+            print(f"Error in erp_bootstrap: {e}")
+    else:
+        print(f"Database already contains {Product.objects.count()} products. Skipping auto-seeding.")
+except Exception as e:
+    print(f"Global error during auto-seeding checks: {e}")
