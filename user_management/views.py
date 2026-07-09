@@ -999,12 +999,14 @@ def login_view(request):
             }
         }, status=status.HTTP_200_OK)
         
+        from django.conf import settings
+        is_prod = not settings.DEBUG
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=False,
-            samesite='Lax',
+            secure=is_prod,
+            samesite='None' if is_prod else 'Lax',
             max_age=604800
         )
         return response
@@ -1405,7 +1407,13 @@ def logout_view(request):
         'message': 'Logged out successfully.'
     }, status=status.HTTP_200_OK)
     
-    response.delete_cookie('refresh_token')
+    from django.conf import settings
+    is_prod = not settings.DEBUG
+    response.delete_cookie(
+        'refresh_token',
+        samesite='None' if is_prod else 'Lax',
+        secure=is_prod
+    )
     return response
 
 
