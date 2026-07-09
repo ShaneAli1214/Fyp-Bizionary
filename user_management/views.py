@@ -2018,6 +2018,12 @@ def seed_view(request):
     logs.append("Starting database seeding...")
     
     import sys
+    import os
+    from django.conf import settings
+    base_dir = str(settings.BASE_DIR)
+    if base_dir not in sys.path:
+        sys.path.insert(0, base_dir)
+
     original_exit = sys.exit
     def dummy_exit(code=0):
         if code != 0:

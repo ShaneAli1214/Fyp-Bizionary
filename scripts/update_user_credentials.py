@@ -3,7 +3,7 @@ import sys
 import django
 
 # Add project root directory to Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Bootstrap Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'erp_system.settings')
