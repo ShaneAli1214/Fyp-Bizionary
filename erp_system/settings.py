@@ -152,7 +152,7 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True').lower() in ('1', 'true', 'yes')
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
+CORS_ALLOWED_ORIGINS = [origin.rstrip('/') for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')]
 
 # Groq chatbot configuration
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
