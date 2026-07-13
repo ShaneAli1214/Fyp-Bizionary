@@ -40,7 +40,7 @@ class Sale(models.Model):
         default=Decimal('0.00'),
         validators=[MinValueValidator(Decimal('0.00'))]
     )
-    invoice_number = models.CharField(max_length=50, blank=True, null=True)
+    invoice_number = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     payment_status = models.CharField(
         max_length=20,
