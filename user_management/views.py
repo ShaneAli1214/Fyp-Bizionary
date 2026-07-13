@@ -2040,7 +2040,11 @@ def seed_view(request):
             from sales.models import Sale, SaleReturn
             from invoices.models import Invoice
             from purchases.models import Purchase, SupplierCompany, OrderedSlip
-            from accounts.models import Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost
+            from accounts.models import (
+                Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost,
+                Account, JournalEntry, JournalItem, Revenue, Invoice as AccountsInvoice,
+                AuditLog as AccountsAuditLog, ExpenseBudget, InvoicePayment
+            )
             from user_management.models import Department, Role, ERPUser, Module, Permission, ActivityLog, UserSession, UserInvite, SecuritySetting
             
             # Wiping child models first
@@ -2053,12 +2057,20 @@ def seed_view(request):
             Product.objects.all().delete()
             SupplierCompany.objects.all().delete()
             
-            # Accounts
+            # Accounts child models first
+            AccountsAuditLog.objects.all().delete()
+            InvoicePayment.objects.all().delete()
+            ExpenseBudget.objects.all().delete()
+            Revenue.objects.all().delete()
+            AccountsInvoice.objects.all().delete()
             UtilityBill.objects.all().delete()
             SalaryPayment.objects.all().delete()
             RecurringCost.objects.all().delete()
             Expense.objects.all().delete()
             CashTransaction.objects.all().delete()
+            JournalItem.objects.all().delete()
+            JournalEntry.objects.all().delete()
+            Account.objects.all().delete()
             
             # User management
             UserSession.objects.all().delete()
