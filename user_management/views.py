@@ -2038,7 +2038,9 @@ def seed_view(request):
             from invoices.models import Invoice
             from purchases.models import Purchase, SupplierCompany, OrderedSlip
             from accounts.models import Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost
+            from user_management.models import Department, Role, ERPUser, Module, Permission, ActivityLog, UserSession, UserInvite, SecuritySetting
             
+            # Wiping child models first
             SaleReturn.objects.all().delete()
             InventoryTransaction.objects.all().delete()
             Invoice.objects.all().delete()
@@ -2047,11 +2049,25 @@ def seed_view(request):
             OrderedSlip.objects.all().delete()
             Product.objects.all().delete()
             SupplierCompany.objects.all().delete()
+            
+            # Accounts
             UtilityBill.objects.all().delete()
             SalaryPayment.objects.all().delete()
             RecurringCost.objects.all().delete()
             Expense.objects.all().delete()
             CashTransaction.objects.all().delete()
+            
+            # User management
+            UserSession.objects.all().delete()
+            ActivityLog.objects.all().delete()
+            Permission.objects.all().delete()
+            UserInvite.objects.all().delete()
+            ERPUser.objects.all().delete()
+            Role.objects.all().delete()
+            Department.objects.all().delete()
+            Module.objects.all().delete()
+            SecuritySetting.objects.all().delete()
+            
             logs.append("Successfully cleared existing data.")
         except Exception as e:
             logs.append(f"Error clearing data: {str(e)}")
