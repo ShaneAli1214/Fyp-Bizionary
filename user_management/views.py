@@ -880,11 +880,17 @@ def get_client_device(request):
 
 @api_view(['POST'])
 def login_view(request):
-    """
-    POST: Authenticate user using email and password.
-    Returns access token, user info and sets refresh cookie.
-    If 2FA is enabled, returns intermediate status.
-    """
+    try:
+        return _login_view(request)
+    except Exception as e:
+        import traceback
+        return Response({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def _login_view(request):
     email = request.data.get('email')
     password = request.data.get('password')
     
