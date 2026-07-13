@@ -662,6 +662,20 @@ const SalesList = () => {
                                             {s.remaining_stock ?? 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 font-bold text-status-success text-right">{formatPKR(s.total_price)}</td>
+                                        {customColumns.map(col => {
+                                            const cellValue = getCustomCellValue(s.id, col);
+                                            return (
+                                                <td key={col} className="px-6 py-4 text-center whitespace-nowrap">
+                                                    <input
+                                                        type="text"
+                                                        value={cellValue}
+                                                        onChange={(e) => setCustomCellValue(s.id, col, e.target.value)}
+                                                        className="w-24 text-center bg-transparent border-b border-border-card/30 hover:border-textMuted focus:border-primary focus:ring-0 outline-none text-xs text-textMain"
+                                                        placeholder="-"
+                                                    />
+                                                </td>
+                                            );
+                                        })}
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
@@ -691,7 +705,7 @@ const SalesList = () => {
                                 ))}
                                 {filteredSales.length === 0 && (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-12 text-center text-textMuted">
+                                        <td colSpan={9 + customColumns.length} className="px-6 py-12 text-center text-textMuted">
                                             <Receipt className="mx-auto h-12 w-12 text-gray-300 mb-3" />
                                             <p>No sales records found.</p>
                                         </td>
