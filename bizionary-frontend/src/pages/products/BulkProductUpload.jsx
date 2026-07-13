@@ -6,6 +6,7 @@ import { formatPKR } from '../../utils/currency';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useDynamicColumns } from '../../hooks/useDynamicColumns';
 
 
 const BulkProductUpload = () => {
@@ -29,6 +30,9 @@ const BulkProductUpload = () => {
             }
         }
     }, [user, navigate, addToast]);
+
+    // Dynamic columns hook
+    const { importCustomData } = useDynamicColumns('products');
 
     // State management
     const [file, setFile] = useState(null);
@@ -123,6 +127,40 @@ const BulkProductUpload = () => {
             });
             setResult(res.data);
             setIsReportModalOpen(true);
+            
+            // Client side parsing for custom columns
+            try {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const text = reader.result;
+                        const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                        if (lines.length > 1) {
+                            const csvHeaders = lines[0].split(',').map(h => h.trim());
+                            const allRows = lines.slice(1).map(line => {
+                                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
+                                const rowObj = {};
+                                csvHeaders.forEach((h, index) => {
+                                    rowObj[h] = values[index] || '';
+                                });
+                                return rowObj;
+                            });
+                            
+                            const stdFields = [
+                                'product_name', 'sku', 'category', 'purchase_price', 'selling_price', 'quantity', 'supplier_company',
+                                'product_code', 'cost_price', 'sale_price', 'unit_price', 'shop_stock', 'current_stock', 'total_stock', 'status'
+                            ];
+                            
+                            importCustomData(allRows, 'sku', stdFields);
+                        }
+                    } catch (parseErr) {
+                        console.error('Failed to parse custom columns:', parseErr);
+                    }
+                };
+                reader.readAsText(file);
+            } catch (fileErr) {
+                console.error('Failed to read upload file for custom fields:', fileErr);
+            }
             
             // Set initial active tab based on which records exist
             const resData = res.data;

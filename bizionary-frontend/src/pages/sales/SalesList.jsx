@@ -10,6 +10,7 @@ import SalesCharts from './SalesCharts';
 import SaleSlipModal from './SaleSlipModal';
 import { PRODUCT_CATEGORIES, normalizeProductCategory } from '../../utils/productCategories';
 import { useAuth } from '../../context/AuthContext';
+import { useDynamicColumns } from '../../hooks/useDynamicColumns';
 
 const MemoizedSalesCharts = React.memo(SalesCharts);
 
@@ -70,6 +71,15 @@ const SalesList = () => {
 
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Dynamic columns hook
+    const {
+        customColumns,
+        addColumn,
+        removeColumn,
+        setCustomCellValue,
+        getCustomCellValue
+    } = useDynamicColumns('sales');
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');
@@ -393,6 +403,21 @@ const SalesList = () => {
                         <ChevronDown className="h-4 w-4 absolute right-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
                     </div>
                     <button
+                        onClick={() => {
+                            const colName = prompt("Enter the name of the new column (e.g. Salesperson, Region, Notes):");
+                            if (colName) {
+                                const success = addColumn(colName);
+                                if (!success) {
+                                    alert("Column already exists or invalid name!");
+                                }
+                            }
+                        }}
+                        className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
+                    >
+                        <Plus className="h-4 w-4 mr-2 text-primary" />
+                        + Column
+                    </button>
+                    <button
                         onClick={openBulkModal}
                         className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
                     >
@@ -594,6 +619,25 @@ const SalesList = () => {
                                     <th className="px-6 py-4 font-semibold text-center">Sold Qty</th>
                                     <th className="px-6 py-4 font-semibold text-center">Current Stock</th>
                                     <th className="px-6 py-4 font-semibold text-right">Total Price</th>
+                                    {customColumns.map(col => (
+                                        <th key={col} className="px-6 py-4 font-semibold text-center relative group">
+                                            <div className="flex items-center justify-center gap-1">
+                                                {col}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (window.confirm(`Delete custom column "${col}" and all its cell data?`)) {
+                                                            removeColumn(col);
+                                                        }
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-700 ml-1 transition-opacity cursor-pointer"
+                                                    title={`Remove column ${col}`}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        </th>
+                                    ))}
                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
