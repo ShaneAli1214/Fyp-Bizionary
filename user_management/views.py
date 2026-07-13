@@ -2024,6 +2024,11 @@ def seed_view(request):
     if base_dir not in sys.path:
         sys.path.insert(0, base_dir)
 
+    # Disable django.setup to prevent re-entrant issues
+    import django
+    original_setup = django.setup
+    django.setup = lambda: None
+
     original_exit = sys.exit
     def dummy_exit(code=0):
         if code != 0:
@@ -2037,7 +2042,7 @@ def seed_view(request):
             from sales.models import Sale, SaleReturn
             from invoices.models import Invoice
             from purchases.models import Purchase, SupplierCompany, OrderedSlip
-            from accounts.models import Expense, CashTransaction
+            from accounts.models import Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost
             
             SaleReturn.objects.all().delete()
             InventoryTransaction.objects.all().delete()
@@ -2047,6 +2052,9 @@ def seed_view(request):
             OrderedSlip.objects.all().delete()
             Product.objects.all().delete()
             SupplierCompany.objects.all().delete()
+            UtilityBill.objects.all().delete()
+            SalaryPayment.objects.all().delete()
+            RecurringCost.objects.all().delete()
             Expense.objects.all().delete()
             CashTransaction.objects.all().delete()
             logs.append("Successfully cleared existing data.")
@@ -2065,27 +2073,37 @@ def seed_view(request):
         except Exception as e:
             logs.append(f"Error in import_inventory: {str(e)}")
 
-        # 3. Import sales from Excel
-        try:
-            class ArgsMock:
-                workbook = 'output/30day_sales_AlNoor_cleaned.xlsx'
-                sheet = 'Sales Data'
-                customer = 'AlNoor Trading'
-                prefix = 'XLSX-ALNOOR-'
-                replace_existing_imports = True
-                dry_run = False
-            
-            import scripts.import_sales_from_excel as import_sales
-            import_sales.parse_args = lambda: ArgsMock()
-            
-            import io
-            from contextlib import redirect_stdout
-            f = io.StringIO()
-            with redirect_stdout(f):
-                import_sales.main()
-            logs.append(f"import_sales_from_excel output:\n{f.getvalue()}")
-        except Exception as e:
-            logs.append(f"Error in import_sales_from_excel: {str(e)}")
+        # 3. Import sales from monthly Excel summaries and 30-day cleaned sheet
+        workbooks = [
+            ('AlNoor_Financial_Summary_January_2026.xlsx', 'ALNOOR_JANUARY_2026'),
+            ('AlNoor_Financial_Summary_February_2026.xlsx', 'ALNOOR_FEBRUARY_2026'),
+            ('AlNoor_Financial_Summary_March_2026.xlsx', 'ALNOOR_MARCH_2026'),
+            ('AlNoor_Financial_Summary_April_2026.xlsx', 'ALNOOR_APRIL_2026'),
+            ('AlNoor_Financial_Summary_June_2026.xlsx', 'ALNOOR_JUNE_2026'),
+            ('output/30day_sales_AlNoor_cleaned.xlsx', '30DAY_SALES_ALNOOR_CLEANED')
+        ]
+        
+        for wb_file, prefix_name in workbooks:
+            try:
+                class ArgsMock:
+                    workbook = wb_file
+                    sheet = 'Sales Data'
+                    customer = 'AlNoor Trading'
+                    prefix = f'XLSX-ALNOOR-{prefix_name}-'
+                    replace_existing_imports = True
+                    dry_run = False
+                
+                import scripts.import_sales_from_excel as import_sales
+                import_sales.parse_args = lambda: ArgsMock()
+                
+                import io
+                from contextlib import redirect_stdout
+                f = io.StringIO()
+                with redirect_stdout(f):
+                    import_sales.main()
+                logs.append(f"import_sales_from_excel output for {wb_file}:\n{f.getvalue()}")
+            except Exception as e:
+                logs.append(f"Error in import_sales_from_excel for {wb_file}: {str(e)}")
 
         # 4. Populate purchases and expenses
         try:
@@ -2099,7 +2117,19 @@ def seed_view(request):
         except Exception as e:
             logs.append(f"Error in populate_purchases_and_expenses: {str(e)}")
 
-        # 5. Run erp bootstrap
+        # 5. Import expenses from Expense_Sheet.xlsx
+        try:
+            import io
+            from contextlib import redirect_stdout
+            f = io.StringIO()
+            import scratch.import_expenses as import_expenses
+            with redirect_stdout(f):
+                import_expenses.main()
+            logs.append(f"import_expenses output:\n{f.getvalue()}")
+        except Exception as e:
+            logs.append(f"Error in import_expenses: {str(e)}")
+
+        # 6. Run erp bootstrap
         import io
         from contextlib import redirect_stdout, redirect_stderr
         f_out = io.StringIO()
@@ -2116,6 +2146,7 @@ def seed_view(request):
             logs.append(f"Error in erp_bootstrap: {str(e)}")
             
     finally:
+        django.setup = original_setup
         sys.exit = original_exit
         
     from products.models import Product
