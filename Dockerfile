@@ -30,4 +30,4 @@ EXPOSE 8000
 RUN mkdir -p /app/staticfiles
 
 # Run migrations, update user credentials, collectstatic and start gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && python scripts/update_user_credentials.py && python manage.py collectstatic --noinput && gunicorn erp_system.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python scripts/update_user_credentials.py && python manage.py collectstatic --noinput && gunicorn erp_system.wsgi:application --bind 0.0.0.0:8000 --timeout 600"]
