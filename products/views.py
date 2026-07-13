@@ -489,14 +489,8 @@ def bulk_upload_products(request):
                 errors += 1
                 continue
 
-        # supplier_contact -> optional, if provided must be valid phone or email
-        if supplier_contact:
-            is_valid_email = bool(EMAIL_REGEX.match(supplier_contact))
-            is_valid_phone = bool(PHONE_REGEX.match(supplier_contact))
-            if not (is_valid_email or is_valid_phone):
-                error_rows_details.append({"row": i, "reason": "invalid supplier_contact, must be a valid phone number or email address"})
-                errors += 1
-                continue
+        # supplier_contact -> optional, allowed to be any format
+        pass
 
         # unit -> optional, default to "pcs" if not provided
         if not unit:
