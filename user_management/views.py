@@ -2026,6 +2026,9 @@ def seed_view(request):
 
     original_exit = sys.exit
     def dummy_exit(code=0):
+        import traceback
+        tb = "".join(traceback.format_stack())
+        logs.append(f"sys.exit called with code {code} from stack:\n{tb}")
         if code != 0:
             raise Exception(f"Script called sys.exit with code {code}")
     sys.exit = dummy_exit
