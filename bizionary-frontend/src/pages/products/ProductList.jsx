@@ -28,7 +28,7 @@ const ProductList = () => {
     
     // Dynamic columns hook
     const {
-        customColumns,
+        getCustomColumns,
         addColumn,
         removeColumn,
         setCustomCellValue,
@@ -243,30 +243,13 @@ const ProductList = () => {
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     {isAdminOrManager && (
-                        <>
-                            <button
-                                onClick={() => {
-                                    const colName = prompt("Enter the name of the new column (e.g. Color, Size, Warranty):");
-                                    if (colName) {
-                                        const success = addColumn(colName);
-                                        if (!success) {
-                                            alert("Column already exists or invalid name!");
-                                        }
-                                    }
-                                }}
-                                className="flex items-center justify-center px-5 py-2 bg-surface hover:bg-background text-textMain border border-card rounded-full text-sm font-bold transition-all shadow-sm w-full sm:w-auto cursor-pointer"
-                            >
-                                <Plus className="h-4 w-4 mr-2 text-primary" />
-                                + Column
-                            </button>
-                            <button
-                                onClick={() => navigate('/products/bulk-upload')}
-                                className="flex items-center justify-center px-5 py-2 bg-surface hover:bg-background text-textMain border border-card rounded-full text-sm font-bold transition-all shadow-sm w-full sm:w-auto cursor-pointer"
-                            >
-                                <Upload className="h-4 w-4 mr-2 text-primary" />
-                                Bulk Products
-                            </button>
-                        </>
+                        <button
+                            onClick={() => navigate('/products/bulk-upload')}
+                            className="flex items-center justify-center px-5 py-2 bg-surface hover:bg-background text-textMain border border-card rounded-full text-sm font-bold transition-all shadow-sm w-full sm:w-auto cursor-pointer"
+                        >
+                            <Upload className="h-4 w-4 mr-2 text-primary" />
+                            Bulk Products
+                        </button>
                     )}
                     <button
                         onClick={openAddForm}
@@ -352,49 +335,70 @@ const ProductList = () => {
                 </div>
             ) : (
                 <div className="space-y-5">
-                    {productsByCategory.map((section) => (
-                        <div key={section.value} className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-border-card flex items-center justify-between">
-                                <h3 className="text-base font-bold text-textMain">{section.label} Section</h3>
-                                <span className="text-xs font-semibold text-textMuted bg-page px-2.5 py-1 rounded-lg">
-                                    {section.items.length} item(s)
-                                </span>
-                            </div>
-                            <div className="overflow-x-auto">
-                                        <table className="w-full text-sm text-left">
-                                    <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
-                                        <tr>
-                                                    <th className="px-6 py-4 font-semibold">SKU</th>
-                                                    <th className="px-6 py-4 font-semibold">Product Name</th>
-                                                    <th className="px-6 py-4 font-semibold">Category</th>
-                                                    {/* Brand and Unit columns removed */}
-                                                    <th className="px-6 py-4 font-semibold text-right">Purchase Price</th>
-                                                    <th className="px-6 py-4 font-semibold text-right">Selling Price</th>
-                                                    <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
-                                                    {/* Supplier column removed */}
-                                                    <th className="px-6 py-4 font-semibold text-center">Shop Stock</th>
-                                                    <th className="px-6 py-4 font-semibold text-center">Total Stock</th>
-                                                    {customColumns.map(col => (
-                                                        <th key={col} className="px-6 py-4 font-semibold text-center relative group">
-                                                            <div className="flex items-center justify-center gap-1">
-                                                                {col}
-                                                                {isAdminOrManager && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            if (window.confirm(`Delete custom column "${col}" and all its cell data?`)) {
-                                                                                removeColumn(col);
-                                                                            }
-                                                                        }}
-                                                                        className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-700 ml-1 transition-opacity cursor-pointer"
-                                                                        title={`Remove column ${col}`}
-                                                                    >
-                                                                        <X className="h-3 w-3" />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </th>
-                                                    ))}
+                    {productsByCategory.map((section) => {
+                        const sectionCustomCols = getCustomColumns(section.value);
+                        return (
+                            <div key={section.value} className="bg-bg-card rounded-2xl border border-border-card shadow-sm overflow-hidden">
+                                <div className="px-6 py-4 border-b border-border-card flex items-center justify-between">
+                                    <h3 className="text-base font-bold text-textMain">{section.label} Section</h3>
+                                    <div className="flex items-center gap-3">
+                                        {isAdminOrManager && (
+                                            <button
+                                                onClick={() => {
+                                                    const colName = prompt(`Enter new column name for the ${section.label} section:`);
+                                                    if (colName) {
+                                                        const success = addColumn(section.value, colName);
+                                                        if (!success) {
+                                                            alert("Column already exists in this section!");
+                                                        }
+                                                    }
+                                                }}
+                                                className="flex items-center justify-center px-3 py-1 bg-surface hover:bg-background text-textMain border border-card rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+                                            >
+                                                <Plus className="h-3 w-3 mr-1 text-primary" />
+                                                + Column
+                                            </button>
+                                        )}
+                                        <span className="text-xs font-semibold text-textMuted bg-page px-2.5 py-1 rounded-lg">
+                                            {section.items.length} item(s)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                            <table className="w-full text-sm text-left">
+                                        <thead className="text-text-secondary text-xs uppercase tracking-wider border-b border-border-card">
+                                            <tr>
+                                                        <th className="px-6 py-4 font-semibold">SKU</th>
+                                                        <th className="px-6 py-4 font-semibold">Product Name</th>
+                                                        <th className="px-6 py-4 font-semibold">Category</th>
+                                                        {/* Brand and Unit columns removed */}
+                                                        <th className="px-6 py-4 font-semibold text-right">Purchase Price</th>
+                                                        <th className="px-6 py-4 font-semibold text-right">Selling Price</th>
+                                                        <th className="px-6 py-4 font-semibold text-right">Profit Margin</th>
+                                                        {/* Supplier column removed */}
+                                                        <th className="px-6 py-4 font-semibold text-center">Shop Stock</th>
+                                                        <th className="px-6 py-4 font-semibold text-center">Total Stock</th>
+                                                        {sectionCustomCols.map(col => (
+                                                            <th key={col} className="px-6 py-4 font-semibold text-center relative group">
+                                                                <div className="flex items-center justify-center gap-1">
+                                                                    {col}
+                                                                    {isAdminOrManager && (
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (window.confirm(`Delete custom column "${col}" and all its cell data?`)) {
+                                                                                    removeColumn(section.value, col);
+                                                                                }
+                                                                            }}
+                                                                            className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-700 ml-1 transition-opacity cursor-pointer"
+                                                                            title={`Remove column ${col}`}
+                                                                        >
+                                                                            <X className="h-3 w-3" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </th>
+                                                        ))}
                                                     <th className="px-6 py-4 font-semibold text-center">Status</th>
                                                     <th className="px-6 py-4 font-semibold text-center">Actions</th>
                                         </tr>
@@ -402,7 +406,7 @@ const ProductList = () => {
                                     <tbody className="divide-y divide-border-card">
                                         {section.items.length === 0 ? (
                                             <tr>
-                                                <td colSpan={10 + customColumns.length} className="px-6 py-8 text-center text-textMuted">
+                                                <td colSpan={10 + sectionCustomCols.length} className="px-6 py-8 text-center text-textMuted">
                                                     No products in this section.
                                                 </td>
                                             </tr>
@@ -422,14 +426,14 @@ const ProductList = () => {
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="text-xs font-semibold text-textMain">
                                                             {toNumber(p.shop_stock)}
-                                                        </span>
+                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="text-xs font-bold text-text-primary">
                                                             {toNumber(p.current_stock)}
                                                         </span>
                                                     </td>
-                                                    {customColumns.map(col => {
+                                                    {sectionCustomCols.map(col => {
                                                         const cellValue = getCustomCellValue(p.product_code || p.sku, col);
                                                         return (
                                                             <td key={col} className="px-6 py-4 text-center whitespace-nowrap">
@@ -473,7 +477,7 @@ const ProductList = () => {
                                 </table>
                             </div>
                         </div>
-                    ))}
+                    )})}
 
                     {noResults && (
                         <div className="bg-bg-card rounded-2xl border border-border-card shadow-sm px-6 py-12 text-center text-textMuted">

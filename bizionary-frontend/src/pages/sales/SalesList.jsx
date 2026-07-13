@@ -74,12 +74,16 @@ const SalesList = () => {
 
     // Dynamic columns hook
     const {
-        customColumns,
-        addColumn,
-        removeColumn,
+        getCustomColumns,
+        addColumn: addSectionColumn,
+        removeColumn: removeSectionColumn,
         setCustomCellValue,
         getCustomCellValue
     } = useDynamicColumns('sales');
+
+    const customColumns = getCustomColumns('ALL');
+    const addColumn = (name) => addSectionColumn('ALL', name);
+    const removeColumn = (name) => removeSectionColumn('ALL', name);
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');

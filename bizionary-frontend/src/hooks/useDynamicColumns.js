@@ -5,14 +5,20 @@ export const useDynamicColumns = (tableKey, defaultColumns = []) => {
     const columnsStorageKey = `bizionary_custom_cols_${tableKey}`;
     const dataStorageKey = `bizionary_custom_data_${tableKey}`;
 
-    // Load initial values from localStorage
+    // Load initial values from localStorage (dictionary structure: { [sectionKey]: ['colName1', ...] })
     const [customColumns, setCustomColumns] = useState(() => {
         try {
             const saved = localStorage.getItem(columnsStorageKey);
-            return saved ? JSON.parse(saved) : [];
+            if (!saved) return {};
+            const parsed = JSON.parse(saved);
+            // Support legacy array structures
+            if (Array.isArray(parsed)) {
+                return { 'ALL': parsed };
+            }
+            return parsed;
         } catch (e) {
             console.error('Failed to load custom columns:', e);
-            return [];
+            return {};
         }
     });
 
@@ -35,23 +41,37 @@ export const useDynamicColumns = (tableKey, defaultColumns = []) => {
         localStorage.setItem(dataStorageKey, JSON.stringify(customData));
     }, [customData, dataStorageKey]);
 
-    // Add a new custom column
-    const addColumn = (name) => {
+    // Get custom columns for a specific section
+    const getCustomColumns = (sectionKey = 'ALL') => {
+        return customColumns[sectionKey] || [];
+    };
+
+    // Add a new custom column to a specific section
+    const addColumn = (sectionKey = 'ALL', name) => {
         const cleanName = name.trim();
         if (!cleanName) return false;
         
+        const sectionCols = customColumns[sectionKey] || [];
+        
         // Don't duplicate
-        if (customColumns.includes(cleanName) || defaultColumns.includes(cleanName)) {
+        if (sectionCols.includes(cleanName) || defaultColumns.includes(cleanName)) {
             return false;
         }
 
-        setCustomColumns([...customColumns, cleanName]);
+        setCustomColumns(prev => ({
+            ...prev,
+            [sectionKey]: [...sectionCols, cleanName]
+        }));
         return true;
     };
 
-    // Remove a custom column
-    const removeColumn = (name) => {
-        setCustomColumns(customColumns.filter(col => col !== name));
+    // Remove a custom column from a specific section
+    const removeColumn = (sectionKey = 'ALL', name) => {
+        const sectionCols = customColumns[sectionKey] || [];
+        setCustomColumns(prev => ({
+            ...prev,
+            [sectionKey]: sectionCols.filter(col => col !== name)
+        }));
         
         // Clean up data for this column
         setCustomData(prev => {
@@ -84,21 +104,29 @@ export const useDynamicColumns = (tableKey, defaultColumns = []) => {
         return customData[rowKey][columnName] || '';
     };
 
-    // Auto-detect extra columns from bulk uploads and register their values
-    const importCustomData = (rows, keyField = 'sku', stdFields = []) => {
+    // Auto-detect extra columns from bulk uploads and register their values per section/category
+    const importCustomData = (rows, keyField = 'sku', stdFields = [], sectionField = 'category') => {
         if (!rows || rows.length === 0) return;
 
-        const newCols = new Set(customColumns);
+        const updatedCols = { ...customColumns };
         const newData = { ...customData };
 
         rows.forEach(row => {
             const rowKey = row[keyField];
             if (!rowKey) return;
+            
+            // Normalize section/category string
+            const sectionKey = row[sectionField] || 'ALL';
+            if (!updatedCols[sectionKey]) {
+                updatedCols[sectionKey] = [];
+            }
 
             Object.keys(row).forEach(key => {
-                // If it is not a standard field and not a keyField
-                if (key !== keyField && !stdFields.includes(key)) {
-                    newCols.add(key);
+                // If it is not standard, not keyField, and not sectionField
+                if (key !== keyField && key !== sectionField && !stdFields.includes(key)) {
+                    if (!updatedCols[sectionKey].includes(key)) {
+                        updatedCols[sectionKey] = [...updatedCols[sectionKey], key];
+                    }
                     newData[rowKey] = {
                         ...(newData[rowKey] || {}),
                         [key]: row[key]
@@ -107,17 +135,16 @@ export const useDynamicColumns = (tableKey, defaultColumns = []) => {
             });
         });
 
-        setCustomColumns(Array.from(newCols));
+        setCustomColumns(updatedCols);
         setCustomData(newData);
     };
 
     return {
-        customColumns,
+        getCustomColumns,
         addColumn,
         removeColumn,
         setCustomCellValue,
         getCustomCellValue,
-        importCustomData,
-        allColumns: [...defaultColumns, ...customColumns]
+        importCustomData
     };
 };
