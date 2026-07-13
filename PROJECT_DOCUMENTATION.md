@@ -1187,3 +1187,28 @@ This command compiles the source code into static assets inside `bizionary-front
 - **Automated Email Reports:** Add scheduler cron jobs to email PDF invoice copies and weekly financial reports to clients and managers automatically.
 - **Granular Row-Level Access:** Implement row-level security rules, restricting staff access to department-specific transaction logs.
 - **Machine Learning Forecasting:** Train localized linear regression models using sales trends to forecast stock demand and suggest purchase quantities automatically.
+
+---
+
+## 12. Recent Implementations & Cloud Migration
+
+### 12.1 Cloud Deployment Architecture (Railway + Vercel)
+
+The system was migrated from a local SQLite setup to a fully cloud-hosted environment:
+- **Backend Deployment (Railway):** Django application hosted on Railway, utilizing a managed PostgreSQL database. Environment configuration includes `DATABASE_URL` for PostgreSQL connectivity, `CORS_ALLOWED_ORIGINS` pointing to the Vercel app, and production flags (`DEBUG=False`).
+- **Frontend Deployment (Vercel):** The Vite SPA is compiled and served statically on Vercel. Communication is routed to the Railway endpoints via the `VITE_API_URL` environment variable.
+
+### 12.2 Production Stability & Database Seeding Optimizations
+
+To handle production limits and database engine constraints, the following backend refactors were completed:
+- **Asynchronous Database Seeding via Threads:** The database seeding/restore endpoint (`seed_view`) was refactored to run the data restoration routine in a background thread. This returns an immediate `200 OK` response to the client, preventing Railway proxy request timeout aborts (30s limit) during heavy dataset imports.
+- **PostgreSQL IDENTITY Sequence Synchronization:** Integrated Django's native `connection.ops.sequence_reset_sql` to dynamically reset PostgreSQL database sequence counters. This resolves primary key integrity constraint conflicts (e.g., in `user_mgmt_activitylog`) when users attempt to log in after fresh database loads.
+- **HTTPX Dependency Pinning for Chatbot Engine:** Pinned `httpx==0.27.2` in `requirements.txt` to maintain compatibility with the older `groq==0.4.1` client version, resolving a `TypeError` in the chatbot's LLM connection constructor.
+
+### 12.3 Dynamic Custom Columns Feature
+
+To allow flexible data structures without complex schema migrations, we implemented a custom columns engine:
+- **Section/Category Isolation:** Enabled custom columns to be scoped by category section key (e.g., `clothing`, `electronics`). Columns added or removed inside one category table section do not affect others.
+- **Dynamic Sales Category Filtering:** Integrated category-specific custom columns into the sales page. The columns displayed and modified update reactively according to the selected dropdown category filter.
+- **Bulk CSV Upload Auto-Detection:** The bulk product upload parses extra non-standard CSV columns on the client-side, maps them to the appropriate category, and persists their cell values by SKU in `localStorage`.
+- **Relaxed Backend Validation Constraints:** Removed strict phone/email regex constraints from the `supplier_contact` upload validation. This permits flexible contact string values (such as names, custom notes, websites) without failing rows during bulk uploads.

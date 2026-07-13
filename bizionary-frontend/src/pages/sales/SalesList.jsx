@@ -81,9 +81,9 @@ const SalesList = () => {
         getCustomCellValue
     } = useDynamicColumns('sales');
 
-    const customColumns = getCustomColumns('ALL');
-    const addColumn = (name) => addSectionColumn('ALL', name);
-    const removeColumn = (name) => removeSectionColumn('ALL', name);
+    const customColumns = getCustomColumns(categoryFilter);
+    const addColumn = (name) => addSectionColumn(categoryFilter, name);
+    const removeColumn = (name) => removeSectionColumn(categoryFilter, name);
 
     // UI States
     const [searchTerm, setSearchTerm] = useState('');
@@ -408,7 +408,8 @@ const SalesList = () => {
                     </div>
                     <button
                         onClick={() => {
-                            const colName = prompt("Enter the name of the new column (e.g. Salesperson, Region, Notes):");
+                            const targetSectionLabel = categoryFilter === 'ALL' ? 'Global' : categoryFilter;
+                            const colName = prompt(`Enter the name of the new column for ${targetSectionLabel} sales:`);
                             if (colName) {
                                 const success = addColumn(colName);
                                 if (!success) {
@@ -419,7 +420,7 @@ const SalesList = () => {
                         className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-white via-slate-50 to-white bg-[length:200%_auto] hover:bg-[100%_0] border border-card text-textMain hover:border-primary hover:text-primary rounded-full text-sm font-bold transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:-translate-y-[4px] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08)] active:scale-[0.98] w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2 text-primary" />
-                        + Column
+                        + Column {categoryFilter === 'ALL' ? '' : `(${categoryFilter})`}
                     </button>
                     <button
                         onClick={openBulkModal}
