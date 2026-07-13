@@ -2089,18 +2089,26 @@ def seed_view(request):
 
         # 4. Populate purchases and expenses
         try:
+            import io
+            from contextlib import redirect_stdout
+            f = io.StringIO()
             import populate_purchases_and_expenses
-            populate_purchases_and_expenses.main()
-            logs.append("Successfully ran populate_purchases_and_expenses.")
+            with redirect_stdout(f):
+                populate_purchases_and_expenses.main()
+            logs.append(f"populate_purchases_and_expenses output:\n{f.getvalue()}")
         except Exception as e:
             logs.append(f"Error in populate_purchases_and_expenses: {str(e)}")
 
         # 5. Run erp bootstrap
         try:
+            import io
+            from contextlib import redirect_stdout
+            f = io.StringIO()
             if 'scripts.erp_bootstrap' in sys.modules:
                 del sys.modules['scripts.erp_bootstrap']
-            import scripts.erp_bootstrap
-            logs.append("Successfully ran erp_bootstrap.")
+            with redirect_stdout(f):
+                import scripts.erp_bootstrap
+            logs.append(f"erp_bootstrap output:\n{f.getvalue()}")
         except Exception as e:
             logs.append(f"Error in erp_bootstrap: {str(e)}")
             
