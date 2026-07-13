@@ -13,11 +13,9 @@ bizionary-frontend
 .github
 *.docx
 *.pdf
-*.xlsx
 output
 scratch
 test_*.py
 seed_*.py
-populate_*.py
 Dockerfile
 .dockerignore
