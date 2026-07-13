@@ -2056,28 +2056,83 @@ def seed_view(request):
         except Exception as e:
             logs.append(f"Error clearing data: {str(e)}")
 
-        # 2. Load compressed data dump using Django loaddata
+        # 2. Load compressed data dump using dependency-ordered transactional loading
         try:
-            from django.core.management import call_command
-            import io
-            from contextlib import redirect_stdout, redirect_stderr
-            f_out = io.StringIO()
-            f_err = io.StringIO()
+            import gzip
+            import json
+            from django.db import transaction
+            from django.apps import apps
+            from django.core.serializers import deserialize
             
             dump_path = os.path.join(base_dir, 'db_dump.json.gz')
             logs.append(f"Loading data from: {dump_path}")
             
-            with redirect_stdout(f_out), redirect_stderr(f_err):
-                call_command('loaddata', dump_path)
+            with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
+                objects = json.load(f)
                 
-            logs.append(f"loaddata output:\n{f_out.getvalue()}")
-            if f_err.getvalue():
-                logs.append(f"loaddata stderr:\n{f_err.getvalue()}")
+            grouped = {}
+            for obj in objects:
+                model_name = obj['model']
+                grouped.setdefault(model_name, []).append(obj)
+                
+            MODEL_ORDER = [
+                'user_management.department',
+                'user_management.role',
+                'user_management.module',
+                'user_management.securitysetting',
+                'user_management.erpuser',
+                'user_management.permission',
+                'user_management.activitylog',
+                'user_management.userinvite',
+                'user_management.usersession',
+                'items_management.category',
+                'purchases.suppliercompany',
+                'products.product',
+                'products.bulkproduct',
+                'items_management.productimage',
+                'items_management.stockhistory',
+                'purchases.orderedslip',
+                'purchases.purchase',
+                'purchases.purchaselineitem',
+                'sales.sale',
+                'sales.salereturn',
+                'invoices.invoice',
+                'accounts.account',
+                'accounts.expense',
+                'accounts.cashtransaction',
+                'accounts.utilitybill',
+                'accounts.salarypayment',
+                'accounts.recurringcost',
+                'accounts.journalentry',
+                'accounts.journalitem',
+                'accounts.revenue',
+                'accounts.invoice',
+                'accounts.auditlog',
+                'accounts.expensebudget',
+                'accounts.invoicepayment',
+                'insights.insightcache',
+                'insights.insightrecommendation',
+                'insights.customerreview',
+                'sales_analytics.salestarget',
+                'sales_analytics.performancemetric',
+            ]
+            
+            for model_name in grouped.keys():
+                if model_name not in MODEL_ORDER:
+                    MODEL_ORDER.append(model_name)
+                    
+            with transaction.atomic():
+                for model_name in MODEL_ORDER:
+                    if model_name not in grouped:
+                        continue
+                    items = grouped[model_name]
+                    logs.append(f"  Restoring {len(items)} records for {model_name}...")
+                    for item in items:
+                        deserialized = list(deserialize('json', json.dumps([item])))[0]
+                        deserialized.save()
             logs.append("Successfully restored database from local dump!")
         except Exception as e:
             logs.append(f"Error loading database dump: {str(e)}")
-            if 'f_err' in locals() and f_err.getvalue():
-                logs.append(f"Stderr context:\n{f_err.getvalue()}")
             
     finally:
         sys.exit = original_exit
