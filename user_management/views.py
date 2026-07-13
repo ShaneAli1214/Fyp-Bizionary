@@ -2055,9 +2055,13 @@ def seed_view(request):
 
         # 2. Import products from Excel
         try:
+            import io
+            from contextlib import redirect_stdout
+            f = io.StringIO()
             import scripts.import_inventory as import_inventory
-            import_inventory.run_import(apply_changes=True)
-            logs.append("Successfully ran import_inventory.")
+            with redirect_stdout(f):
+                import_inventory.run_import(apply_changes=True)
+            logs.append(f"import_inventory output:\n{f.getvalue()}")
         except Exception as e:
             logs.append(f"Error in import_inventory: {str(e)}")
 
@@ -2073,8 +2077,13 @@ def seed_view(request):
             
             import scripts.import_sales_from_excel as import_sales
             import_sales.parse_args = lambda: ArgsMock()
-            import_sales.main()
-            logs.append("Successfully ran import_sales_from_excel.")
+            
+            import io
+            from contextlib import redirect_stdout
+            f = io.StringIO()
+            with redirect_stdout(f):
+                import_sales.main()
+            logs.append(f"import_sales_from_excel output:\n{f.getvalue()}")
         except Exception as e:
             logs.append(f"Error in import_sales_from_excel: {str(e)}")
 
