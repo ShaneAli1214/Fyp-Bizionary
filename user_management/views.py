@@ -2081,6 +2081,12 @@ def seed_view(request):
             
     finally:
         sys.exit = original_exit
+        try:
+            log_filepath = os.path.join(settings.BASE_DIR, 'seed_logs.txt')
+            with open(log_filepath, 'w', encoding='utf-8') as lf:
+                lf.write('\n'.join(logs))
+        except Exception as log_err:
+            pass
         
     from products.models import Product
     from sales.models import Sale
@@ -2103,3 +2109,15 @@ def seed_view(request):
         'logs': logs,
         'stats': stats
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def seed_status_view(request):
+    import os
+    from django.conf import settings
+    log_filepath = os.path.join(settings.BASE_DIR, 'seed_logs.txt')
+    if os.path.exists(log_filepath):
+        with open(log_filepath, 'r', encoding='utf-8') as lf:
+            content = lf.read()
+        return Response({'logs': content.split('\n')}, status=status.HTTP_200_OK)
+    return Response({'error': 'No seed logs found.'}, status=status.HTTP_404_NOT_FOUND)
