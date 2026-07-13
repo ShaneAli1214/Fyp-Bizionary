@@ -2018,218 +2018,231 @@ def audit_log_list_view(request):
 @api_view(['GET'])
 def seed_view(request):
     """
-    GET: Seed database with default data from the compressed JSON database dump
+    GET: Seed database with default data from the compressed JSON database dump in the background
     """
-    logs = []
-    logs.append("Starting database restoration from local backup dump...")
+    import threading
     
-    import sys
+    global _seeding_in_progress
+    if '_seeding_in_progress' not in globals():
+        _seeding_in_progress = False
+        
+    if _seeding_in_progress:
+        return Response({
+            'success': False,
+            'message': 'Database restoration is already in progress in the background. Check /api/user-management/auth/seed-logs/ for status.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
     import os
     from django.conf import settings
-    base_dir = str(settings.BASE_DIR)
-    if base_dir not in sys.path:
-        sys.path.insert(0, base_dir)
-
-    original_exit = sys.exit
-    def dummy_exit(code=0):
-        import traceback
-        tb = "".join(traceback.format_stack())
-        logs.append(f"sys.exit called with code {code} from stack:\n{tb}")
-        if code != 0:
-            raise Exception(f"Script called sys.exit with code {code}")
-    sys.exit = dummy_exit
-    
+    log_filepath = os.path.join(settings.BASE_DIR, 'seed_logs.txt')
     try:
-        # 1. Clear database cleanly to prevent duplicate key conflicts
-        try:
-            from products.models import InventoryTransaction, Product
-            from sales.models import Sale, SaleReturn
-            from invoices.models import Invoice
-            from purchases.models import Purchase, SupplierCompany, OrderedSlip
-            from accounts.models import (
-                Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost,
-                Account, JournalEntry, JournalItem, Revenue, Invoice as AccountsInvoice,
-                AuditLog as AccountsAuditLog, ExpenseBudget, InvoicePayment
-            )
-            from user_management.models import Department, Role, ERPUser, Module, Permission, ActivityLog, UserSession, UserInvite, SecuritySetting
-            
-            # Wiping child models first
-            SaleReturn.objects.all().delete()
-            InventoryTransaction.objects.all().delete()
-            Invoice.objects.all().delete()
-            Sale.objects.all().delete()
-            Purchase.objects.all().delete()
-            OrderedSlip.objects.all().delete()
-            Product.objects.all().delete()
-            SupplierCompany.objects.all().delete()
-            
-            # Accounts child models first
-            AccountsAuditLog.objects.all().delete()
-            InvoicePayment.objects.all().delete()
-            ExpenseBudget.objects.all().delete()
-            Revenue.objects.all().delete()
-            AccountsInvoice.objects.all().delete()
-            UtilityBill.objects.all().delete()
-            SalaryPayment.objects.all().delete()
-            RecurringCost.objects.all().delete()
-            Expense.objects.all().delete()
-            CashTransaction.objects.all().delete()
-            JournalItem.objects.all().delete()
-            JournalEntry.objects.all().delete()
-            Account.objects.all().delete()
-            
-            # User management
-            UserSession.objects.all().delete()
-            ActivityLog.objects.all().delete()
-            Permission.objects.all().delete()
-            UserInvite.objects.all().delete()
-            ERPUser.objects.all().delete()
-            Role.objects.all().delete()
-            Department.objects.all().delete()
-            Module.objects.all().delete()
-            SecuritySetting.objects.all().delete()
-            
-            logs.append("Successfully cleared existing data.")
-        except Exception as e:
-            logs.append(f"Error clearing data: {str(e)}")
-
-        # 2. Load compressed data dump using dependency-ordered transactional loading
-        try:
-            import gzip
-            import json
-            from django.db import transaction
-            from django.apps import apps
-            from django.core.serializers import deserialize
-            from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
-            
-            dump_path = os.path.join(base_dir, 'db_dump.json.gz')
-            logs.append(f"Loading data from: {dump_path}")
-            
-            with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
-                objects = json.load(f)
-                
-            grouped = {}
-            for obj in objects:
-                model_name = obj['model']
-                grouped.setdefault(model_name, []).append(obj)
-                
-            MODEL_ORDER = [
-                'user_management.department',
-                'user_management.role',
-                'user_management.module',
-                'user_management.securitysetting',
-                'user_management.erpuser',
-                'user_management.permission',
-                'user_management.activitylog',
-                'user_management.userinvite',
-                'user_management.usersession',
-                'items_management.category',
-                'purchases.suppliercompany',
-                'products.product',
-                'products.bulkproduct',
-                'items_management.productimage',
-                'items_management.stockhistory',
-                'purchases.orderedslip',
-                'purchases.purchase',
-                'purchases.purchaselineitem',
-                'sales.sale',
-                'sales.salereturn',
-                'invoices.invoice',
-                'accounts.account',
-                'accounts.journalentry',
-                'accounts.journalitem',
-                'accounts.expense',
-                'accounts.cashtransaction',
-                'accounts.utilitybill',
-                'accounts.salarypayment',
-                'accounts.recurringcost',
-                'accounts.revenue',
-                'accounts.invoice',
-                'accounts.auditlog',
-                'accounts.expensebudget',
-                'accounts.invoicepayment',
-                'insights.insightcache',
-                'insights.insightrecommendation',
-                'insights.customerreview',
-                'sales_analytics.salestarget',
-                'sales_analytics.performancemetric',
-            ]
-            
-            for model_name in grouped.keys():
-                if model_name not in MODEL_ORDER:
-                    MODEL_ORDER.append(model_name)
-                    
-            # Temporarily mute all signals to prevent recursive generation or duplicate entries during load
-            signals = [pre_save, post_save, pre_delete, post_delete, m2m_changed]
-            original_receivers = {}
-            for sig in signals:
-                original_receivers[sig] = sig.receivers
-                sig.receivers = []
-                
-            try:
-                for model_name in MODEL_ORDER:
-                    if model_name not in grouped:
-                        continue
-                    if model_name == 'accounts.auditlog':
-                        logs.append("  Skipping accounts.auditlog (audit trail omitted to prevent DB timeout crashes)...")
-                        continue
-                    items = grouped[model_name]
-                    logs.append(f"  Restoring {len(items)} records for {model_name}...")
-                    with transaction.atomic():
-                        for item in items:
-                            deserialized = list(deserialize('json', json.dumps([item])))[0]
-                            deserialized.save()
-                logs.append("Successfully restored database from local dump!")
-                
-                # Reset database primary key sequences to prevent duplicate key violations on new auto-incremented inserts
-                try:
-                    from django.core.management.color import no_style
-                    from django.db import connection
-                    logs.append("Resetting database primary key sequences...")
-                    all_models = apps.get_models()
-                    statements = connection.ops.sequence_reset_sql(no_style(), all_models)
-                    with connection.cursor() as cursor:
-                        for statement in statements:
-                            cursor.execute(statement)
-                    logs.append("Database sequences reset successfully!")
-                except Exception as seq_err:
-                    logs.append(f"Warning: Failed to reset database sequences: {seq_err}")
-            finally:
-                # Restore signals
-                for sig in signals:
-                    sig.receivers = original_receivers[sig]
-        except Exception as e:
-            logs.append(f"Error loading database dump: {str(e)}")
-            
-    finally:
-        sys.exit = original_exit
-        try:
-            log_filepath = os.path.join(settings.BASE_DIR, 'seed_logs.txt')
-            with open(log_filepath, 'w', encoding='utf-8') as lf:
-                lf.write('\n'.join(logs))
-        except Exception as log_err:
-            pass
+        with open(log_filepath, 'w', encoding='utf-8') as lf:
+            lf.write("Starting database restoration in the background...")
+    except Exception:
+        pass
         
-    from products.models import Product
-    from sales.models import Sale
-    from invoices.models import Invoice
-    from purchases.models import Purchase
-    from accounts.models import Expense
-    from accounts.models import CashTransaction
-    
-    stats = {
-        'products': Product.objects.count(),
-        'sales': Sale.objects.count(),
-        'invoices': Invoice.objects.count(),
-        'purchases': Purchase.objects.count(),
-        'expenses': Expense.objects.count(),
-        'cash_transactions': CashTransaction.objects.count(),
-    }
+    def bg_restore():
+        global _seeding_in_progress
+        _seeding_in_progress = True
+        
+        logs = []
+        logs.append("Starting database restoration from local backup dump in a background thread...")
+        
+        import sys
+        import os
+        from django.conf import settings
+        base_dir = str(settings.BASE_DIR)
+        if base_dir not in sys.path:
+            sys.path.insert(0, base_dir)
+
+        original_exit = sys.exit
+        def dummy_exit(code=0):
+            import traceback
+            tb = "".join(traceback.format_stack())
+            logs.append(f"sys.exit called with code {code} from stack:\n{tb}")
+            if code != 0:
+                raise Exception(f"Script called sys.exit with code {code}")
+        sys.exit = dummy_exit
+        
+        try:
+            # 1. Clear database cleanly to prevent duplicate key conflicts
+            try:
+                from products.models import InventoryTransaction, Product
+                from sales.models import Sale, SaleReturn
+                from invoices.models import Invoice
+                from purchases.models import Purchase, SupplierCompany, OrderedSlip
+                from accounts.models import (
+                    Expense, CashTransaction, UtilityBill, SalaryPayment, RecurringCost,
+                    Account, JournalEntry, JournalItem, Revenue, Invoice as AccountsInvoice,
+                    AuditLog as AccountsAuditLog, ExpenseBudget, InvoicePayment
+                )
+                from user_management.models import Department, Role, ERPUser, Module, Permission, ActivityLog, UserSession, UserInvite, SecuritySetting
+                
+                # Wiping child models first
+                SaleReturn.objects.all().delete()
+                InventoryTransaction.objects.all().delete()
+                Invoice.objects.all().delete()
+                Sale.objects.all().delete()
+                Purchase.objects.all().delete()
+                OrderedSlip.objects.all().delete()
+                Product.objects.all().delete()
+                SupplierCompany.objects.all().delete()
+                
+                # Accounts child models first
+                AccountsAuditLog.objects.all().delete()
+                InvoicePayment.objects.all().delete()
+                ExpenseBudget.objects.all().delete()
+                Revenue.objects.all().delete()
+                AccountsInvoice.objects.all().delete()
+                UtilityBill.objects.all().delete()
+                SalaryPayment.objects.all().delete()
+                RecurringCost.objects.all().delete()
+                Expense.objects.all().delete()
+                CashTransaction.objects.all().delete()
+                JournalItem.objects.all().delete()
+                JournalEntry.objects.all().delete()
+                Account.objects.all().delete()
+                
+                # User management
+                UserSession.objects.all().delete()
+                ActivityLog.objects.all().delete()
+                Permission.objects.all().delete()
+                UserInvite.objects.all().delete()
+                ERPUser.objects.all().delete()
+                Role.objects.all().delete()
+                Department.objects.all().delete()
+                Module.objects.all().delete()
+                SecuritySetting.objects.all().delete()
+                
+                logs.append("Successfully cleared existing data.")
+            except Exception as e:
+                logs.append(f"Error clearing data: {str(e)}")
+
+            # 2. Load compressed data dump using dependency-ordered transactional loading
+            try:
+                import gzip
+                import json
+                from django.db import transaction
+                from django.apps import apps
+                from django.core.serializers import deserialize
+                from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
+                
+                dump_path = os.path.join(base_dir, 'db_dump.json.gz')
+                logs.append(f"Loading data from: {dump_path}")
+                
+                with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
+                    objects = json.load(f)
+                    
+                grouped = {}
+                for obj in objects:
+                    model_name = obj['model']
+                    grouped.setdefault(model_name, []).append(obj)
+                    
+                MODEL_ORDER = [
+                    'user_management.department',
+                    'user_management.role',
+                    'user_management.module',
+                    'user_management.securitysetting',
+                    'user_management.erpuser',
+                    'user_management.permission',
+                    'user_management.activitylog',
+                    'user_management.userinvite',
+                    'user_management.usersession',
+                    'items_management.category',
+                    'purchases.suppliercompany',
+                    'products.product',
+                    'products.bulkproduct',
+                    'items_management.productimage',
+                    'items_management.stockhistory',
+                    'purchases.orderedslip',
+                    'purchases.purchase',
+                    'purchases.purchaselineitem',
+                    'sales.sale',
+                    'sales.salereturn',
+                    'invoices.invoice',
+                    'accounts.account',
+                    'accounts.journalentry',
+                    'accounts.journalitem',
+                    'accounts.expense',
+                    'accounts.cashtransaction',
+                    'accounts.utilitybill',
+                    'accounts.salarypayment',
+                    'accounts.recurringcost',
+                    'accounts.revenue',
+                    'accounts.invoice',
+                    'accounts.auditlog',
+                    'accounts.expensebudget',
+                    'accounts.invoicepayment',
+                    'insights.insightcache',
+                    'insights.insightrecommendation',
+                    'insights.customerreview',
+                    'sales_analytics.salestarget',
+                    'sales_analytics.performancemetric',
+                ]
+                
+                for model_name in grouped.keys():
+                    if model_name not in MODEL_ORDER:
+                        MODEL_ORDER.append(model_name)
+                        
+                # Temporarily mute all signals to prevent recursive generation or duplicate entries during load
+                signals = [pre_save, post_save, pre_delete, post_delete, m2m_changed]
+                original_receivers = {}
+                for sig in signals:
+                    original_receivers[sig] = sig.receivers
+                    sig.receivers = []
+                    
+                try:
+                    for model_name in MODEL_ORDER:
+                        if model_name not in grouped:
+                            continue
+                        if model_name == 'accounts.auditlog':
+                            logs.append("  Skipping accounts.auditlog (audit trail omitted to prevent DB timeout crashes)...")
+                            continue
+                        items = grouped[model_name]
+                        logs.append(f"  Restoring {len(items)} records for {model_name}...")
+                        with transaction.atomic():
+                            for item in items:
+                                deserialized = list(deserialize('json', json.dumps([item])))[0]
+                                deserialized.save()
+                    logs.append("Successfully restored database from local dump!")
+                    
+                    # Reset database primary key sequences to prevent duplicate key violations on new auto-incremented inserts
+                    try:
+                        from django.core.management.color import no_style
+                        from django.db import connection
+                        logs.append("Resetting database primary key sequences...")
+                        all_models = apps.get_models()
+                        statements = connection.ops.sequence_reset_sql(no_style(), all_models)
+                        with connection.cursor() as cursor:
+                            for statement in statements:
+                                cursor.execute(statement)
+                        logs.append("Database sequences reset successfully!")
+                    except Exception as seq_err:
+                        logs.append(f"Warning: Failed to reset database sequences: {seq_err}")
+                finally:
+                    # Restore signals
+                    for sig in signals:
+                        sig.receivers = original_receivers[sig]
+            except Exception as e:
+                logs.append(f"Error loading database dump: {str(e)}")
+                
+        finally:
+            sys.exit = original_exit
+            _seeding_in_progress = False
+            try:
+                with open(log_filepath, 'w', encoding='utf-8') as lf:
+                    lf.write('\n'.join(logs))
+            except Exception:
+                pass
+                
+    # Launch thread
+    thread = threading.Thread(target=bg_restore)
+    thread.daemon = True
+    thread.start()
     
     return Response({
         'success': True,
-        'logs': logs,
-        'stats': stats
+        'message': 'Database restoration started in the background. Check /api/user-management/auth/seed-logs/ to monitor progress.'
     }, status=status.HTTP_200_OK)
 
 
