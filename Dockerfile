@@ -30,4 +30,4 @@ EXPOSE 8000
 RUN mkdir -p /app/staticfiles
 
 # Run migrations, restore database from local backup dump, update user credentials, collectstatic and start gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && python scripts/restore_production_db.py && python scripts/update_user_credentials.py && python manage.py collectstatic --noinput && gunicorn erp_system.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && (python scripts/restore_production_db.py || true) && python scripts/update_user_credentials.py && python manage.py collectstatic --noinput && gunicorn erp_system.wsgi:application --bind 0.0.0.0:8000"]

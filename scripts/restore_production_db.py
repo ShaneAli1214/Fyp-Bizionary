@@ -13,9 +13,15 @@ from django.db import transaction
 from django.apps import apps
 from django.core.serializers import deserialize
 
-print("=" * 60)
-print("PRODUCTION DATABASE RESTORE SCRIPT (JSON DE-SERIALIZER)")
-print("=" * 60)
+logs = []
+def log_print(*args):
+    msg = " ".join(str(a) for a in args)
+    print(msg)
+    logs.append(msg)
+
+log_print("=" * 60)
+log_print("PRODUCTION DATABASE RESTORE SCRIPT (JSON DE-SERIALIZER)")
+log_print("=" * 60)
 
 # Define exact dependency insertion order
 MODEL_ORDER = [
@@ -84,10 +90,15 @@ MODEL_ORDER = [
 # Load and parse dump file
 dump_path = 'db_dump.json.gz'
 if not os.path.exists(dump_path):
-    print(f"Error: Dump file {dump_path} not found.")
+    log_print(f"Error: Dump file {dump_path} not found.")
+    try:
+        with open('/tmp/restore_db_logs.txt', 'w', encoding='utf-8') as f_log:
+            f_log.write('\n'.join(logs))
+    except:
+        pass
     sys.exit(1)
 
-print(f"Parsing dump file {dump_path}...")
+log_print(f"Parsing dump file {dump_path}...")
 with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
     objects = json.load(f)
 
@@ -103,32 +114,43 @@ for model_name in grouped.keys():
         MODEL_ORDER.append(model_name)
 
 # Wipe tables in reverse order
-print("\nStep 1: Wiping existing data tables...")
+log_print("\nStep 1: Wiping existing data tables...")
 for model_name in reversed(MODEL_ORDER):
     try:
         model_class = apps.get_model(model_name)
         count = model_class.objects.count()
         if count > 0:
-            print(f"  Wiping {count} records from {model_name}...")
+            log_print(f"  Wiping {count} records from {model_name}...")
             model_class.objects.all().delete()
     except Exception as wipe_err:
         pass
 
-print("Wiping complete!")
+log_print("Wiping complete!")
 
 # Load tables in forward order inside a single transaction
-print("\nStep 2: Restoring records in dependency order...")
+log_print("\nStep 2: Restoring records in dependency order...")
 try:
     with transaction.atomic():
         for model_name in MODEL_ORDER:
             if model_name not in grouped:
                 continue
             items = grouped[model_name]
-            print(f"  Loading {len(items)} records for {model_name}...")
+            log_print(f"  Loading {len(items)} records for {model_name}...")
             for item in items:
                 deserialized = list(deserialize('json', json.dumps([item])))[0]
                 deserialized.save()
-    print("\n✅ Database restored successfully!")
+    log_print("\n✅ Database restored successfully!")
 except Exception as load_err:
-    print(f"\n❌ Error restoring database: {load_err}")
+    log_print(f"\n❌ Error restoring database: {load_err}")
+    try:
+        with open('/tmp/restore_db_logs.txt', 'w', encoding='utf-8') as f_log:
+            f_log.write('\n'.join(logs))
+    except:
+        pass
     sys.exit(1)
+
+try:
+    with open('/tmp/restore_db_logs.txt', 'w', encoding='utf-8') as f_log:
+        f_log.write('\n'.join(logs))
+except:
+    pass

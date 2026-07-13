@@ -2115,9 +2115,11 @@ def seed_view(request):
 def seed_status_view(request):
     import os
     from django.conf import settings
-    log_filepath = os.path.join(settings.BASE_DIR, 'seed_logs.txt')
-    if os.path.exists(log_filepath):
-        with open(log_filepath, 'r', encoding='utf-8') as lf:
-            content = lf.read()
-        return Response({'logs': content.split('\n')}, status=status.HTTP_200_OK)
-    return Response({'error': 'No seed logs found.'}, status=status.HTTP_404_NOT_FOUND)
+    # Try reading /tmp/restore_db_logs.txt first, then fallback to seed_logs.txt
+    paths = ['/tmp/restore_db_logs.txt', os.path.join(settings.BASE_DIR, 'seed_logs.txt')]
+    for log_filepath in paths:
+        if os.path.exists(log_filepath):
+            with open(log_filepath, 'r', encoding='utf-8') as lf:
+                content = lf.read()
+            return Response({'logs': content.split('\n')}, status=status.HTTP_200_OK)
+    return Response({'error': 'No database logs found.'}, status=status.HTTP_404_NOT_FOUND)
