@@ -2012,10 +2012,10 @@ def audit_log_list_view(request):
 @api_view(['GET'])
 def seed_view(request):
     """
-    GET: Seed database with default data (products, sales, invoices, purchases, expenses)
+    GET: Seed database with default data from the compressed JSON database dump
     """
     logs = []
-    logs.append("Starting database seeding...")
+    logs.append("Starting database restoration from local backup dump...")
     
     import sys
     import os
@@ -2024,11 +2024,6 @@ def seed_view(request):
     if base_dir not in sys.path:
         sys.path.insert(0, base_dir)
 
-    # Disable django.setup to prevent re-entrant issues
-    import django
-    original_setup = django.setup
-    django.setup = lambda: None
-
     original_exit = sys.exit
     def dummy_exit(code=0):
         if code != 0:
@@ -2036,7 +2031,7 @@ def seed_view(request):
     sys.exit = dummy_exit
     
     try:
-        # 1. Clear database cleanly
+        # 1. Clear database cleanly to prevent duplicate key conflicts
         try:
             from products.models import InventoryTransaction, Product
             from sales.models import Sale, SaleReturn
@@ -2061,92 +2056,30 @@ def seed_view(request):
         except Exception as e:
             logs.append(f"Error clearing data: {str(e)}")
 
-        # 2. Import products from Excel
+        # 2. Load compressed data dump using Django loaddata
         try:
+            from django.core.management import call_command
             import io
-            from contextlib import redirect_stdout
-            f = io.StringIO()
-            import scripts.import_inventory as import_inventory
-            with redirect_stdout(f):
-                import_inventory.run_import(apply_changes=True)
-            logs.append(f"import_inventory output:\n{f.getvalue()}")
-        except Exception as e:
-            logs.append(f"Error in import_inventory: {str(e)}")
-
-        # 3. Import sales from monthly Excel summaries and 30-day cleaned sheet
-        workbooks = [
-            ('AlNoor_Financial_Summary_January_2026.xlsx', 'ALNOOR_JANUARY_2026'),
-            ('AlNoor_Financial_Summary_February_2026.xlsx', 'ALNOOR_FEBRUARY_2026'),
-            ('AlNoor_Financial_Summary_March_2026.xlsx', 'ALNOOR_MARCH_2026'),
-            ('AlNoor_Financial_Summary_April_2026.xlsx', 'ALNOOR_APRIL_2026'),
-            ('AlNoor_Financial_Summary_June_2026.xlsx', 'ALNOOR_JUNE_2026'),
-            ('output/30day_sales_AlNoor_cleaned.xlsx', '30DAY_SALES_ALNOOR_CLEANED')
-        ]
-        
-        for wb_file, prefix_name in workbooks:
-            try:
-                class ArgsMock:
-                    workbook = wb_file
-                    sheet = 'Sales Data'
-                    customer = 'AlNoor Trading'
-                    prefix = f'XLSX-ALNOOR-{prefix_name}-'
-                    replace_existing_imports = True
-                    dry_run = False
-                
-                import scripts.import_sales_from_excel as import_sales
-                import_sales.parse_args = lambda: ArgsMock()
-                
-                import io
-                from contextlib import redirect_stdout
-                f = io.StringIO()
-                with redirect_stdout(f):
-                    import_sales.main()
-                logs.append(f"import_sales_from_excel output for {wb_file}:\n{f.getvalue()}")
-            except Exception as e:
-                logs.append(f"Error in import_sales_from_excel for {wb_file}: {str(e)}")
-
-        # 4. Populate purchases and expenses
-        try:
-            import io
-            from contextlib import redirect_stdout
-            f = io.StringIO()
-            import populate_purchases_and_expenses
-            with redirect_stdout(f):
-                populate_purchases_and_expenses.main()
-            logs.append(f"populate_purchases_and_expenses output:\n{f.getvalue()}")
-        except Exception as e:
-            logs.append(f"Error in populate_purchases_and_expenses: {str(e)}")
-
-        # 5. Import expenses from Expense_Sheet.xlsx
-        try:
-            import io
-            from contextlib import redirect_stdout
-            f = io.StringIO()
-            import scratch.import_expenses as import_expenses
-            with redirect_stdout(f):
-                import_expenses.main()
-            logs.append(f"import_expenses output:\n{f.getvalue()}")
-        except Exception as e:
-            logs.append(f"Error in import_expenses: {str(e)}")
-
-        # 6. Run erp bootstrap
-        import io
-        from contextlib import redirect_stdout, redirect_stderr
-        f_out = io.StringIO()
-        f_err = io.StringIO()
-        try:
-            if 'scripts.erp_bootstrap' in sys.modules:
-                del sys.modules['scripts.erp_bootstrap']
+            from contextlib import redirect_stdout, redirect_stderr
+            f_out = io.StringIO()
+            f_err = io.StringIO()
+            
+            dump_path = os.path.join(base_dir, 'db_dump.json.gz')
+            logs.append(f"Loading data from: {dump_path}")
+            
             with redirect_stdout(f_out), redirect_stderr(f_err):
-                import scripts.erp_bootstrap
-            logs.append(f"erp_bootstrap output:\n{f_out.getvalue()}")
+                call_command('loaddata', dump_path)
+                
+            logs.append(f"loaddata output:\n{f_out.getvalue()}")
+            if f_err.getvalue():
+                logs.append(f"loaddata stderr:\n{f_err.getvalue()}")
+            logs.append("Successfully restored database from local dump!")
         except Exception as e:
-            logs.append(f"erp_bootstrap stdout before error:\n{f_out.getvalue()}")
-            logs.append(f"erp_bootstrap stderr before error:\n{f_err.getvalue()}")
-            logs.append(f"Error in erp_bootstrap: {str(e)}")
+            logs.append(f"Error loading database dump: {str(e)}")
+            if 'f_err' in locals() and f_err.getvalue():
+                logs.append(f"Stderr context:\n{f_err.getvalue()}")
             
     finally:
-        django.setup = original_setup
         sys.exit = original_exit
         
     from products.models import Product
