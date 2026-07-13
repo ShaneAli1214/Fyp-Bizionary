@@ -2031,15 +2031,54 @@ def seed_view(request):
     sys.exit = dummy_exit
     
     try:
-        # 1. Populate real products/sales/invoices
+        # 1. Clear database cleanly
         try:
-            import populate_real_data
-            populate_real_data.main()
-            logs.append("Successfully ran populate_real_data.")
+            from products.models import InventoryTransaction, Product
+            from sales.models import Sale, SaleReturn
+            from invoices.models import Invoice
+            from purchases.models import Purchase, SupplierCompany, OrderedSlip
+            from accounts.models import Expense, CashTransaction
+            
+            SaleReturn.objects.all().delete()
+            InventoryTransaction.objects.all().delete()
+            Invoice.objects.all().delete()
+            Sale.objects.all().delete()
+            Purchase.objects.all().delete()
+            OrderedSlip.objects.all().delete()
+            Product.objects.all().delete()
+            SupplierCompany.objects.all().delete()
+            Expense.objects.all().delete()
+            CashTransaction.objects.all().delete()
+            logs.append("Successfully cleared existing data.")
         except Exception as e:
-            logs.append(f"Error in populate_real_data: {str(e)}")
+            logs.append(f"Error clearing data: {str(e)}")
 
-        # 2. Populate purchases and expenses
+        # 2. Import products from Excel
+        try:
+            import scripts.import_inventory as import_inventory
+            import_inventory.run_import(apply_changes=True)
+            logs.append("Successfully ran import_inventory.")
+        except Exception as e:
+            logs.append(f"Error in import_inventory: {str(e)}")
+
+        # 3. Import sales from Excel
+        try:
+            class ArgsMock:
+                workbook = 'output/30day_sales_AlNoor_cleaned.xlsx'
+                sheet = 'Sales Data'
+                customer = 'AlNoor Trading'
+                prefix = 'XLSX-ALNOOR-'
+                replace_existing_imports = True
+                dry_run = False
+            
+            import scripts.import_sales_from_excel as import_sales
+            import_sales.parse_args = lambda: ArgsMock()
+            import_sales.main()
+            logs.append("Successfully ran import_sales_from_excel.")
+        except Exception as e:
+            logs.append(f"Error in import_sales_from_excel: {str(e)}")
+
+        # 4. Populate purchases and expenses
         try:
             import populate_purchases_and_expenses
             populate_purchases_and_expenses.main()
@@ -2047,9 +2086,8 @@ def seed_view(request):
         except Exception as e:
             logs.append(f"Error in populate_purchases_and_expenses: {str(e)}")
 
-        # 3. Run erp bootstrap
+        # 5. Run erp bootstrap
         try:
-            # reload in case it was imported before but needs to run again
             if 'scripts.erp_bootstrap' in sys.modules:
                 del sys.modules['scripts.erp_bootstrap']
             import scripts.erp_bootstrap
@@ -2065,6 +2103,7 @@ def seed_view(request):
     from invoices.models import Invoice
     from purchases.models import Purchase
     from accounts.models import Expense
+    from accounts.models import CashTransaction
     
     stats = {
         'products': Product.objects.count(),
@@ -2072,6 +2111,7 @@ def seed_view(request):
         'invoices': Invoice.objects.count(),
         'purchases': Purchase.objects.count(),
         'expenses': Expense.objects.count(),
+        'cash_transactions': CashTransaction.objects.count(),
     }
     
     return Response({

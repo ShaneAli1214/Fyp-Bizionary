@@ -13,7 +13,6 @@ bizionary-frontend
 .github
 *.docx
 *.pdf
-output
 scratch
 test_*.py
 seed_*.py
