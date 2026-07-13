@@ -2079,6 +2079,7 @@ def seed_view(request):
             from django.db import transaction
             from django.apps import apps
             from django.core.serializers import deserialize
+            from django.db.models.signals import pre_save, post_save, pre_delete, post_delete, m2m_changed
             
             dump_path = os.path.join(base_dir, 'db_dump.json.gz')
             logs.append(f"Loading data from: {dump_path}")
@@ -2137,16 +2138,28 @@ def seed_view(request):
                 if model_name not in MODEL_ORDER:
                     MODEL_ORDER.append(model_name)
                     
-            with transaction.atomic():
-                for model_name in MODEL_ORDER:
-                    if model_name not in grouped:
-                        continue
-                    items = grouped[model_name]
-                    logs.append(f"  Restoring {len(items)} records for {model_name}...")
-                    for item in items:
-                        deserialized = list(deserialize('json', json.dumps([item])))[0]
-                        deserialized.save()
-            logs.append("Successfully restored database from local dump!")
+            # Temporarily mute all signals to prevent recursive generation or duplicate entries during load
+            signals = [pre_save, post_save, pre_delete, post_delete, m2m_changed]
+            original_receivers = {}
+            for sig in signals:
+                original_receivers[sig] = sig.receivers
+                sig.receivers = []
+                
+            try:
+                with transaction.atomic():
+                    for model_name in MODEL_ORDER:
+                        if model_name not in grouped:
+                            continue
+                        items = grouped[model_name]
+                        logs.append(f"  Restoring {len(items)} records for {model_name}...")
+                        for item in items:
+                            deserialized = list(deserialize('json', json.dumps([item])))[0]
+                            deserialized.save()
+                logs.append("Successfully restored database from local dump!")
+            finally:
+                # Restore signals
+                for sig in signals:
+                    sig.receivers = original_receivers[sig]
         except Exception as e:
             logs.append(f"Error loading database dump: {str(e)}")
             
