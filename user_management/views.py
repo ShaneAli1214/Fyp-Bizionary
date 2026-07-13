@@ -2167,12 +2167,15 @@ def seed_view(request):
                 sig.receivers = []
                 
             try:
-                with transaction.atomic():
-                    for model_name in MODEL_ORDER:
-                        if model_name not in grouped:
-                            continue
-                        items = grouped[model_name]
-                        logs.append(f"  Restoring {len(items)} records for {model_name}...")
+                for model_name in MODEL_ORDER:
+                    if model_name not in grouped:
+                        continue
+                    if model_name == 'accounts.auditlog':
+                        logs.append("  Skipping accounts.auditlog (audit trail omitted to prevent DB timeout crashes)...")
+                        continue
+                    items = grouped[model_name]
+                    logs.append(f"  Restoring {len(items)} records for {model_name}...")
+                    with transaction.atomic():
                         for item in items:
                             deserialized = list(deserialize('json', json.dumps([item])))[0]
                             deserialized.save()
