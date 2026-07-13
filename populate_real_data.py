@@ -28,6 +28,11 @@ from product_catalog.master_data import (
 def clear_existing_data():
     """Clear all existing data from the database"""
     print("\n🗑️  Clearing existing data...")
+    from products.models import InventoryTransaction
+    from sales.models import SaleReturn
+    
+    SaleReturn.objects.all().delete()
+    InventoryTransaction.objects.all().delete()
     Invoice.objects.all().delete()
     Sale.objects.all().delete()
     Product.objects.all().delete()
