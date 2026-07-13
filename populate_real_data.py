@@ -49,7 +49,7 @@ def populate_products():
                     'description': f"{product_data.get('brand', '')} - {product_data.get('supplier', '')}",
                     'unit_price': product_data['unit_price'],
                     'stock_quantity': product_data['stock_quantity'],
-                    'reorder_level': product_data['reorder_level'],
+                    'min_stock': product_data['reorder_level'],
                 }
             )
             if created:
