@@ -72,6 +72,12 @@ const SalesList = () => {
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // UI States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
+
     // Dynamic columns hook
     const {
         getCustomColumns,
@@ -84,12 +90,6 @@ const SalesList = () => {
     const customColumns = getCustomColumns(categoryFilter);
     const addColumn = (name) => addSectionColumn(categoryFilter, name);
     const removeColumn = (name) => removeSectionColumn(categoryFilter, name);
-
-    // UI States
-    const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('ALL');
-    const [dateFilter, setDateFilter] = useState('');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
