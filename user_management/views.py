@@ -2181,29 +2181,17 @@ def seed_view(request):
                             deserialized.save()
                 logs.append("Successfully restored database from local dump!")
                 
-                # Reset PostgreSQL primary key sequences to prevent duplicate key violations on new auto-incremented inserts
+                # Reset database primary key sequences to prevent duplicate key violations on new auto-incremented inserts
                 try:
+                    from django.core.management.color import no_style
                     from django.db import connection
-                    if connection.vendor == 'postgresql':
-                        logs.append("Resetting PostgreSQL primary key sequences...")
-                        with connection.cursor() as cursor:
-                            cursor.execute("""
-                                SELECT 'SELECT setval(' || 
-                                       quote_literal(quote_ident(PGT.schemaname) || '.' || quote_ident(S.relname)) || 
-                                       ', COALESCE(MAX(' || quote_ident(C.attname) || '), 1) ) FROM ' || 
-                                       quote_ident(PGT.schemaname) || '.' || quote_ident(T.relname) || ';'
-                                FROM pg_class AS S, pg_depend AS D, pg_class AS T, pg_attribute AS C, pg_tables AS PGT
-                                WHERE S.relkind = 'S'
-                                  AND S.oid = D.objid
-                                  AND D.refobjid = T.oid
-                                  AND D.refobjid = C.attrelid
-                                  AND D.refobjsubid = C.attnum
-                                  AND T.relname = PGT.tablename
-                            """)
-                            queries = [row[0] for row in cursor.fetchall()]
-                            for query in queries:
-                                cursor.execute(query)
-                        logs.append("PostgreSQL sequences reset successfully!")
+                    logs.append("Resetting database primary key sequences...")
+                    all_models = apps.get_models()
+                    statements = connection.ops.sequence_reset_sql(no_style(), all_models)
+                    with connection.cursor() as cursor:
+                        for statement in statements:
+                            cursor.execute(statement)
+                    logs.append("Database sequences reset successfully!")
                 except Exception as seq_err:
                     logs.append(f"Warning: Failed to reset database sequences: {seq_err}")
             finally:
