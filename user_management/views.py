@@ -2101,16 +2101,18 @@ def seed_view(request):
 
         # 5. Run erp bootstrap
         import io
-        from contextlib import redirect_stdout
-        f = io.StringIO()
+        from contextlib import redirect_stdout, redirect_stderr
+        f_out = io.StringIO()
+        f_err = io.StringIO()
         try:
             if 'scripts.erp_bootstrap' in sys.modules:
                 del sys.modules['scripts.erp_bootstrap']
-            with redirect_stdout(f):
+            with redirect_stdout(f_out), redirect_stderr(f_err):
                 import scripts.erp_bootstrap
-            logs.append(f"erp_bootstrap output:\n{f.getvalue()}")
+            logs.append(f"erp_bootstrap output:\n{f_out.getvalue()}")
         except Exception as e:
-            logs.append(f"erp_bootstrap output before error:\n{f.getvalue()}")
+            logs.append(f"erp_bootstrap stdout before error:\n{f_out.getvalue()}")
+            logs.append(f"erp_bootstrap stderr before error:\n{f_err.getvalue()}")
             logs.append(f"Error in erp_bootstrap: {str(e)}")
             
     finally:
