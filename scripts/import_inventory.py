@@ -250,10 +250,10 @@ def run_import(apply_changes=True):
                     if apply_changes:
                         product.unit_price = sale_price
                         changed = True
-                if reorder and product.reorder_level != reorder:
-                    print(f"Update SKU {sku}: reorder {product.reorder_level} -> {reorder}")
+                if reorder and product.min_stock != reorder:
+                    print(f"Update SKU {sku}: min_stock {product.min_stock} -> {reorder}")
                     if apply_changes:
-                        product.reorder_level = reorder
+                        product.min_stock = reorder
                         changed = True
                 if product.stock_status != status_label:
                     print(f"Update SKU {sku}: status {product.stock_status} -> {status_label}")
@@ -274,7 +274,7 @@ def run_import(apply_changes=True):
                         cost_price=cost_price,
                         unit_price=sale_price,
                         stock_quantity=qty,
-                        reorder_level=reorder,
+                        min_stock=reorder,
                     )
                     created += 1
                 else:
