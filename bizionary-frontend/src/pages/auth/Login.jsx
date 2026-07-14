@@ -59,10 +59,10 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-card font-sans">
+        <div className="h-screen w-full flex bg-card font-sans overflow-hidden">
 
             {/* Left Column — solid black brand panel */}
-            <div className="hidden lg:flex lg:w-[45%] bg-[#111111] relative text-card flex-col justify-between p-12 overflow-hidden select-none">
+            <div className="hidden lg:flex lg:w-[45%] bg-[#111111] relative text-card flex-col justify-between p-10 overflow-hidden select-none h-full">
                 {/* Subtle dot grid */}
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:22px_22px] pointer-events-none"></div>
 
@@ -78,29 +78,29 @@ const Login = () => {
                 </div>
 
                 {/* Middle content */}
-                <div className="my-auto relative z-10 max-w-md space-y-5">
-                    <h1 className="text-4xl font-extrabold tracking-tight leading-tight text-card">
+                <div className="my-auto relative z-10 max-w-md space-y-4">
+                    <h1 className="text-3xl font-extrabold tracking-tight leading-tight text-card">
                         Welcome to<br />Bizionary ERP
                     </h1>
-                    <p className="text-sm text-card/60 leading-relaxed font-medium">
+                    <p className="text-xs text-card/60 leading-relaxed font-medium">
                         Streamline your business operations, manage inventory, track orders, and grow with confidence.
                     </p>
                 </div>
 
                 {/* Bottom features list */}
-                <div className="space-y-6 relative z-10">
+                <div className="space-y-4 relative z-10">
                     {[
                         { icon: Package, title: 'Centralized Management', desc: 'Manage products, stock, and orders in one place.' },
                         { icon: TrendingUp, title: 'Real-time Insights', desc: 'Make smarter decisions with real-time analytics.' },
                         { icon: ShieldCheck, title: 'Secure & Reliable', desc: 'Enterprise-grade security for your business data.' },
                     ].map(({ icon: Icon, title, desc }) => (
-                        <div key={title} className="flex items-start gap-4">
-                            <div className="bg-card/10 p-2.5 rounded-2xl border border-card/8 flex items-center justify-center shrink-0">
-                                <Icon className="w-5 h-5 text-card" />
+                        <div key={title} className="flex items-start gap-3">
+                            <div className="bg-card/10 p-2 rounded-xl border border-card/8 flex items-center justify-center shrink-0">
+                                <Icon className="w-4 h-4 text-card" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-card">{title}</h3>
-                                <p className="text-xs text-card/50 mt-0.5 font-medium">{desc}</p>
+                                <h3 className="text-xs font-bold text-card">{title}</h3>
+                                <p className="text-[11px] text-card/50 mt-0.5 font-medium">{desc}</p>
                             </div>
                         </div>
                     ))}
@@ -108,20 +108,20 @@ const Login = () => {
             </div>
 
             {/* Right Column — white form panel */}
-            <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 md:px-12 lg:px-16 bg-card relative">
+            <div className="flex-1 flex flex-col justify-center items-center px-6 py-6 md:px-12 lg:px-16 bg-card relative h-full overflow-y-auto">
 
-                <div className="w-full max-w-md space-y-8">
+                <div className="w-full max-w-md space-y-6 my-auto">
 
                     {/* Logo block */}
                     <div className="flex flex-col items-center text-center">
                         <div className="flex items-center gap-3">
-                            <Logo className="h-12 w-auto text-primary" />
-                            <span className="text-2xl font-black text-primary tracking-widest uppercase">Bizionary</span>
+                            <Logo className="h-10 w-auto text-primary" />
+                            <span className="text-xl font-black text-primary tracking-widest uppercase">Bizionary</span>
                         </div>
-                        <h2 className="text-xl font-bold text-primary mt-6 tracking-tight">
+                        <h2 className="text-lg font-bold text-primary mt-4 tracking-tight">
                             Sign in to your account
                         </h2>
-                        <p className="text-secondary mt-2 text-xs font-semibold">
+                        <p className="text-secondary mt-1.5 text-xs font-semibold">
                             {twoFactorRequired
                                 ? 'Enter authenticator credentials to verify'
                                 : 'Enter your credentials to access your ERP dashboard.'}
@@ -130,12 +130,12 @@ const Login = () => {
 
                     {/* Error banner */}
                     {error && (
-                        <div className="p-4 rounded-xl bg-status-info/10 text-status-info border border-rose-100 text-xs font-semibold">
+                        <div className="p-3.5 rounded-xl bg-status-info/10 text-status-info border border-rose-100 text-xs font-semibold">
                             {typeof error === 'object' ? (error.message || JSON.stringify(error)) : String(error)}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {twoFactorRequired ? (
                             <div>
                                 <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2 pl-0.5">

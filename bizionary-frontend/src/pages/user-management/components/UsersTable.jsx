@@ -89,7 +89,7 @@ const UsersTable = ({ users, loading, onEdit, onToggleStatus, onResetPassword })
                             {/* User Info (Avatar, Name, Email, Phone) */}
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-active-pill/20 border border-card text-[#2B2620] flex items-center justify-center font-bold text-sm shadow-inner flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-full avatar-circle border border-card flex items-center justify-center font-bold text-sm shadow-inner flex-shrink-0">
                                         {getInitials(user)}
                                     </div>
                                     <div className="flex flex-col min-w-0">

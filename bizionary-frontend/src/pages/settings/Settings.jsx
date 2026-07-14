@@ -515,7 +515,7 @@ const Settings = () => {
                 <button
                     type="submit"
                     disabled={isUpdatingProfile || !profileData.firstName.trim() || !profileData.email.trim()}
-                    className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
+                    className="px-5 py-2.5 bg-[#2B2620] hover:bg-[#13283E] text-white text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-sm"
                 >
                     {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
                 </button>
@@ -530,32 +530,16 @@ const Settings = () => {
                     <MonitorSmartphone className="w-5 h-5 text-primary dark:text-emerald-400" />
                     Appearance & Display
                 </h3>
-                <p className="text-xs text-textMuted dark:text-secondary mt-1">Customize the display mode for your workspace.</p>
+                <p className="text-xs text-textMuted dark:text-secondary mt-1">Configure appearance options for your workspace.</p>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button
-                    onClick={() => setTheme('light')}
-                    className={`p-6 rounded-xl border-2 flex flex-col items-center gap-3 transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg active:scale-95 text-textMain dark:text-gray-300 ${theme === 'light' ? 'border-primary bg-primary/5 dark:border-emerald-500 dark:bg-status-success/10' : 'border-card dark:border-slate-700 hover:border-primary/50 dark:hover:border-emerald-500/50'}`}
-                >
-                    <Sun className="w-8 h-8 text-amber-500" />
-                    <span className="font-bold text-xs">Light Mode</span>
-                </button>
-                <button
-                    onClick={() => setTheme('dark')}
-                    className={`p-6 rounded-xl border-2 flex flex-col items-center gap-3 transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg active:scale-95 text-textMain dark:text-gray-300 ${theme === 'dark' ? 'border-primary bg-primary/5 dark:border-emerald-500 dark:bg-status-success/10' : 'border-card dark:border-slate-700 hover:border-primary/50 dark:hover:border-emerald-500/50'}`}
-                >
-                    <Moon className="w-8 h-8 text-sky-400" />
-                    <span className="font-bold text-xs">Dark Mode</span>
-                </button>
-                <button
-                    onClick={() => setTheme('system')}
-                    className={`p-6 rounded-xl border-2 flex flex-col items-center gap-3 transition-all duration-200 ease-in-out hover:scale-105 hover:shadow-lg active:scale-95 text-textMain dark:text-gray-300 ${theme === 'system' ? 'border-primary bg-primary/5 dark:border-emerald-500 dark:bg-status-success/10' : 'border-card dark:border-slate-700 hover:border-primary/50 dark:hover:border-emerald-500/50'}`}
-                >
-                    <Monitor className="w-8 h-8 text-secondary" />
-                    <span className="font-bold text-xs">System Default</span>
-                </button>
+            <div className="mt-6 p-4 rounded-xl border border-emerald-500/20 bg-status-success/10 flex items-center gap-3">
+                <Moon className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div className="text-xs text-emerald-400 font-bold">
+                    Dark Mode is currently locked and active for this workspace. Light mode options have been disabled.
+                </div>
             </div>
+
             <div className="mt-6 bg-page dark:bg-primary/60 p-5 rounded-xl border border-gray-150 dark:border-slate-700/60">
                 <h4 className="text-xs font-bold text-textMain dark:text-card mb-3 uppercase tracking-wider">Theme Accent Palette</h4>
                 <div className="flex flex-wrap gap-2.5">
@@ -758,7 +742,7 @@ const Settings = () => {
                     <button
                         type="submit"
                         disabled={isUpdatingPassword}
-                        className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="px-5 py-2.5 bg-[#2B2620] hover:bg-[#13283E] text-white text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
                     >
                         {isUpdatingPassword ? 'Updating Password...' : 'Update Password'}
                     </button>
@@ -971,7 +955,7 @@ const Settings = () => {
                         <button
                             type="submit"
                             disabled={isSavingApi || !apiKey.trim()}
-                            className="px-5 py-2.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
+                            className="px-5 py-2.5 bg-[#2B2620] hover:bg-[#13283E] text-white text-xs font-bold rounded-full transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 disabled:opacity-50 shadow-sm"
                         >
                             {isSavingApi ? 'Saving Key...' : 'Save API Configuration'}
                         </button>

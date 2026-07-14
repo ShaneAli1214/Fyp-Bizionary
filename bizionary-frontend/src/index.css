@@ -478,13 +478,40 @@ aside a svg {
 }
 
 /* ============================================================
-   PRIMARY BUTTONS — theme-aware
-   Dark mode  (.dark class):  white  bg + black text
-   Light mode (no .dark):     black  bg + white text
-   Hover: lift + shadow animation on all primary buttons
+   GLOBAL BUTTON STYLING
+   Strips glassmorphic backdrop-blurs, persistent gradients, and static glass effects.
+   Applies a clean, responsive hover animation with subtle scaling and illumination.
    ============================================================ */
+button,
+input[type="button"],
+input[type="submit"],
+[role="button"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-image: none !important; /* Removes all gradient images */
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 
-/* Base: button or anchor with bg-primary → use token colors */
+/* Global button hover states */
+button:hover:not(:disabled),
+input[type="button"]:hover:not(:disabled),
+input[type="submit"]:hover:not(:disabled),
+[role="button"]:hover {
+  transform: translateY(-2px) scale(1.025) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 10px rgba(59, 130, 246, 0.25) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Press state feedback */
+button:active:not(:disabled),
+input[type="button"]:active:not(:disabled),
+input[type="submit"]:active:not(:disabled),
+[role="button"]:active {
+  transform: scale(0.96) translateY(0px) !important;
+  box-shadow: none !important;
+}
+
+/* Primary buttons theme-aware token styling */
 button.bg-primary,
 a.bg-primary,
 input[type="submit"].bg-primary,
@@ -495,23 +522,15 @@ input[type="button"].bg-primary {
   opacity:          1 !important;
 }
 
-/* Hover: lift + shadow (disabled buttons are excluded) */
 button.bg-primary:hover:not(:disabled),
 a.bg-primary:hover {
   background-color: var(--btn-hover-bg) !important;
-  transform: translateY(-2px) scale(1.018) !important;
-  box-shadow: var(--btn-hover-shadow) !important;
 }
 
-/* Active / press feedback */
-button.bg-primary:active:not(:disabled),
-a.bg-primary:active {
-  transform: scale(0.96) translateY(0) !important;
-  box-shadow: none !important;
-}
-
-/* Disabled state */
-button.bg-primary:disabled {
+/* Disabled states */
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
   opacity: 0.48 !important;
   cursor: not-allowed !important;
   transform: none !important;
@@ -896,4 +915,44 @@ section[class*="bg-white"][class*="rounded"]:hover,
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* User Management custom tab overrides (disable hover scale/translate animations and force text colors) */
+.user-mgmt-tab {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  outline: none !important;
+}
+
+.user-mgmt-tab:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.user-mgmt-tab:active,
+.user-mgmt-tab:focus {
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.user-mgmt-tab-active {
+  color: #FFFFFF !important;
+  border-bottom-color: #FFFFFF !important;
+}
+
+.user-mgmt-tab-inactive {
+  color: var(--text-secondary) !important;
+  border-bottom-color: transparent !important;
+}
+
+.user-mgmt-tab-inactive:hover {
+  color: #FFFFFF !important;
+}
+
+.avatar-circle {
+  color: #FFFFFF !important;
+  background-color: rgba(59, 130, 246, 0.2) !important;
 }

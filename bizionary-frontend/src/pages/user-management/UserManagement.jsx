@@ -168,10 +168,10 @@ const UserManagement = () => {
             <div className="flex border-b border-card">
                 <button
                     onClick={() => setActiveTab('users')}
-                    className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
+                    className={`user-mgmt-tab flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm -mb-px bg-transparent ${
                         activeTab === 'users'
-                            ? 'border-[#2B2620] text-[#2B2620]'
-                            : 'border-transparent text-secondary hover:text-secondary'
+                            ? 'user-mgmt-tab-active'
+                            : 'user-mgmt-tab-inactive'
                     }`}
                 >
                     <Users className="w-4 h-4" />
@@ -179,10 +179,10 @@ const UserManagement = () => {
                 </button>
                 <button
                     onClick={() => setActiveTab('audit_logs')}
-                    className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all -mb-px ${
+                    className={`user-mgmt-tab flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm -mb-px bg-transparent ${
                         activeTab === 'audit_logs'
-                            ? 'border-[#2B2620] text-[#2B2620]'
-                            : 'border-transparent text-secondary hover:text-secondary'
+                            ? 'user-mgmt-tab-active'
+                            : 'user-mgmt-tab-inactive'
                     }`}
                 >
                     <Shield className="w-4 h-4" />

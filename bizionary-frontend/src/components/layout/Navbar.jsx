@@ -207,27 +207,11 @@ const Navbar = ({ onToggleSidebar }) => {
                     </div>
 
                     {/* Section 3: Preferences / AI Toggles */}
-                    <div className="flex flex-col gap-1.5 border-t border-card dark:border-slate-800/80 pt-3">
-                        <span className="text-[9px] font-bold text-secondary dark:text-secondary uppercase tracking-wider px-2 mb-0.5">Preferences</span>
-                        
-                        {/* Dark Mode toggle */}
-                        <div className="flex items-center justify-between px-2 py-1">
-                            <span className="text-xs font-semibold text-primary dark:text-slate-300">Dark Mode</span>
-                            <button 
-                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                    theme === 'dark' ? 'bg-[#1D4ED8]' : 'bg-active-pill dark:bg-slate-700'
-                                }`}
-                                aria-label="Toggle theme mode"
-                            >
-                                <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
-                                    theme === 'dark' ? 'translate-x-4' : 'translate-x-0'
-                                }`} />
-                            </button>
-                        </div>
-
-                        {/* API Config button */}
-                        {!isAccountant && (
+                    {!isAccountant && (
+                        <div className="flex flex-col gap-1.5 border-t border-card dark:border-slate-800/80 pt-3">
+                            <span className="text-[9px] font-bold text-secondary dark:text-secondary uppercase tracking-wider px-2 mb-0.5">Preferences</span>
+                            
+                            {/* API Config button */}
                             <button
                                 onClick={() => {
                                     setIsDropdownOpen(false);
@@ -238,8 +222,8 @@ const Navbar = ({ onToggleSidebar }) => {
                                 <Sliders className="h-3.5 w-3.5 text-secondary" />
                                 <span>API Configuration</span>
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Section 4: Danger Zone */}
                     <div className="border-t border-card dark:border-slate-800/80 pt-3">

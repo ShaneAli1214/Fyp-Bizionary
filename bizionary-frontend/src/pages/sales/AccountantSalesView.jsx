@@ -587,7 +587,7 @@ const AccountantSalesView = () => {
                                         </div>
                                         <button 
                                             onClick={() => setIsReturnModalOpen(true)}
-                                            className="flex items-center px-4 py-2 bg-gradient-to-r from-primary to-accent text-card font-bold text-xs rounded-full shadow-sm hover:-translate-y-0.5 transition-all"
+                                            className="flex items-center px-4 py-2 bg-primary text-white font-bold text-xs rounded-full shadow-sm hover:opacity-90 transition-all"
                                         >
                                             Record Sale Return
                                         </button>
@@ -761,7 +761,7 @@ const AccountantSalesView = () => {
                                         <button
                                             type="button"
                                             onClick={handleFetchSaleDetails}
-                                            className="px-4 py-2 bg-primary font-bold rounded-full text-xs active:scale-95"
+                                            className="px-4 py-2 bg-primary text-white font-bold rounded-full text-xs active:scale-95"
                                         >
                                             Verify Sale
                                         </button>
@@ -866,7 +866,7 @@ const AccountantSalesView = () => {
                                     <button
                                         type="submit"
                                         disabled={submittingReturn}
-                                        className="w-full py-3 bg-gradient-to-r from-rose-600 to-red-700 text-card font-bold text-xs rounded-full hover:shadow-[0_12px_24px_-4px_rgba(220,38,38,0.25)] hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-rose-600 text-white font-bold text-xs rounded-full hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         {submittingReturn && <span className="h-4.5 w-4.5 rounded-full border-2 border-card/30 border-t-white animate-spin inline-block" />}
                                         {submittingReturn ? 'Reversing ledger balances...' : 'Issue Refund & Record Return'}

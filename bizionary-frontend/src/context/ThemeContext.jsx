@@ -5,9 +5,10 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-    const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'light';
-    });
+    // Locked to dark mode
+    const theme = 'dark';
+    const setTheme = () => {}; // No-op to prevent errors in caller components
+
     const [palette, setPalette] = useState(() => {
         return localStorage.getItem('themePalette') || 'default';
     });
@@ -16,40 +17,14 @@ export const ThemeProvider = ({ children }) => {
         const root = window.document.documentElement;
         
         // Persist preference to localStorage
-        localStorage.setItem('theme', theme);
+        localStorage.setItem('theme', 'dark');
         localStorage.setItem('themePalette', palette);
         
-        // Explicitly handle theme toggle logic
-        if (theme === 'dark') {
-            root.classList.add('dark');
-        } else if (theme === 'light') {
-            root.classList.remove('dark');
-        } else if (theme === 'system') {
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (systemPrefersDark) {
-                root.classList.add('dark');
-            } else {
-                root.classList.remove('dark');
-            }
-        }
+        // Always enforce dark mode
+        root.classList.add('dark');
+    }, []);
 
-        // Listener for system changes when set to 'system'
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = (e) => {
-            if (theme === 'system') {
-                if (e.matches) {
-                    root.classList.add('dark');
-                } else {
-                    root.classList.remove('dark');
-                }
-            }
-        };
-        
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, [theme]);
-
-    // Apply palette classes separately so users can mix light/dark mode with a theme palette
+    // Apply palette classes separately so users can mix dark mode with a theme palette
     useEffect(() => {
         const root = window.document.documentElement;
         // remove existing theme- classes

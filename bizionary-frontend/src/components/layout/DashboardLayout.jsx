@@ -44,19 +44,19 @@ const LayoutShell = () => {
                 {!isChatbotRoute && (
                     <button
                         onClick={() => setIsChatbotOpen(true)}
-                        className="bg-gradient-to-l from-accent/95 via-accent to-teal-500 text-card pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
+                        className="bg-primary text-card pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
                         aria-label="AI Chatbot"
                         title="Chat with AI Assistant"
                     >
                         <div className="relative">
-                            <Bot className="w-4 h-4 group-hover:animate-bounce text-emerald-300 pointer-events-none" />
+                            <Bot className="w-4 h-4 group-hover:animate-bounce pointer-events-none" style={{ color: '#10B981' }} />
                             {/* Notification bubble */}
                             <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                             </span>
                         </div>
-                        <span className="text-[8px] font-black tracking-wider uppercase [writing-mode:vertical-lr] select-none text-emerald-50">
+                        <span className="text-[8px] font-black tracking-wider uppercase [writing-mode:vertical-lr] select-none" style={{ color: '#10B981' }}>
                             AI Chat
                         </span>
                     </button>
@@ -65,11 +65,11 @@ const LayoutShell = () => {
                 {/* AI Insights Button */}
                 <button
                     onClick={() => setIsInsightsOpen(true)}
-                    className="bg-gradient-to-l from-emerald-600 via-emerald-500 to-teal-550 text-card pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
+                    className="bg-emerald-600 text-white pl-2.5 pr-2 py-3 rounded-l-xl shadow-2xl border-l border-y border-white/10 flex flex-col items-center gap-1.5 cursor-pointer translate-x-1.5 hover:translate-x-0 hover:pl-3 hover:pr-2.5 transition-all duration-300 ease-out group"
                     aria-label="AI Insights"
                     title="Open AI Insights"
                 >
-                    <Zap className="w-4 h-4 group-hover:scale-110 text-emerald-250 pointer-events-none transition-transform" />
+                    <Zap className="w-4 h-4 group-hover:scale-110 text-white pointer-events-none transition-transform" />
                     <span className="text-[8px] font-black tracking-wider uppercase [writing-mode:vertical-lr] select-none text-emerald-50">
                         Insights
                     </span>

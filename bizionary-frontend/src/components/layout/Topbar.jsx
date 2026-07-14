@@ -102,20 +102,8 @@ const Topbar = () => {
                 </div>
             </div>
 
-            {/* Right — theme toggle + profile */}
+            {/* Right — profile */}
             <div className="flex items-center gap-2">
-                {/* Dark mode toggle */}
-                <button
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="p-1.5 text-secondary hover:text-primary hover:bg-active-pill/30 rounded-xl transition-colors"
-                    aria-label="Toggle dark mode"
-                >
-                    {theme === 'dark'
-                        ? <Sun className="w-4 h-4" />
-                        : <Moon className="w-4 h-4" />
-                    }
-                </button>
-
                 {/* Profile dropdown */}
                 <div className="relative">
                     {isDropdownOpen && (
@@ -179,21 +167,9 @@ const Topbar = () => {
                         </div>
 
                         {/* Preferences */}
-                        <div className="flex flex-col gap-1.5 border-t border-card pt-3">
-                            <span className="text-[9px] font-bold text-secondary uppercase tracking-wider px-2 mb-0.5">Preferences</span>
-                            <div className="flex items-center justify-between px-2 py-1">
-                                <span className="text-xs font-semibold text-primary">Dark Mode</span>
-                                <button
-                                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
-                                        theme === 'dark' ? 'bg-chart-accent' : 'bg-active-pill'
-                                    }`}
-                                    aria-label="Toggle theme"
-                                >
-                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-card shadow transition duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
-                                </button>
-                            </div>
-                            {!isAccountant && (
+                        {!isAccountant && (
+                            <div className="flex flex-col gap-1.5 border-t border-card pt-3">
+                                <span className="text-[9px] font-bold text-secondary uppercase tracking-wider px-2 mb-0.5">Preferences</span>
                                 <button
                                     onClick={() => { setIsDropdownOpen(false); navigate('/settings'); }}
                                     className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-left text-xs font-semibold text-primary hover:bg-active-pill/20 hover:pl-4 transition-all duration-200"
@@ -201,8 +177,8 @@ const Topbar = () => {
                                     <Sliders className="h-3.5 w-3.5 text-secondary" />
                                     <span>API Configuration</span>
                                 </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* Logout */}
                         <div className="border-t border-card pt-3">

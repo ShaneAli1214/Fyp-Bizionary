@@ -582,7 +582,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
                                 type="button"
                                 onClick={() => handleSend()}
                                 disabled={loading || !prompt.trim()}
-                                className="p-1.5 bg-gradient-to-br from-[#2B2620] to-[#2B2620] hover:from-[#13283E] hover:to-[#2B2620] text-card rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
+                                className="p-1.5 bg-[#2B2620] hover:bg-[#13283E] text-white rounded-xl transition-all duration-300 ease-in-out disabled:opacity-50 hover:scale-105 active:scale-95 shadow-sm"
                             >
                                 <Send className="w-4 h-4" />
                             </button>
